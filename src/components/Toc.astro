@@ -152,11 +152,19 @@ const items = headings.filter((h) => h.depth >= minDepth && h.depth <= maxDepth)
       current = slug;
       links.forEach((a) => a.classList.toggle('is-active', a.dataset.slug === slug));
     };
-    // 取视口上方最近的一个标题作为当前章节
+    // 取视口顶部（留出 sticky 导航栏高度）以上最近的一个标题作为当前章节。
+    // 用 getBoundingClientRect 而非 offsetTop：后者相对定位父元素，容器一旦 relative 就会算错。
+    const LINE = 120;
     const update = () => {
-      const line = window.scrollY + 120;
       let active = heads[0];
-      for (const h of heads) if (h.offsetTop <= line) active = h;
+      for (const h of heads) {
+        if (h.getBoundingClientRect().top <= LINE) active = h;
+        else break;
+      }
+      // 滚到底时高亮最后一个
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+        active = heads[heads.length - 1];
+      }
       setActive(active.id);
     };
     window.addEventListener('scroll', update, { passive: true });

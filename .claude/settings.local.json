@@ -26,7 +26,8 @@
       "Bash(printf '\\\\n# screenshots\\\\n.shots/\\\\n')",
       "Bash(git rm *)",
       "Bash(git commit -q -m 'Fix blank cards, heatmap overflow, right-side reading progress; lab batch 3 *)",
-      "Bash(git commit -q -m 'Draggable reading progress; sign-off rendered in footer; fix duplicate id in lab *)"
+      "Bash(git commit -q -m 'Draggable reading progress; sign-off rendered in footer; fix duplicate id in lab *)",
+      "Bash(git commit -q -m 'Toc: use viewport-relative heading positions for active section *)"
     ]
   }
 }
