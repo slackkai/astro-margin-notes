@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+---
+
+<BaseLayout title="关于" description={`关于 ${SITE.title} 和它的作者`}>
+  <section class="container section">
+    <span class="postit">👋 你好</span>
+    <h1 class="page-title">About</h1>
+
+    <div class="about-grid">
+      <div class="prose about-text">
+        <p>
+          这里是 <strong>{SITE.author}</strong> 的个人站点。我用它记录研究、想法、日常，以及那些值得反复翻看的资料。
+        </p>
+        <h2>这个站点有什么</h2>
+        <ul>
+          <li><strong>Academic</strong>：论文笔记、研究记录与发表。</li>
+          <li><strong>Insight</strong>：长文、观点与方法论。</li>
+          <li><strong>Dailies</strong>：碎碎念、日志与生活切片。</li>
+          <li><strong>Library</strong>：书、论文、工具与链接的收藏架。</li>
+        </ul>
+        <h2>联系</h2>
+        <p>
+          {SITE.github && <a href={SITE.github} target="_blank" rel="noopener">GitHub</a>}
+          {SITE.email && <span> · <a href={`mailto:${SITE.email}`}>{SITE.email}</a></span>}
+        </p>
+        <p class="meta">本站使用 <a href="https://astro.build" target="_blank" rel="noopener">Astro</a> 构建，托管在 GitHub Pages。</p>
+      </div>
+
+      <aside class="hand-card about-card">
+        <span class="tack" aria-hidden="true"></span>
+        <div class="avatar" aria-hidden="true">K</div>
+        <p class="about-name">{SITE.author}</p>
+        <p class="meta">{SITE.tagline}</p>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about-grid {
+    display: grid;
+    gap: 2.5rem;
+    margin-top: 2rem;
+  }
+  @media (min-width: 900px) {
+    .about-grid {
+      grid-template-columns: 1fr 16rem;
+      align-items: start;
+    }
+  }
+  .about-text {
+    margin-inline: 0;
+  }
+  .about-card {
+    padding: 2rem 1.5rem 1.5rem;
+    text-align: center;
+    transform: rotate(1deg);
+  }
+  .avatar {
+    width: 6rem;
+    height: 6rem;
+    margin: 0 auto 1rem;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-heading);
+    font-size: 3rem;
+    font-weight: 700;
+    color: #2d2d2d;
+    background: var(--postit);
+    border: 3px solid var(--pencil);
+    border-radius: 50% 45% 55% 50% / 55% 50% 50% 45%;
+    box-shadow: var(--shadow-hand);
+  }
+  .about-name {
+    margin: 0 0 0.25rem;
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+</style>

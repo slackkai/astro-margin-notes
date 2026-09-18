@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { SECTIONS } from '../../consts';
+import { getAllTagged, collectTags, entryHref, formatDate } from '../../utils/content';
+
+export async function getStaticPaths() {
+  const entries = await getAllTagged();
+  const tags = collectTags(entries);
+  return [...tags.keys()].map((tag) => ({
+    params: { tag },
+    props: { tag, entries: entries.filter((e) => e.data.tags.includes(tag)) },
+  }));
+}
+
+const { tag, entries } = Astro.props;
+---
+
+<BaseLayout title={`#${tag}`} description={`标签「${tag}」下的全部内容`}>
+  <section class="container section">
+    <a href="/tags/" class="postit">🏷️ 全部标签</a>
+    <h1 class="page-title">#{tag}</h1>
+    <p class="page-desc">{entries.length} 条内容</p>
+
+    <div class="grid">
+      {
+        entries.map((e, i) => (
+          <PostCard
+            href={entryHref(e)}
+            title={e.data.title ?? formatDate(e.data.date)}
+            date={e.data.date}
+            description={e.data.description}
+            badge={`${SECTIONS[e.collection].emoji} ${SECTIONS[e.collection].label}`}
+            rotate={i % 2 ? 0.4 : -0.4}
+          />
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .grid {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+  @media (min-width: 768px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

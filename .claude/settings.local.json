@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "Bash(pnpm -v)",
+      "Bash(git --version)",
+      "WebFetch(domain:blog.bobotou118.dpdns.org)",
+      "WebFetch(domain:blog.anluoying.com)",
+      "WebFetch(domain:lmh.loven7.com)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(npx astro *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -q -m 'Initial Astro blog: academic / insight / dailies / library sections *)"
+    ]
+  }
+}

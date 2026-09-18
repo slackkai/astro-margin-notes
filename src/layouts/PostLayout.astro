@@ -1,0 +1,111 @@
+---
+/**
+ * 文章详情布局：标题区 + 元信息 + 正文 + 标签 + 上一篇/下一篇
+ */
+import BaseLayout from './BaseLayout.astro';
+import Tags from '../components/Tags.astro';
+import { formatDate } from '../utils/content';
+import { SECTIONS, type SectionKey } from '../consts';
+
+interface Props {
+  section: SectionKey;
+  title: string;
+  description?: string;
+  date: Date;
+  updated?: Date;
+  tags?: string[];
+  image?: string;
+  prev?: { href: string; title: string };
+  next?: { href: string; title: string };
+}
+
+const { section, title, description, date, updated, tags = [], image, prev, next } = Astro.props;
+const sec = SECTIONS[section];
+---
+
+<BaseLayout title={title} description={description} image={image} type="article" publishedTime={date}>
+  <article class="container section">
+    <header class="post-header">
+      <a href={sec.href} class="postit">{sec.emoji} {sec.label}</a>
+      <h1 class="post-title">{title}</h1>
+      {description && <p class="post-desc">{description}</p>}
+      <p class="meta">
+        <time datetime={date.toISOString()}>{formatDate(date)}</time>
+        {updated && <span> · 更新于 {formatDate(updated)}</span>}
+      </p>
+      <slot name="extra" />
+    </header>
+
+    <div class="prose">
+      <slot />
+    </div>
+
+    <footer class="post-footer">
+      {tags.length > 0 && <Tags tags={tags} />}
+      <nav class="post-nav" aria-label="上一篇 / 下一篇">
+        {
+          prev ? (
+            <a href={prev.href} class="hand-card is-link post-nav-item">
+              <span class="meta">← 上一篇</span>
+              <span>{prev.title}</span>
+            </a>
+          ) : (
+            <span />
+          )
+        }
+        {
+          next ? (
+            <a href={next.href} class="hand-card is-link post-nav-item next">
+              <span class="meta">下一篇 →</span>
+              <span>{next.title}</span>
+            </a>
+          ) : (
+            <span />
+          )
+        }
+      </nav>
+    </footer>
+  </article>
+</BaseLayout>
+
+<style>
+  .post-header {
+    max-width: var(--max-w-prose);
+    margin: 0 auto 2.5rem;
+  }
+  .post-title {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin: 1rem 0 0.5rem;
+  }
+  .post-desc {
+    margin: 0 0 0.5rem;
+    font-size: 1.2rem;
+    color: var(--pencil-60);
+  }
+  .post-footer {
+    max-width: var(--max-w-prose);
+    margin: 3rem auto 0;
+    padding-top: 1.5rem;
+    border-top: 2px dashed var(--pencil-25);
+  }
+  .post-nav {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  @media (min-width: 640px) {
+    .post-nav {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .post-nav-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.75rem 1rem;
+    font-family: var(--font-heading);
+  }
+  .post-nav-item.next {
+    text-align: right;
+  }
+</style>

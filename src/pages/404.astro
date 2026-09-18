@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="404">
+  <section class="container section center">
+    <span class="postit">🙈 走丢了</span>
+    <h1 class="big">404</h1>
+    <p class="page-desc" style="margin-inline: auto">这一页被橡皮擦掉了，或者从来没画过。</p>
+    <a href="/" class="hand-btn">回到首页 →</a>
+  </section>
+</BaseLayout>
+
+<style>
+  .center {
+    text-align: center;
+    padding-block: 5rem;
+  }
+  .big {
+    font-size: clamp(5rem, 20vw, 10rem);
+    line-height: 1;
+    margin: 1rem 0;
+    color: var(--marker);
+  }
+  .hand-btn {
+    margin-top: 2rem;
+  }
+</style>

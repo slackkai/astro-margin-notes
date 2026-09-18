@@ -1,0 +1,72 @@
+---
+/**
+ * 通用文章卡片（academic / insight 列表用）
+ */
+import Tags from './Tags.astro';
+import { formatDate } from '../utils/content';
+
+interface Props {
+  href: string;
+  title: string;
+  date: Date;
+  description?: string;
+  tags?: string[];
+  badge?: string;
+  rotate?: number; // 角度，用于错落感
+}
+const { href, title, date, description, tags = [], badge, rotate = 0 } = Astro.props;
+---
+
+<a href={href} class="hand-card is-link post-card" style={`--r:${rotate}deg`}>
+  <div class="post-card-top">
+    <time class="meta" datetime={date.toISOString()}>{formatDate(date)}</time>
+    {badge && <span class="badge">{badge}</span>}
+  </div>
+  <h3 class="post-card-title">{title}</h3>
+  {description && <p class="post-card-desc">{description}</p>}
+  {tags.length > 0 && <Tags tags={tags} small />}
+</a>
+
+<style>
+  .post-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1rem 1.25rem;
+    transform: rotate(var(--r));
+  }
+  .post-card.is-link:hover {
+    transform: rotate(calc(var(--r) - 0.6deg)) translate(-1px, -1px);
+  }
+  .post-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .badge {
+    font-size: 0.8rem;
+    padding: 0 0.5rem;
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+    background: var(--postit-3);
+    color: #2d2d2d;
+    font-family: var(--font-heading);
+  }
+  .post-card-title {
+    font-size: 1.35rem;
+    transition: color 0.15s ease;
+  }
+  .post-card:hover .post-card-title {
+    color: var(--marker);
+  }
+  .post-card-desc {
+    margin: 0;
+    color: var(--pencil-60);
+    font-size: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

@@ -1,0 +1,157 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LibraryCard from '../../components/LibraryCard.astro';
+import { SECTIONS } from '../../consts';
+import { getPosts } from '../../utils/content';
+
+const items = await getPosts('library');
+const sec = SECTIONS.library;
+
+const TYPE_LABEL: Record<string, string> = {
+  book: '书',
+  paper: '论文',
+  tool: '工具',
+  course: '课程',
+  article: '文章',
+  video: '视频',
+  dataset: '数据集',
+  other: '其他',
+};
+const types = [...new Set(items.map((i) => i.data.type))];
+---
+
+<BaseLayout title={sec.label} description={sec.desc}>
+  <section class="container section">
+    <span class="postit">{sec.emoji} {sec.zh}</span>
+    <h1 class="page-title">{sec.label}</h1>
+    <p class="page-desc">{sec.desc}</p>
+
+    <div class="toolbar">
+      {
+        types.length > 1 && (
+          <div class="filters" role="group" aria-label="按类型筛选">
+            <button class="hand-btn small is-on" data-type="all">
+              全部
+            </button>
+            {types.map((t) => (
+              <button class="hand-btn small" data-type={t}>
+                {TYPE_LABEL[t] ?? t}
+              </button>
+            ))}
+          </div>
+        )
+      }
+      <input id="lib-search" class="search" type="search" placeholder="搜标题 / 作者 / 标签…" aria-label="搜索资料库" />
+    </div>
+
+    <div class="grid" id="lib-grid">
+      {
+        items.map((it, i) => (
+          <div
+            data-type={it.data.type}
+            data-search={[it.data.title, it.data.author, it.data.summary, ...it.data.tags].filter(Boolean).join(' ').toLowerCase()}
+          >
+            <LibraryCard
+              href={`/library/${it.id}/`}
+              title={it.data.title}
+              type={it.data.type}
+              url={it.data.url}
+              author={it.data.author}
+              rating={it.data.rating}
+              status={it.data.status}
+              summary={it.data.summary}
+              cover={it.data.cover}
+              tags={it.data.tags}
+              rotate={i % 3 === 0 ? -0.5 : i % 3 === 1 ? 0.4 : -0.2}
+            />
+          </div>
+        ))
+      }
+    </div>
+    <p class="muted empty" id="lib-empty" hidden>没有匹配的条目。</p>
+    {items.length === 0 && <p class="muted">资料库还是空的。</p>}
+  </section>
+</BaseLayout>
+
+<style>
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .hand-btn.is-on {
+    background: var(--postit);
+    color: #2d2d2d;
+  }
+  .search {
+    font: inherit;
+    font-size: 1rem;
+    padding: 0.35rem 0.9rem;
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+    background: var(--paper-2);
+    color: var(--pencil);
+    box-shadow: var(--shadow-hand-sm);
+    min-width: 14rem;
+  }
+  .search:focus {
+    outline: none;
+    background: var(--postit);
+    color: #2d2d2d;
+  }
+  .grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+  @media (min-width: 640px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1024px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .empty {
+    margin-top: 1.5rem;
+  }
+</style>
+
+<script>
+  const btns = document.querySelectorAll<HTMLButtonElement>('.filters [data-type]');
+  const items = document.querySelectorAll<HTMLElement>('#lib-grid > [data-type]');
+  const input = document.getElementById('lib-search') as HTMLInputElement | null;
+  const empty = document.getElementById('lib-empty');
+  let type = 'all';
+  let q = '';
+
+  function apply() {
+    let shown = 0;
+    items.forEach((it) => {
+      const ok = (type === 'all' || it.dataset.type === type) && (!q || (it.dataset.search ?? '').includes(q));
+      it.style.display = ok ? '' : 'none';
+      if (ok) shown++;
+    });
+    if (empty) empty.hidden = shown > 0;
+  }
+  btns.forEach((b) =>
+    b.addEventListener('click', () => {
+      btns.forEach((x) => x.classList.toggle('is-on', x === b));
+      type = b.dataset.type ?? 'all';
+      apply();
+    }),
+  );
+  input?.addEventListener('input', () => {
+    q = input.value.trim().toLowerCase();
+    apply();
+  });
+</script>

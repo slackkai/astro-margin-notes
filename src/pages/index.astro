@@ -1,0 +1,235 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionCard from '../components/SectionCard.astro';
+import PostCard from '../components/PostCard.astro';
+import LibraryCard from '../components/LibraryCard.astro';
+import { SITE, SECTIONS } from '../consts';
+import { getPosts, formatDate } from '../utils/content';
+
+const [academic, insight, dailies, library] = await Promise.all([
+  getPosts('academic'),
+  getPosts('insight'),
+  getPosts('dailies'),
+  getPosts('library'),
+]);
+
+const latestInsight = insight.slice(0, 3);
+const latestAcademic = academic.slice(0, 3);
+const latestDailies = dailies.slice(0, 4);
+const latestLibrary = library.slice(0, 3);
+
+const counts = { academic: academic.length, insight: insight.length, dailies: dailies.length, library: library.length };
+const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
+---
+
+<BaseLayout>
+  <!-- Hero -->
+  <section class="container section hero">
+    <svg class="doodle" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+      <path d="M10 50 Q30 10 50 50 T90 50" stroke="currentColor" stroke-width="3" stroke-dasharray="6 4" />
+      <circle cx="85" cy="48" r="4" fill="currentColor" />
+    </svg>
+    <span class="postit">🎉 欢迎光临～</span>
+    <h1 class="hero-title">{SITE.title}<span class="hero-dot">.</span></h1>
+    <p class="hero-sub">{SITE.tagline}</p>
+    <p class="hero-desc">{SITE.description}</p>
+  </section>
+
+  <!-- 四个板块入口 -->
+  <section class="container sections-grid">
+    <SectionCard {...SECTIONS.academic} count={counts.academic} />
+    <SectionCard {...SECTIONS.insight} count={counts.insight} />
+    <SectionCard {...SECTIONS.dailies} count={counts.dailies} unit="条" />
+    <SectionCard {...SECTIONS.library} count={counts.library} unit="项" />
+  </section>
+
+  <!-- 最新洞见 + 最新学术 -->
+  <section class="container section">
+    <div class="two-col">
+      <div class="panel" style="transform: rotate(-0.4deg)">
+        <span class="panel-label">最新洞见</span>
+        <div class="stack">
+          {latestInsight.map((p, i) => (
+            <PostCard
+              href={`/insight/${p.id}/`}
+              title={p.data.title}
+              date={p.data.date}
+              description={p.data.description}
+              rotate={rot(i)}
+            />
+          ))}
+          {latestInsight.length === 0 && <p class="muted">还没有内容，去 src/content/insight 写第一篇吧。</p>}
+        </div>
+        <a href={SECTIONS.insight.href} class="hand-btn more">全部洞见 →</a>
+      </div>
+
+      <div class="panel" style="transform: rotate(0.4deg)">
+        <span class="panel-label">最新学术</span>
+        <div class="stack">
+          {latestAcademic.map((p, i) => (
+            <PostCard
+              href={`/academic/${p.id}/`}
+              title={p.data.title}
+              date={p.data.date}
+              description={p.data.description ?? p.data.venue}
+              badge={p.data.kind}
+              rotate={rot(i + 1)}
+            />
+          ))}
+          {latestAcademic.length === 0 && <p class="muted">还没有内容，去 src/content/academic 写第一篇吧。</p>}
+        </div>
+        <a href={SECTIONS.academic.href} class="hand-btn more">全部学术 →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 日常快照 + 资料库 -->
+  <section class="container section">
+    <div class="two-col">
+      <div class="panel" style="transform: rotate(0.3deg)">
+        <span class="panel-label">日常快照</span>
+        <ul class="daily-list">
+          {latestDailies.map((d) => (
+            <li>
+              <a href={`/dailies/${d.id}/`} class="daily-row">
+                <time class="meta">{formatDate(d.data.date, 'short')}</time>
+                <span class="daily-row-title">{d.data.title ?? d.data.description ?? '（无题）'}</span>
+                {d.data.mood && <span class="meta">{d.data.mood}</span>}
+              </a>
+            </li>
+          ))}
+          {latestDailies.length === 0 && <li class="muted">还没有日常记录。</li>}
+        </ul>
+        <a href={SECTIONS.dailies.href} class="hand-btn more">全部日常 →</a>
+      </div>
+
+      <div class="panel" style="transform: rotate(-0.3deg)">
+        <span class="panel-label">资料库上新</span>
+        <div class="stack">
+          {latestLibrary.map((l, i) => (
+            <LibraryCard
+              href={`/library/${l.id}/`}
+              title={l.data.title}
+              type={l.data.type}
+              url={l.data.url}
+              author={l.data.author}
+              rating={l.data.rating}
+              status={l.data.status}
+              summary={l.data.summary}
+              rotate={rot(i)}
+            />
+          ))}
+          {latestLibrary.length === 0 && <p class="muted">资料库还是空的。</p>}
+        </div>
+        <a href={SECTIONS.library.href} class="hand-btn more">进入资料库 →</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    position: relative;
+    padding-bottom: 1rem;
+  }
+  .doodle {
+    position: absolute;
+    right: 0;
+    top: 2rem;
+    width: 6rem;
+    height: 6rem;
+    color: var(--marker);
+    opacity: 0.35;
+    transform: rotate(-12deg);
+    display: none;
+  }
+  @media (min-width: 768px) {
+    .doodle {
+      display: block;
+    }
+  }
+  .hero-title {
+    font-size: clamp(3rem, 9vw, 5.5rem);
+    line-height: 1.05;
+    margin: 1.2rem 0 0.75rem;
+  }
+  .hero-dot {
+    color: var(--marker);
+  }
+  .hero-sub {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--pencil-60);
+    margin: 0 0 0.5rem;
+  }
+  .hero-desc {
+    max-width: 34rem;
+    color: var(--pencil-60);
+    font-size: 1.15rem;
+    margin: 0;
+  }
+  .sections-grid {
+    display: grid;
+    gap: 1.5rem;
+    padding-block: 1.5rem;
+  }
+  @media (min-width: 640px) {
+    .sections-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1024px) {
+    .sections-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  .two-col {
+    display: grid;
+    gap: 2.5rem;
+  }
+  @media (min-width: 1024px) {
+    .two-col {
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+    }
+  }
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .more {
+    margin-top: 1.5rem;
+  }
+  .daily-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .daily-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 2px dashed var(--pencil-25);
+    border-radius: var(--radius-wobble-sm);
+    transition: all 0.12s ease;
+  }
+  .daily-row:hover {
+    border-style: solid;
+    border-color: var(--pencil);
+    background: var(--postit);
+    color: #2d2d2d;
+    transform: rotate(-0.5deg);
+  }
+  .daily-row-title {
+    font-family: var(--font-heading);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>

@@ -1,0 +1,57 @@
+---
+import { render } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+import { getPosts, formatDate } from '../../utils/content';
+
+export async function getStaticPaths() {
+  const posts = await getPosts('dailies');
+  return posts.map((post, i) => ({
+    params: { id: post.id },
+    props: { post, prev: posts[i + 1], next: posts[i - 1] },
+  }));
+}
+
+const { post, prev, next } = Astro.props;
+const { Content } = await render(post);
+const d = post.data;
+const title = d.title ?? formatDate(d.date);
+const label = (p: typeof post) => p.data.title ?? formatDate(p.data.date);
+---
+
+<PostLayout
+  section="dailies"
+  title={title}
+  description={d.description}
+  date={d.date}
+  tags={d.tags}
+  prev={prev && { href: `/dailies/${prev.id}/`, title: label(prev) }}
+  next={next && { href: `/dailies/${next.id}/`, title: label(next) }}
+>
+  <p slot="extra" class="meta">
+    {d.mood && <span>{d.mood}</span>}
+    {d.location && <span> · 📍{d.location}</span>}
+  </p>
+  <Content />
+  {
+    d.images.length > 0 && (
+      <div class="gallery">
+        {d.images.map((src) => (
+          <img src={src} alt="" loading="lazy" decoding="async" />
+        ))}
+      </div>
+    )
+  }
+</PostLayout>
+
+<style>
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .gallery img {
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+</style>

@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllTagged, collectTags } from '../../utils/content';
+
+const entries = await getAllTagged();
+const tags = collectTags(entries);
+const max = Math.max(1, ...tags.values());
+---
+
+<BaseLayout title="标签" description="按标签浏览全部内容">
+  <section class="container section">
+    <span class="postit">🏷️ 标签</span>
+    <h1 class="page-title">Tags</h1>
+    <p class="page-desc">共 {tags.size} 个标签，覆盖学术、洞见与日常。</p>
+
+    <ul class="cloud">
+      {
+        [...tags.entries()].map(([tag, count], i) => (
+          <li>
+            <a
+              href={`/tags/${encodeURIComponent(tag)}/`}
+              class="cloud-tag"
+              style={`--s:${0.9 + (count / max) * 0.8}; --r:${(i % 5) - 2}deg`}
+            >
+              #{tag} <span class="meta">{count}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    {tags.size === 0 && <p class="muted">还没有标签。</p>}
+  </section>
+</BaseLayout>
+
+<style>
+  .cloud {
+    list-style: none;
+    margin: 2rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .cloud-tag {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    padding: 0.2rem 0.9rem;
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+    background: var(--paper-2);
+    box-shadow: var(--shadow-hand-sm);
+    font-family: var(--font-heading);
+    font-size: calc(1rem * var(--s));
+    transform: rotate(var(--r));
+    transition: all 0.12s ease;
+  }
+  .cloud-tag:hover {
+    background: var(--postit);
+    color: #2d2d2d;
+    transform: rotate(0deg) translate(-1px, -1px);
+    box-shadow: var(--shadow-hand);
+  }
+</style>

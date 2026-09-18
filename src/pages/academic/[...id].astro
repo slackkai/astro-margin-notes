@@ -1,0 +1,102 @@
+---
+import { render } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+import { getPosts } from '../../utils/content';
+
+export async function getStaticPaths() {
+  const posts = await getPosts('academic');
+  return posts.map((post, i) => ({
+    params: { id: post.id },
+    props: { post, prev: posts[i + 1], next: posts[i - 1] },
+  }));
+}
+
+const { post, prev, next } = Astro.props;
+const { Content } = await render(post);
+const d = post.data;
+const links = d.links ?? {};
+const linkList = [
+  ['PDF', links.pdf],
+  ['arXiv', links.arxiv],
+  ['DOI', links.doi],
+  ['Code', links.code],
+  ['Slides', links.slides],
+  ['Site', links.site],
+].filter(([, url]) => url) as [string, string][];
+---
+
+<PostLayout
+  section="academic"
+  title={d.title}
+  description={d.description}
+  date={d.date}
+  updated={d.updated}
+  tags={d.tags}
+  prev={prev && { href: `/academic/${prev.id}/`, title: prev.data.title }}
+  next={next && { href: `/academic/${next.id}/`, title: next.data.title }}
+>
+  <div slot="extra" class="paper-meta">
+    {d.authors && <p class="authors">{d.authors.join(', ')}</p>}
+    {
+      (d.venue || d.year) && (
+        <p class="venue">
+          {d.venue}
+          {d.year && <span> · {d.year}</span>}
+        </p>
+      )
+    }
+    {
+      linkList.length > 0 && (
+        <div class="links">
+          {linkList.map(([label, url]) => (
+            <a href={url} target="_blank" rel="noopener" class="hand-btn small">
+              {label}
+            </a>
+          ))}
+        </div>
+      )
+    }
+  </div>
+
+  <Content />
+
+  {
+    d.bibtex && (
+      <details class="bibtex">
+        <summary>BibTeX</summary>
+        <pre><code>{d.bibtex.trim()}</code></pre>
+      </details>
+    )
+  }
+</PostLayout>
+
+<style>
+  .paper-meta {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .authors {
+    margin: 0;
+    font-family: var(--font-heading);
+  }
+  .venue {
+    margin: 0;
+    color: var(--pencil-60);
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .bibtex {
+    margin-top: 2.5rem;
+  }
+  .bibtex summary {
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-weight: 700;
+  }
+</style>

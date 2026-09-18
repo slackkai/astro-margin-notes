@@ -1,0 +1,38 @@
+---
+import { render } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+import { getPosts } from '../../utils/content';
+
+export async function getStaticPaths() {
+  const posts = await getPosts('insight');
+  return posts.map((post, i) => ({
+    params: { id: post.id },
+    props: { post, prev: posts[i + 1], next: posts[i - 1] },
+  }));
+}
+
+const { post, prev, next } = Astro.props;
+const { Content } = await render(post);
+const d = post.data;
+---
+
+<PostLayout
+  section="insight"
+  title={d.title}
+  description={d.description}
+  date={d.date}
+  updated={d.updated}
+  tags={d.tags}
+  image={d.cover}
+  prev={prev && { href: `/insight/${prev.id}/`, title: prev.data.title }}
+  next={next && { href: `/insight/${next.id}/`, title: next.data.title }}
+>
+  {d.cover && <img src={d.cover} alt="" class="cover" />}
+  <Content />
+</PostLayout>
+
+<style>
+  .cover {
+    margin-bottom: 2rem;
+  }
+</style>

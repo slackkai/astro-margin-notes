@@ -1,0 +1,170 @@
+---
+import { NAV, SITE } from '../consts';
+import ThemeToggle from './ThemeToggle.astro';
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/" class="brand" aria-label={SITE.title}>
+      <span class="brand-mark" aria-hidden="true">K</span>
+      <span class="brand-text">{SITE.title}</span>
+    </a>
+
+    <nav class="nav" aria-label="主导航">
+      <ul>
+        {
+          NAV.map((item) => (
+            <li>
+              <a href={item.href} class:list={['nav-link', { active: isActive(item.href) }]}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <ThemeToggle />
+      <button class="menu-btn" id="menu-btn" aria-label="打开菜单" aria-expanded="false" aria-controls="mobile-nav">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <nav class="mobile-nav" id="mobile-nav" hidden aria-label="移动端导航">
+    <ul class="container">
+      {
+        NAV.map((item) => (
+          <li>
+            <a href={item.href} class:list={['nav-link', { active: isActive(item.href) }]}>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(6px);
+    border-bottom: 2px dashed var(--pencil-25);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 4rem;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.35rem;
+  }
+  .brand-mark {
+    display: inline-grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+    background: var(--postit);
+    color: #2d2d2d;
+    box-shadow: var(--shadow-hand-sm);
+    transform: rotate(-4deg);
+    transition: transform 0.15s ease;
+  }
+  .brand:hover .brand-mark {
+    transform: rotate(4deg);
+  }
+  .nav {
+    display: none;
+  }
+  .nav ul,
+  .mobile-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 0.25rem;
+  }
+  .nav-link {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border: 2px solid transparent;
+    border-radius: var(--radius-wobble-sm);
+    font-size: 1.05rem;
+    transition: all 0.12s ease;
+  }
+  .nav-link:hover {
+    border-color: var(--pencil);
+    background: var(--paper-2);
+  }
+  .nav-link.active {
+    border-color: var(--pencil);
+    background: var(--postit);
+    color: #2d2d2d;
+    box-shadow: var(--shadow-hand-sm);
+    transform: rotate(-1.5deg);
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .menu-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+    background: var(--paper-2);
+    box-shadow: var(--shadow-hand-sm);
+  }
+  .mobile-nav ul {
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-block: 0.75rem 1rem;
+  }
+  .mobile-nav[hidden] {
+    display: none;
+  }
+  @media (min-width: 768px) {
+    .nav {
+      display: block;
+    }
+    .menu-btn,
+    .mobile-nav {
+      display: none !important;
+    }
+  }
+</style>
+
+<script>
+  const btn = document.getElementById('menu-btn');
+  const nav = document.getElementById('mobile-nav');
+  if (btn && nav) {
+    btn.addEventListener('click', () => {
+      const open = nav.hasAttribute('hidden');
+      if (open) nav.removeAttribute('hidden');
+      else nav.setAttribute('hidden', '');
+      btn.setAttribute('aria-expanded', String(open));
+    });
+  }
+</script>

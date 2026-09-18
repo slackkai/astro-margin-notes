@@ -1,0 +1,76 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DailyItem from '../../components/DailyItem.astro';
+import { SECTIONS } from '../../consts';
+import { getPosts, formatDate } from '../../utils/content';
+
+const posts = await getPosts('dailies');
+const sec = SECTIONS.dailies;
+
+// 按月分组
+const groups = new Map<string, typeof posts>();
+for (const p of posts) {
+  const key = formatDate(p.data.date, 'month');
+  if (!groups.has(key)) groups.set(key, []);
+  groups.get(key)!.push(p);
+}
+
+// 短内容直接渲染在时间线里
+const rendered = await Promise.all(posts.map(async (p) => [p.id, (await render(p)).Content] as const));
+const contentMap = new Map(rendered);
+---
+
+<BaseLayout title={sec.label} description={sec.desc}>
+  <section class="container section narrow">
+    <span class="postit">{sec.emoji} {sec.zh}</span>
+    <h1 class="page-title">{sec.label}</h1>
+    <p class="page-desc">{sec.desc}</p>
+
+    {
+      [...groups.entries()].map(([month, items]) => (
+        <div class="month">
+          <h2 class="month-title">
+            <span class="postit blue">{month}</span>
+          </h2>
+          <ul class="timeline">
+            {items.map((p) => {
+              const Content = contentMap.get(p.id)!;
+              return (
+                <DailyItem
+                  href={`/dailies/${p.id}/`}
+                  title={p.data.title}
+                  date={p.data.date}
+                  mood={p.data.mood}
+                  location={p.data.location}
+                  tags={p.data.tags}
+                  images={p.data.images}
+                >
+                  <Content />
+                </DailyItem>
+              );
+            })}
+          </ul>
+        </div>
+      ))
+    }
+    {posts.length === 0 && <p class="muted">还没有内容。</p>}
+  </section>
+</BaseLayout>
+
+<style>
+  .narrow {
+    max-width: 48rem;
+  }
+  .month {
+    margin-top: 2.5rem;
+  }
+  .month-title {
+    margin-bottom: 1.5rem;
+  }
+  .timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+</style>

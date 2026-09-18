@@ -1,0 +1,67 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { SECTIONS } from '../../consts';
+import { getPosts } from '../../utils/content';
+
+const posts = await getPosts('insight');
+const pinned = posts.filter((p) => p.data.pinned);
+const rest = posts.filter((p) => !p.data.pinned);
+const sec = SECTIONS.insight;
+---
+
+<BaseLayout title={sec.label} description={sec.desc}>
+  <section class="container section">
+    <span class="postit">{sec.emoji} {sec.zh}</span>
+    <h1 class="page-title">{sec.label}</h1>
+    <p class="page-desc">{sec.desc}</p>
+
+    {
+      pinned.length > 0 && (
+        <div class="panel" style="transform: rotate(-0.3deg); margin-top: 2.5rem">
+          <span class="panel-label">📌 置顶</span>
+          <div class="grid">
+            {pinned.map((p, i) => (
+              <PostCard
+                href={`/insight/${p.id}/`}
+                title={p.data.title}
+                date={p.data.date}
+                description={p.data.description}
+                tags={p.data.tags}
+                rotate={i % 2 ? 0.4 : -0.4}
+              />
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    <div class="grid" style="margin-top: 2rem">
+      {
+        rest.map((p, i) => (
+          <PostCard
+            href={`/insight/${p.id}/`}
+            title={p.data.title}
+            date={p.data.date}
+            description={p.data.description}
+            tags={p.data.tags}
+            rotate={i % 3 === 0 ? -0.5 : i % 3 === 1 ? 0.4 : -0.2}
+          />
+        ))
+      }
+    </div>
+    {posts.length === 0 && <p class="muted">还没有内容。</p>}
+  </section>
+</BaseLayout>
+
+<style>
+  .grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

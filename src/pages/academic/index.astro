@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { SECTIONS } from '../../consts';
+import { getPosts } from '../../utils/content';
+
+const posts = await getPosts('academic');
+const sec = SECTIONS.academic;
+
+const KIND_LABEL: Record<string, string> = {
+  note: '笔记',
+  paper: '发表',
+  talk: '报告',
+  course: '课程',
+  project: '项目',
+};
+const kinds = [...new Set(posts.map((p) => p.data.kind))];
+---
+
+<BaseLayout title={sec.label} description={sec.desc}>
+  <section class="container section">
+    <span class="postit">{sec.emoji} {sec.zh}</span>
+    <h1 class="page-title">{sec.label}</h1>
+    <p class="page-desc">{sec.desc}</p>
+
+    {
+      kinds.length > 1 && (
+        <div class="filters" role="group" aria-label="按类型筛选">
+          <button class="hand-btn small is-on" data-kind="all">
+            全部
+          </button>
+          {kinds.map((k) => (
+            <button class="hand-btn small" data-kind={k}>
+              {KIND_LABEL[k] ?? k}
+            </button>
+          ))}
+        </div>
+      )
+    }
+
+    <div class="grid" id="academic-grid">
+      {
+        posts.map((p, i) => (
+          <div data-kind={p.data.kind}>
+            <PostCard
+              href={`/academic/${p.id}/`}
+              title={p.data.title}
+              date={p.data.date}
+              description={p.data.description ?? p.data.venue}
+              tags={p.data.tags}
+              badge={KIND_LABEL[p.data.kind] ?? p.data.kind}
+              rotate={i % 3 === 0 ? -0.5 : i % 3 === 1 ? 0.4 : -0.2}
+            />
+          </div>
+        ))
+      }
+    </div>
+    {posts.length === 0 && <p class="muted">还没有内容。</p>}
+  </section>
+</BaseLayout>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+  }
+  .hand-btn.is-on {
+    background: var(--postit);
+    color: #2d2d2d;
+  }
+  .grid {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+
+<script>
+  const btns = document.querySelectorAll<HTMLButtonElement>('.filters [data-kind]');
+  const items = document.querySelectorAll<HTMLElement>('#academic-grid > [data-kind]');
+  btns.forEach((b) =>
+    b.addEventListener('click', () => {
+      btns.forEach((x) => x.classList.toggle('is-on', x === b));
+      const k = b.dataset.kind;
+      items.forEach((it) => (it.style.display = k === 'all' || it.dataset.kind === k ? '' : 'none'));
+    }),
+  );
+</script>

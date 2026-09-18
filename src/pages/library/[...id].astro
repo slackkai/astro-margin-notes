@@ -1,0 +1,81 @@
+---
+import { render } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+import { getPosts } from '../../utils/content';
+
+export async function getStaticPaths() {
+  const items = await getPosts('library');
+  return items.map((post, i) => ({
+    params: { id: post.id },
+    props: { post, prev: items[i + 1], next: items[i - 1] },
+  }));
+}
+
+const { post, prev, next } = Astro.props;
+const { Content } = await render(post);
+const d = post.data;
+const STATUS_LABEL: Record<string, string> = { todo: '待读', reading: '在读', done: '已读' };
+---
+
+<PostLayout
+  section="library"
+  title={d.title}
+  description={d.summary ?? d.description}
+  date={d.date}
+  updated={d.updated}
+  tags={d.tags}
+  image={d.cover}
+  prev={prev && { href: `/library/${prev.id}/`, title: prev.data.title }}
+  next={next && { href: `/library/${next.id}/`, title: next.data.title }}
+>
+  <div slot="extra" class="lib-meta">
+    {d.author && <p class="meta">作者：{d.author}</p>}
+    <div class="row">
+      <span class="postit green">{d.type}</span>
+      {d.status && <span class="postit blue">{STATUS_LABEL[d.status] ?? d.status}</span>}
+      {
+        d.rating && (
+          <span class="rating">
+            {'★'.repeat(d.rating)}
+            <span class="dim">{'★'.repeat(5 - d.rating)}</span>
+          </span>
+        )
+      }
+      {
+        d.url && (
+          <a href={d.url} target="_blank" rel="noopener" class="hand-btn small">
+            打开链接 →
+          </a>
+        )
+      }
+    </div>
+  </div>
+  {d.cover && <img src={d.cover} alt="" class="cover" />}
+  <Content />
+</PostLayout>
+
+<style>
+  .lib-meta {
+    margin-top: 0.75rem;
+  }
+  .lib-meta p {
+    margin: 0 0 0.5rem;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .rating {
+    color: var(--marker);
+    letter-spacing: 0.1em;
+  }
+  .rating .dim {
+    color: var(--pencil-25);
+  }
+  .cover {
+    max-width: 20rem;
+    margin-bottom: 2rem;
+  }
+</style>

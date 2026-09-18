@@ -1,0 +1,116 @@
+---
+/**
+ * 日常条目：时间线形式，短内容直接渲染在列表里
+ */
+import { formatDate } from '../utils/content';
+import Tags from './Tags.astro';
+
+interface Props {
+  href: string;
+  title?: string;
+  date: Date;
+  mood?: string;
+  location?: string;
+  tags?: string[];
+  images?: string[];
+}
+const { href, title, date, mood, location, tags = [], images = [] } = Astro.props;
+---
+
+<li class="daily">
+  <div class="daily-dot" aria-hidden="true"></div>
+  <div class="daily-body">
+    <p class="meta daily-meta">
+      <a href={href}><time datetime={date.toISOString()}>{formatDate(date)}</time></a>
+      {mood && <span> · {mood}</span>}
+      {location && <span> · 📍{location}</span>}
+    </p>
+    {title && <h3 class="daily-title"><a href={href}>{title}</a></h3>}
+    <div class="daily-content">
+      <slot />
+    </div>
+    {
+      images.length > 0 && (
+        <div class="daily-images">
+          {images.map((src) => (
+            <img src={src} alt="" loading="lazy" decoding="async" />
+          ))}
+        </div>
+      )
+    }
+    {tags.length > 0 && <Tags tags={tags} small />}
+  </div>
+</li>
+
+<style>
+  .daily {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.5rem 1fr;
+    gap: 0.5rem;
+    padding-bottom: 2rem;
+  }
+  .daily::before {
+    content: '';
+    position: absolute;
+    left: 0.6rem;
+    top: 1.2rem;
+    bottom: 0;
+    border-left: 2px dashed var(--pencil-25);
+  }
+  .daily:last-child::before {
+    display: none;
+  }
+  .daily-dot {
+    position: relative;
+    top: 0.35rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    border: 2px solid var(--pencil);
+    background: var(--postit);
+    box-shadow: var(--shadow-hand-sm);
+  }
+  .daily-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.85rem 1.1rem;
+    background: var(--paper-2);
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble);
+    box-shadow: var(--shadow-soft);
+  }
+  .daily-meta {
+    margin: 0;
+  }
+  .daily-meta a:hover {
+    color: var(--marker);
+  }
+  .daily-title {
+    font-size: 1.25rem;
+  }
+  .daily-title a:hover {
+    color: var(--marker);
+  }
+  .daily-content :global(p) {
+    margin: 0.25rem 0;
+  }
+  .daily-content :global(a) {
+    color: var(--pen);
+    text-decoration: underline wavy;
+    text-underline-offset: 3px;
+  }
+  .daily-images {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+  .daily-images img {
+    aspect-ratio: 1;
+    object-fit: cover;
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+  }
+</style>

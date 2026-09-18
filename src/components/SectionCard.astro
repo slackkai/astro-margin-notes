@@ -1,0 +1,80 @@
+---
+/**
+ * 首页板块入口卡片
+ */
+interface Props {
+  href: string;
+  emoji: string;
+  label: string;
+  zh: string;
+  desc: string;
+  count: number;
+  unit?: string;
+  rotate?: string;
+}
+const { href, emoji, label, zh, desc, count, unit = '篇', rotate = '0deg' } = Astro.props;
+---
+
+<a href={href} class="hand-card is-link sec-card" style={`--r:${rotate}`}>
+  <span class="tack" aria-hidden="true"></span>
+  <div class="sec-emoji" aria-hidden="true">{emoji}</div>
+  <h2 class="sec-title">{label} <span class="sec-zh">{zh}</span></h2>
+  <p class="sec-desc">{desc}</p>
+  <span class="sec-go">去看看 <span class="arrow">→</span></span>
+  <p class="meta sec-count">{count} {unit}</p>
+</a>
+
+<style>
+  .sec-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.6rem 1.5rem 1.2rem;
+    transform: rotate(var(--r));
+    height: 100%;
+  }
+  .sec-card.is-link:hover {
+    transform: rotate(calc(var(--r) - 0.8deg)) translate(-1px, -1px);
+  }
+  .sec-emoji {
+    font-size: 1.9rem;
+    margin-bottom: 0.5rem;
+  }
+  .sec-title {
+    font-size: 1.7rem;
+    margin-bottom: 0.35rem;
+    transition: color 0.15s ease;
+  }
+  .sec-zh {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--pencil-45);
+    margin-left: 0.25rem;
+  }
+  .sec-card:hover .sec-title {
+    color: var(--marker);
+  }
+  .sec-desc {
+    margin: 0 0 0.9rem;
+    color: var(--pencil-60);
+    line-height: 1.55;
+    flex: 1;
+  }
+  .sec-go {
+    color: var(--pen);
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+  }
+  .sec-card:hover .sec-go {
+    color: var(--marker);
+  }
+  .arrow {
+    transition: transform 0.15s ease;
+  }
+  .sec-card:hover .arrow {
+    transform: translateX(4px);
+  }
+  .sec-count {
+    margin: 0.6rem 0 0;
+  }
+</style>

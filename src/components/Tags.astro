@@ -1,0 +1,36 @@
+---
+interface Props {
+  tags: string[];
+  small?: boolean;
+}
+const { tags, small = false } = Astro.props;
+---
+
+{
+  tags.length > 0 && (
+    <ul class:list={['tags', { small }]}>
+      {tags.map((t) => (
+        <li>
+          <a href={`/tags/${encodeURIComponent(t)}/`} class="tag">
+            #{t}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  .tags {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .tags.small .tag {
+    font-size: 0.78rem;
+    padding-block: 0;
+  }
+</style>
