@@ -1,86 +1,19 @@
 ---
 /**
  * /lab/ —— 个性化原型试验场。只在 `npm run dev` 下可见，生产构建不生成此页面。
- * 第二批提案。
+ * 当前没有待审阅的原型。新提案会以独立区块加在这里。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import Odometer from '../../lab/Odometer.astro';
-import MarginNotes from '../../lab/MarginNotes.astro';
-import Heatmap from '../../lab/Heatmap.astro';
-import Publications from '../../lab/Publications.astro';
-import Signature from '../../lab/Signature.astro';
 
 export function getStaticPaths() {
   return import.meta.env.DEV ? [{ params: { slug: undefined } }] : [];
 }
-
-const items = [
-  { id: 'odometer', title: '7 · 里程计阅读进度', desc: '文章页顶部的阅读进度条：一台小车沿着轨道开，读到哪开到哪。本页已挂上，往下滚就能看到。' },
-  { id: 'notes', title: '8 · 页边批注', desc: '在 MDX 里写 <Note>，宽屏时以手写旁注挂在正文右侧，窄屏折叠为行内可点开。另有 <Mark> 荧光笔高亮。适合论文笔记。' },
-  { id: 'heatmap', title: '9 · 日常热力图', desc: '手绘方格的日历热力图，显示最近 20 周写日常的频率。数据来自 dailies 集合。放在 Dailies 页顶部。' },
-  { id: 'pubs', title: '10 · Publications 视图', desc: 'Academic 页新增：研究方向卡片 + 按年份分组的发表列表，venue 徽章与链接。数据来自 kind: paper 的条目。' },
-  { id: 'signature', title: '11 · 手写签名 logo', desc: '导航栏左上角用一笔画出的签名代替方块 K，首次加载时有描边动画。这里用字体模拟，你可以之后换成自己手写的 SVG 路径。' },
-];
 ---
 
 <BaseLayout title="Lab" description="个性化原型试验场">
-  <Odometer />
-  <div class="lab" id="lab">
-    <section class="container section">
-      <span class="postit">🧪 Lab · 仅本地可见 · 第二批</span>
-      <h1 class="page-title">原型试验场</h1>
-      <p class="page-desc">每一块是一个独立提案。看完告诉我编号：并入、修改、或删掉。</p>
-      <ol class="toc" start="7">
-        {items.map((it) => (
-          <li>
-            <a href={`#${it.id}`}>{it.title}</a>
-          </li>
-        ))}
-      </ol>
-    </section>
-
-    {
-      items.map((it) => (
-        <section class="container lab-item" id={it.id}>
-          <div class="lab-head">
-            <h2>{it.title}</h2>
-            <p class="muted">{it.desc}</p>
-          </div>
-          <div class="lab-body">
-            {it.id === 'odometer' && (
-              <p class="muted">看页面最顶端的那条线。</p>
-            )}
-            {it.id === 'notes' && <MarginNotes />}
-            {it.id === 'heatmap' && <Heatmap />}
-            {it.id === 'pubs' && <Publications />}
-            {it.id === 'signature' && <Signature />}
-          </div>
-        </section>
-      ))
-    }
-  </div>
+  <section class="container section">
+    <span class="postit">🧪 Lab · 仅本地可见</span>
+    <h1 class="page-title">原型试验场</h1>
+    <p class="page-desc">当前没有待审阅的原型。前两批已并入主站或按你的意见删除。</p>
+  </section>
 </BaseLayout>
-
-<style>
-  .toc {
-    margin: 1.5rem 0 0;
-    padding-left: 1.25rem;
-    columns: 2;
-    font-weight: 700;
-  }
-  .toc a:hover {
-    color: var(--marker);
-  }
-  .lab-item {
-    padding-block: 2.5rem;
-    border-top: 2px dashed var(--pencil-25);
-  }
-  .lab-head h2 {
-    font-size: 1.6rem;
-    margin-bottom: 0.25rem;
-  }
-  .lab-head p {
-    margin: 0 0 1.5rem;
-    max-width: 44rem;
-  }
-</style>

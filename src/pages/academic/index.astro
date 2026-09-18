@@ -1,15 +1,17 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
-import { SECTIONS } from '../../consts';
+import Publications from '../../components/Publications.astro';
+import { SECTIONS, RESEARCH_TOPICS } from '../../consts';
 import { getPosts } from '../../utils/content';
 
-const posts = await getPosts('academic');
+const all = await getPosts('academic');
+const papers = all.filter((p) => p.data.kind === 'paper');
+const posts = all.filter((p) => p.data.kind !== 'paper');
 const sec = SECTIONS.academic;
 
 const KIND_LABEL: Record<string, string> = {
   note: '笔记',
-  paper: '发表',
   talk: '报告',
   course: '课程',
   project: '项目',
@@ -23,20 +25,40 @@ const kinds = [...new Set(posts.map((p) => p.data.kind))];
     <h1 class="page-title reveal" style="--i:1">{sec.label}</h1>
     <p class="page-desc reveal" style="--i:2">{sec.desc}</p>
 
-    {
-      kinds.length > 1 && (
-        <div class="filters reveal" style="--i:3" role="group" aria-label="按类型筛选">
-          <button class="hand-btn small is-on" data-kind="all">
-            全部
-          </button>
-          {kinds.map((k) => (
-            <button class="hand-btn small" data-kind={k}>
-              {KIND_LABEL[k] ?? k}
+    <!-- 研究方向 -->
+    <div class="topics">
+      {
+        RESEARCH_TOPICS.map((t, i) => (
+          <div class="hand-card topic reveal" style={`--r:${i % 2 ? 0.6 : -0.6}deg; --i:${3 + i}`}>
+            <span class="topic-emoji" aria-hidden="true">{t.emoji}</span>
+            <strong>{t.title}</strong>
+            <span class="muted">{t.desc}</span>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- 发表 -->
+    {papers.length > 0 && <Publications papers={papers} index={6} />}
+
+    <!-- 笔记与其他 -->
+    <div class="notes-head reveal" style="--i:7">
+      <h2>Notes <span class="muted-zh">笔记与其他</span></h2>
+      {
+        kinds.length > 1 && (
+          <div class="filters" role="group" aria-label="按类型筛选">
+            <button class="hand-btn small is-on" data-kind="all">
+              全部
             </button>
-          ))}
-        </div>
-      )
-    }
+            {kinds.map((k) => (
+              <button class="hand-btn small" data-kind={k}>
+                {KIND_LABEL[k] ?? k}
+              </button>
+            ))}
+          </div>
+        )
+      }
+    </div>
 
     <div class="grid" id="academic-grid">
       {
@@ -50,32 +72,70 @@ const kinds = [...new Set(posts.map((p) => p.data.kind))];
               tags={p.data.tags}
               badge={KIND_LABEL[p.data.kind] ?? p.data.kind}
               rotate={i % 3 === 0 ? -0.5 : i % 3 === 1 ? 0.4 : -0.2}
-              index={4 + i}
+              index={8 + i}
               transitionName={`academic-${p.id}`}
             />
           </div>
         ))
       }
     </div>
-    {posts.length === 0 && <p class="muted">还没有内容。</p>}
+    {posts.length === 0 && <p class="muted">还没有笔记。</p>}
   </section>
 </BaseLayout>
 
 <style>
+  .topics {
+    display: grid;
+    gap: 1rem;
+    margin: 2rem 0 2.5rem;
+  }
+  @media (min-width: 768px) {
+    .topics {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .topic {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem 1.2rem;
+    transform: rotate(var(--r));
+  }
+  .topic-emoji {
+    font-size: 1.5rem;
+  }
+  .topic strong {
+    font-size: 1.15rem;
+  }
+  .notes-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 3rem 0 1rem;
+  }
+  .notes-head h2 {
+    font-size: 1.8rem;
+  }
+  .muted-zh {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--pencil-45);
+    margin-left: 0.25rem;
+  }
   .filters {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin: 1.5rem 0;
   }
   .hand-btn.is-on {
     background: var(--postit);
-    color: #2d2d2d;
   }
   .grid {
     display: grid;
     gap: 1.25rem;
-    margin-top: 1.5rem;
+    margin-top: 0.5rem;
   }
   @media (min-width: 768px) {
     .grid {

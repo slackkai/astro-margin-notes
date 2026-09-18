@@ -1,6 +1,7 @@
 ---
 import { NAV, SITE } from '../consts';
 import ThemeToggle from './ThemeToggle.astro';
+import PaletteToggle from './PaletteToggle.astro';
 
 const path = Astro.url.pathname;
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
@@ -28,6 +29,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     </nav>
 
     <div class="header-actions">
+      <PaletteToggle />
       <ThemeToggle />
       <button class="menu-btn" id="menu-btn" aria-label="打开菜单" aria-expanded="false" aria-controls="mobile-nav">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">

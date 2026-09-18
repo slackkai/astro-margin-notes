@@ -17,7 +17,12 @@
       "Bash(git commit -q -m 'Add dev-only /lab/ page with six personalization prototypes *)",
       "Bash(awk '{s+=$5} END {print s/1024/1024 \" MB total for screen variant\"}')",
       "Bash(cd *)",
-      "Bash(git commit -q -m 'Integrate approved prototypes; add second batch to /lab/ *)"
+      "Bash(git commit -q -m 'Integrate approved prototypes; add second batch to /lab/ *)",
+      "Bash(curl -s http://localhost:4321/ -o /tmp/home.html)",
+      "Bash(node -e ' *)",
+      "Bash(curl -s http://localhost:4321/ -o home.tmp.html)",
+      "Bash(curl -s http://localhost:4321/)",
+      "Bash(git commit -q -m 'Apply review feedback: palette switcher, dot grid, heatmap, publications, margin notes *)"
     ]
   }
 }

@@ -4,6 +4,7 @@
  */
 import BaseLayout from './BaseLayout.astro';
 import Tags from '../components/Tags.astro';
+import ReadingProgress from '../components/ReadingProgress.astro';
 import { formatDate } from '../utils/content';
 import { SECTIONS, type SectionKey } from '../consts';
 
@@ -25,6 +26,7 @@ const sec = SECTIONS[section];
 ---
 
 <BaseLayout title={title} description={description} image={image} type="article" publishedTime={date}>
+  <ReadingProgress />
   <article class="container section">
     <header class="post-header reveal">
       <a href={sec.href} class="postit">{sec.emoji} {sec.label}</a>

@@ -2,6 +2,7 @@
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import DailyItem from '../../components/DailyItem.astro';
+import Heatmap from '../../components/Heatmap.astro';
 import { SECTIONS } from '../../consts';
 import { getPosts, formatDate } from '../../utils/content';
 
@@ -27,6 +28,10 @@ let idx = 3;
     <span class="postit reveal" style="--i:0">{sec.emoji} {sec.zh}</span>
     <h1 class="page-title reveal" style="--i:1">{sec.label}</h1>
     <p class="page-desc reveal" style="--i:2">{sec.desc}</p>
+
+    <div class="reveal" style="--i:3; margin-top: 1.5rem">
+      <Heatmap />
+    </div>
 
     {
       [...groups.entries()].map(([month, items]) => (

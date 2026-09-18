@@ -1,22 +1,23 @@
 ---
 /**
- * 原型 9：日常热力图。最近 20 周，每格一天，按当天 dailies 数量着色。
+ * 日常热力图：最近 N 周，每格一天，GitHub 风格五级色阶。
  */
 import { getPosts } from '../utils/content';
 
-const WEEKS = 20;
+interface Props {
+  weeks?: number;
+}
+const { weeks: WEEKS = 20 } = Astro.props;
+
 const posts = await getPosts('dailies');
 const counts = new Map<string, number>();
-for (const p of posts) {
-  const k = p.data.date.toISOString().slice(0, 10);
-  counts.set(k, (counts.get(k) ?? 0) + 1);
-}
+const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+for (const p of posts) counts.set(dayKey(p.data.date), (counts.get(dayKey(p.data.date)) ?? 0) + 1);
 
-// 从本周日往前推 WEEKS 周，列 = 周，行 = 周日..周六
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 const end = new Date(today);
-end.setDate(end.getDate() + (6 - end.getDay())); // 本周六
+end.setDate(end.getDate() + (6 - end.getDay()));
 const start = new Date(end);
 start.setDate(start.getDate() - WEEKS * 7 + 1);
 
@@ -26,7 +27,7 @@ for (let w = 0; w < WEEKS; w++) {
   for (let d = 0; d < 7; d++) {
     const date = new Date(start);
     date.setDate(start.getDate() + w * 7 + d);
-    const key = date.toISOString().slice(0, 10);
+    const key = dayKey(date);
     col.push({ date, key, n: counts.get(key) ?? 0, future: date > today });
   }
   weeks.push(col);
@@ -37,6 +38,7 @@ const monthLabels = weeks.map((col, i) => {
   return !prev || prev.getMonth() !== d.getMonth() ? `${d.getMonth() + 1}月` : '';
 });
 const total = posts.filter((p) => p.data.date >= start).length;
+const level = (n: number) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n === 3 ? 3 : 4);
 ---
 
 <div class="heat hand-card">
@@ -44,17 +46,17 @@ const total = posts.filter((p) => p.data.date >= start).length;
     <strong>最近 {WEEKS} 周</strong>
     <span class="meta">写了 {total} 条日常</span>
   </div>
-  <div class="heat-grid" style={`--cols:${WEEKS}`}>
-    <div class="months">
+  <div class="heat-scroll">
+    <div class="months" style={`--cols:${WEEKS}`}>
       {monthLabels.map((m) => <span>{m}</span>)}
     </div>
-    <div class="cells">
+    <div class="cells" style={`--cols:${WEEKS}`}>
       {
         weeks.map((col) => (
           <div class="col">
             {col.map((c) => (
               <span
-                class:list={['cell', `l${Math.min(c.n, 3)}`, { future: c.future }]}
+                class:list={['cell', `l${level(c.n)}`, { future: c.future }]}
                 title={`${c.key}${c.n ? ` · ${c.n} 条` : ''}`}
                 style={`--jit:${((c.date.getDate() * 7) % 5) - 2}deg`}
               />
@@ -65,16 +67,27 @@ const total = posts.filter((p) => p.data.date >= start).length;
     </div>
   </div>
   <div class="legend meta">
-    少 <span class="cell l0" /><span class="cell l1" /><span class="cell l2" /><span class="cell l3" /> 多
+    少 <span class="cell l0" /><span class="cell l1" /><span class="cell l2" /><span class="cell l3" /><span class="cell l4" /> 多
   </div>
 </div>
 
 <style>
   .heat {
+    --h0: #ebedf0;
+    --h1: #9be9a8;
+    --h2: #40c463;
+    --h3: #30a14e;
+    --h4: #216e39;
     padding: 1.1rem 1.25rem 0.9rem;
     display: inline-block;
     max-width: 100%;
-    overflow-x: auto;
+  }
+  :global(html[data-theme='dark']) .heat {
+    --h0: #2b3040;
+    --h1: #0e4429;
+    --h2: #006d32;
+    --h3: #26a641;
+    --h4: #39d353;
   }
   .heat-head {
     display: flex;
@@ -82,19 +95,21 @@ const total = posts.filter((p) => p.data.date >= start).length;
     align-items: baseline;
     margin-bottom: 0.6rem;
   }
-  .months {
-    display: grid;
-    grid-template-columns: repeat(var(--cols), 1rem);
-    gap: 0.25rem;
-    font-size: 0.7rem;
-    color: var(--pencil-45);
-    margin-bottom: 0.2rem;
-    white-space: nowrap;
+  .heat-scroll {
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
   }
+  .months,
   .cells {
     display: grid;
     grid-template-columns: repeat(var(--cols), 1rem);
     gap: 0.25rem;
+  }
+  .months {
+    font-size: 0.7rem;
+    color: var(--pencil-45);
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
   }
   .col {
     display: grid;
@@ -105,9 +120,9 @@ const total = posts.filter((p) => p.data.date >= start).length;
     width: 1rem;
     height: 1rem;
     display: inline-block;
-    border: 1.5px solid var(--pencil-25);
+    border: 1.5px solid rgba(0, 0, 0, 0.06);
     border-radius: 3px 5px 4px 5px / 5px 4px 5px 3px;
-    background: transparent;
+    background: var(--h0);
     transform: rotate(var(--jit, 0deg));
     transition: transform 0.12s ease;
   }
@@ -116,20 +131,22 @@ const total = posts.filter((p) => p.data.date >= start).length;
     border-color: var(--pencil);
   }
   .cell.l1 {
-    background: color-mix(in srgb, var(--pen) 30%, transparent);
-    border-color: var(--pen);
+    background: var(--h1);
   }
   .cell.l2 {
-    background: color-mix(in srgb, var(--pen) 60%, transparent);
-    border-color: var(--pen);
+    background: var(--h2);
   }
   .cell.l3 {
-    background: var(--pen);
-    border-color: var(--pen);
+    background: var(--h3);
+  }
+  .cell.l4 {
+    background: var(--h4);
   }
   .cell.future {
+    background: transparent;
     border-style: dashed;
-    opacity: 0.4;
+    border-color: var(--pencil-25);
+    opacity: 0.5;
   }
   .legend {
     display: flex;

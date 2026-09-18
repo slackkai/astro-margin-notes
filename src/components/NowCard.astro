@@ -29,6 +29,14 @@ const updated = now?.data.updated;
   </header>
   <dl>
     {
+      !now && (
+        <>
+          <dt>提示</dt>
+          <dd class="muted">在 src/content/now/now.md 填写在做 / 在读 / 在听。</dd>
+        </>
+      )
+    }
+    {
       doing.length > 0 && (
         <>
           <dt>在做</dt>

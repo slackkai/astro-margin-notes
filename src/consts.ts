@@ -54,3 +54,10 @@ export const NAV = [
   { label: 'Tags', href: '/tags/' },
   { label: 'About', href: '/about/' },
 ];
+
+/** Academic 页顶部的研究方向卡片 */
+export const RESEARCH_TOPICS = [
+  { emoji: '🦾', title: '机器人学习', desc: '让机器人从数据和交互中学会技能，而不是靠人手写控制律。' },
+  { emoji: '🧠', title: '具身智能', desc: '感知、决策与动作在同一个身体里闭环。' },
+  { emoji: '🔁', title: 'Sim-to-Real', desc: '在仿真里训练，在真实世界里成立。' },
+];

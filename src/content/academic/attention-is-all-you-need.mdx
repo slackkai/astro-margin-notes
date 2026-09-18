@@ -19,9 +19,12 @@ bibtex: |
   }
 ---
 
+import Note from '../../components/mdx/Note.astro';
+import Mark from '../../components/mdx/Mark.astro';
+
 ## 核心思想
 
-完全抛弃循环与卷积，仅用注意力机制建模序列依赖。
+完全抛弃循环与卷积，<Mark>仅用注意力机制建模序列依赖</Mark>。<Note>这一句话在 2017 年是很激进的主张。当时的主流是 LSTM 加注意力。</Note>
 
 ## 缩放点积注意力
 
@@ -29,7 +32,7 @@ $$
 \mathrm{Attention}(Q, K, V) = \mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
 $$
 
-除以 $\sqrt{d_k}$ 是为了防止点积过大导致 softmax 进入梯度极小的区域。
+除以 $\sqrt{d_k}$ 是为了防止点积过大导致 softmax 进入梯度极小的区域。<Note>这里的 $d_k$ 是键向量的维度，不是序列长度。我第一次读时搞混了。</Note>
 
 ## 多头注意力
 
@@ -49,5 +52,5 @@ def positional_encoding(pos, i, d_model):
 
 ## 我的疑问
 
-- 为什么正弦编码而不是可学习编码？论文说效果相近，但正弦能外推到更长序列。
+- 为什么正弦编码而不是可学习编码？论文说效果相近，但正弦能外推到更长序列。<Note>后来的 RoPE 和 ALiBi 都在改这一处。具身场景里位置往往是连续的物理量，<Mark>这个假设值得重新审视</Mark>。</Note>
 - 后续工作（RoPE、ALiBi）如何改进？留待补充。

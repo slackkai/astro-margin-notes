@@ -17,7 +17,7 @@
 }
 
 :root {
-  /* 配色：靛蓝 × 赭石（冷白方格纸、深靛文字、靛蓝链接、赭石强调） */
+  /* 默认配色：靛蓝 × 赭石。其余配色见下方 html[data-palette=...]，由右上角切换 */
   --paper: #f6f7f4;
   --paper-2: #ffffff;
   --erased: #e0e3e0;
@@ -66,6 +66,108 @@ html[data-theme='dark'] {
   color-scheme: dark;
 }
 
+/* ---- 配色：纸黄 × 红笔 ---- */
+html[data-palette='classic'] {
+  --paper: #fdfbf7;
+  --paper-2: #ffffff;
+  --erased: #e5e0d8;
+  --pencil: #2d2d2d;
+  --pencil-60: rgba(45, 45, 45, 0.6);
+  --pencil-45: rgba(45, 45, 45, 0.45);
+  --pencil-25: rgba(45, 45, 45, 0.25);
+  --pencil-12: rgba(45, 45, 45, 0.12);
+  --marker: #ff4d4d;
+  --pen: #2d5da1;
+  --postit: #fff9c4;
+  --postit-2: #d7f2e3;
+  --postit-3: #e3ecfb;
+  --shadow-soft: 3px 3px 0 0 rgba(45, 45, 45, 0.1);
+}
+html[data-theme='dark'][data-palette='classic'] {
+  --paper: #1b1a17;
+  --paper-2: #24231f;
+  --erased: #2f2d28;
+  --pencil: #ece7dc;
+  --pencil-60: rgba(236, 231, 220, 0.65);
+  --pencil-45: rgba(236, 231, 220, 0.45);
+  --pencil-25: rgba(236, 231, 220, 0.25);
+  --pencil-12: rgba(236, 231, 220, 0.12);
+  --marker: #ff6b6b;
+  --pen: #7ea6e6;
+  --postit: #5a5230;
+  --postit-2: #2f4a3c;
+  --postit-3: #2f3d55;
+  --shadow-soft: 3px 3px 0 0 rgba(0, 0, 0, 0.35);
+}
+
+/* ---- 配色：墨绿 × 橙 ---- */
+html[data-palette='green'] {
+  --paper: #f7f4ec;
+  --paper-2: #fffdf8;
+  --erased: #e3ded2;
+  --pencil: #23302a;
+  --pencil-60: rgba(35, 48, 42, 0.6);
+  --pencil-45: rgba(35, 48, 42, 0.45);
+  --pencil-25: rgba(35, 48, 42, 0.25);
+  --pencil-12: rgba(35, 48, 42, 0.12);
+  --marker: #e8962e;
+  --pen: #2f6b4f;
+  --postit: #fbe9c7;
+  --postit-2: #d9eadf;
+  --postit-3: #e5ecf4;
+  --shadow-soft: 3px 3px 0 0 rgba(35, 48, 42, 0.1);
+}
+html[data-theme='dark'][data-palette='green'] {
+  --paper: #181c19;
+  --paper-2: #20261f;
+  --erased: #2c332c;
+  --pencil: #e6e9e0;
+  --pencil-60: rgba(230, 233, 224, 0.65);
+  --pencil-45: rgba(230, 233, 224, 0.45);
+  --pencil-25: rgba(230, 233, 224, 0.25);
+  --pencil-12: rgba(230, 233, 224, 0.12);
+  --marker: #f0a64a;
+  --pen: #7fbf9a;
+  --postit: #4a3d22;
+  --postit-2: #2b4a3a;
+  --postit-3: #2f3d4a;
+  --shadow-soft: 3px 3px 0 0 rgba(0, 0, 0, 0.35);
+}
+
+/* ---- 配色：炭黑 × 紫红 ---- */
+html[data-palette='mono'] {
+  --paper: #f3f1ed;
+  --paper-2: #fbfaf8;
+  --erased: #e1ded8;
+  --pencil: #1c1b19;
+  --pencil-60: rgba(28, 27, 25, 0.6);
+  --pencil-45: rgba(28, 27, 25, 0.45);
+  --pencil-25: rgba(28, 27, 25, 0.25);
+  --pencil-12: rgba(28, 27, 25, 0.12);
+  --marker: #b8336a;
+  --pen: #1c1b19;
+  --postit: #f6dde7;
+  --postit-2: #e9e6df;
+  --postit-3: #e9e6df;
+  --shadow-soft: 3px 3px 0 0 rgba(28, 27, 25, 0.1);
+}
+html[data-theme='dark'][data-palette='mono'] {
+  --paper: #1a1918;
+  --paper-2: #232120;
+  --erased: #2f2d2a;
+  --pencil: #ebe8e2;
+  --pencil-60: rgba(235, 232, 226, 0.65);
+  --pencil-45: rgba(235, 232, 226, 0.45);
+  --pencil-25: rgba(235, 232, 226, 0.25);
+  --pencil-12: rgba(235, 232, 226, 0.12);
+  --marker: #e0669a;
+  --pen: #ebe8e2;
+  --postit: #4a2a3a;
+  --postit-2: #33302c;
+  --postit-3: #33302c;
+  --shadow-soft: 3px 3px 0 0 rgba(0, 0, 0, 0.35);
+}
+
 *,
 *::before,
 *::after {
@@ -80,20 +182,21 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   font-family: var(--font-body);
   font-size: 1.125rem;
   line-height: 1.75;
   color: var(--pencil);
-  /* 方格纸：细线每 24px，粗线每 120px */
+  /* 点阵纸 */
   background-color: var(--paper);
-  background-image:
-    linear-gradient(var(--pencil-12) 1px, transparent 1px),
-    linear-gradient(90deg, var(--pencil-12) 1px, transparent 1px),
-    linear-gradient(var(--pencil-25) 1.5px, transparent 1.5px),
-    linear-gradient(90deg, var(--pencil-25) 1.5px, transparent 1.5px);
-  background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
+  background-image: radial-gradient(var(--erased) 1px, transparent 1px);
+  background-size: 24px 24px;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+main {
+  flex: 1 0 auto;
 }
 
 h1,
@@ -520,6 +623,108 @@ html[data-theme='dark'] .prose pre {
   font-size: 0.9rem;
   color: var(--pencil-45);
   margin-top: 0.5rem;
+}
+
+/* ---------- 页边批注 <Note> 与荧光笔 <Mark>（MDX 组件） ---------- */
+.prose {
+  counter-reset: note;
+}
+.mark {
+  background: linear-gradient(
+    104deg,
+    transparent 0.6%,
+    color-mix(in srgb, var(--postit) 85%, var(--marker) 15%) 1.2%,
+    color-mix(in srgb, var(--postit) 70%, var(--marker) 30%) 98%,
+    transparent 98.6%
+  );
+  padding: 0.05em 0.25em;
+  margin: 0 -0.15em;
+  border-radius: 0.2em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.note-toggle {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.note-ref {
+  display: inline-block;
+  font-size: 0.72em;
+  font-weight: 700;
+  color: var(--marker);
+  vertical-align: super;
+  padding: 0 0.3em;
+  margin-left: 0.15em;
+  line-height: 1.2;
+  cursor: pointer;
+  border: 1.5px solid var(--marker);
+  border-radius: 50% 40% 55% 45% / 50% 55% 45% 50%;
+  counter-increment: note;
+}
+.note-ref::after {
+  content: counter(note);
+}
+/* 窄屏：折叠，点击上标展开为行内块 */
+.note {
+  display: none;
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--pencil-60);
+  background: var(--paper-2);
+  border: 2px dashed var(--pencil-25);
+  border-radius: var(--radius-wobble-sm);
+}
+.note-toggle:checked ~ .note {
+  display: block;
+}
+/* 宽屏：浮到右侧页边，带红色虚线引线 */
+@media (min-width: 1200px) {
+  .note {
+    display: block;
+    float: right;
+    clear: right;
+    position: relative;
+    width: 13rem;
+    margin: 0.15rem calc(-13rem - 2rem) 0.75rem 0;
+    padding: 0.5rem 0.75rem;
+    background: var(--postit);
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+    box-shadow: var(--shadow-soft);
+    color: var(--pencil);
+    transform: rotate(1deg);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .note::before {
+    content: '';
+    position: absolute;
+    left: -2rem;
+    top: 0.9rem;
+    width: 1.8rem;
+    border-top: 2px dashed var(--marker);
+  }
+  .note:hover {
+    transform: rotate(0deg) translate(-2px, -2px);
+    box-shadow: var(--shadow-hand);
+  }
+}
+
+/* ---------- 文章阅读进度：顶部一条与强调色一致的细线 ---------- */
+.read-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--marker);
+  transform-origin: left;
+  transform: scaleX(0);
+  z-index: 60;
+  pointer-events: none;
 }
 
 /* ---------- 动效 ---------- */

@@ -1,0 +1,14 @@
+---
+/**
+ * 页边批注。MDX 用法：
+ *   import Note from '../../components/mdx/Note.astro';
+ *   正文……<Note>批注内容</Note>……
+ * 宽屏浮在右侧页边，窄屏点击上标展开。编号由 CSS 计数器自动生成。
+ */
+---
+
+<label class="note-wrap">
+  <input type="checkbox" class="note-toggle" aria-label="展开批注" />
+  <span class="note-ref"></span>
+  <span class="note"><slot /></span>
+</label>

@@ -1,0 +1,26 @@
+---
+/**
+ * 阅读进度：顶部一条强调色细线，宽度随滚动。用于文章页。
+ */
+---
+
+<div class="read-progress" id="read-progress" aria-hidden="true"></div>
+
+<script>
+  function initProgress() {
+    const bar = document.getElementById('read-progress');
+    if (!bar || bar.dataset.bound) return;
+    bar.dataset.bound = '1';
+    const el = bar;
+    const update = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      el.style.transform = `scaleX(${p})`;
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+  initProgress();
+  document.addEventListener('astro:page-load', initProgress);
+</script>

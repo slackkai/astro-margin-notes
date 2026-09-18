@@ -1,0 +1,122 @@
+---
+/**
+ * Publications：kind: paper 的条目按年份分组，带 venue 徽章与链接。
+ */
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  papers: CollectionEntry<'academic'>[];
+  index?: number;
+}
+const { papers, index = 0 } = Astro.props;
+
+const byYear = new Map<number, typeof papers>();
+for (const p of papers) {
+  const y = p.data.year ?? p.data.date.getFullYear();
+  if (!byYear.has(y)) byYear.set(y, []);
+  byYear.get(y)!.push(p);
+}
+const years = [...byYear.keys()].sort((a, b) => b - a);
+---
+
+<div class="panel reveal" style={`--r:-0.2deg; --i:${index}`}>
+  <span class="panel-label">Publications</span>
+  {
+    years.map((y) => (
+      <div class="year">
+        <h3 class="year-label">{y}</h3>
+        <ul class="pub-list">
+          {byYear.get(y)!.map((p) => (
+            <li class="pub">
+              <div class="pub-main">
+                <a href={`/academic/${p.id}/`} class="pub-title" transition:name={`academic-${p.id}`}>
+                  {p.data.title}
+                </a>
+                {p.data.authors && <p class="pub-authors meta">{p.data.authors.join(', ')}</p>}
+              </div>
+              <div class="pub-side">
+                {p.data.venue && <span class="venue">{p.data.venue}</span>}
+                <span class="links">
+                  {p.data.links?.pdf && <a href={p.data.links.pdf} target="_blank" rel="noopener">PDF</a>}
+                  {p.data.links?.arxiv && <a href={p.data.links.arxiv} target="_blank" rel="noopener">arXiv</a>}
+                  {p.data.links?.code && <a href={p.data.links.code} target="_blank" rel="noopener">Code</a>}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+  {years.length === 0 && <p class="muted">还没有 kind: paper 的条目。</p>}
+</div>
+
+<style>
+  .year {
+    display: grid;
+    grid-template-columns: 4rem 1fr;
+    gap: 1rem;
+    padding-block: 0.5rem;
+  }
+  .year + .year {
+    border-top: 2px dashed var(--pencil-25);
+  }
+  .year-label {
+    font-size: 1.5rem;
+    color: var(--marker);
+    transform: rotate(-4deg);
+    transform-origin: left top;
+  }
+  .pub-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .pub {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .pub-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  .pub-title:hover {
+    color: var(--marker);
+  }
+  .pub-authors {
+    margin: 0.1rem 0 0;
+  }
+  .pub-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+  }
+  .venue {
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0 0.55rem;
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+    background: var(--postit-3);
+    transform: rotate(1.5deg);
+  }
+  .links {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .links a {
+    color: var(--pen);
+    text-decoration: underline wavy;
+    text-underline-offset: 3px;
+  }
+  .links a:hover {
+    color: var(--marker);
+  }
+</style>

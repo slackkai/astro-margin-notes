@@ -46,13 +46,20 @@ const FONTS = [latinChunk];
 {ogImage && <meta name="twitter:image" content={ogImage} />}
 
 <script is:inline>
-  // 首屏前设置主题，避免闪烁；切页时把主题带到新文档上
+  // 首屏前设置主题与配色，避免闪烁；切页时把两者带到新文档上
   (function () {
+    const PALETTES = ['blue', 'classic', 'green', 'mono'];
     const getTheme = () =>
       localStorage.getItem('theme') ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    document.documentElement.setAttribute('data-theme', getTheme());
-    document.addEventListener('astro:before-swap', (e) => {
-      e.newDocument.documentElement.setAttribute('data-theme', getTheme());
-    });
+    const getPalette = () => {
+      const p = localStorage.getItem('palette');
+      return p && PALETTES.includes(p) ? p : 'blue';
+    };
+    const apply = (root) => {
+      root.setAttribute('data-theme', getTheme());
+      root.setAttribute('data-palette', getPalette());
+    };
+    apply(document.documentElement);
+    document.addEventListener('astro:before-swap', (e) => apply(e.newDocument.documentElement));
   })();
 </script>
