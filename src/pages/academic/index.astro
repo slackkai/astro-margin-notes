@@ -19,13 +19,13 @@ const kinds = [...new Set(posts.map((p) => p.data.kind))];
 
 <BaseLayout title={sec.label} description={sec.desc}>
   <section class="container section">
-    <span class="postit">{sec.emoji} {sec.zh}</span>
-    <h1 class="page-title">{sec.label}</h1>
-    <p class="page-desc">{sec.desc}</p>
+    <span class="postit reveal" style="--i:0">{sec.emoji} {sec.zh}</span>
+    <h1 class="page-title reveal" style="--i:1">{sec.label}</h1>
+    <p class="page-desc reveal" style="--i:2">{sec.desc}</p>
 
     {
       kinds.length > 1 && (
-        <div class="filters" role="group" aria-label="按类型筛选">
+        <div class="filters reveal" style="--i:3" role="group" aria-label="按类型筛选">
           <button class="hand-btn small is-on" data-kind="all">
             全部
           </button>
@@ -50,6 +50,8 @@ const kinds = [...new Set(posts.map((p) => p.data.kind))];
               tags={p.data.tags}
               badge={KIND_LABEL[p.data.kind] ?? p.data.kind}
               rotate={i % 3 === 0 ? -0.5 : i % 3 === 1 ? 0.4 : -0.2}
+              index={4 + i}
+              transitionName={`academic-${p.id}`}
             />
           </div>
         ))
@@ -83,13 +85,20 @@ const kinds = [...new Set(posts.map((p) => p.data.kind))];
 </style>
 
 <script>
-  const btns = document.querySelectorAll<HTMLButtonElement>('.filters [data-kind]');
-  const items = document.querySelectorAll<HTMLElement>('#academic-grid > [data-kind]');
-  btns.forEach((b) =>
-    b.addEventListener('click', () => {
-      btns.forEach((x) => x.classList.toggle('is-on', x === b));
-      const k = b.dataset.kind;
-      items.forEach((it) => (it.style.display = k === 'all' || it.dataset.kind === k ? '' : 'none'));
-    }),
-  );
+  function bindFilters() {
+    const grid = document.getElementById('academic-grid');
+    if (!grid || grid.dataset.bound) return;
+    grid.dataset.bound = '1';
+    const btns = document.querySelectorAll<HTMLButtonElement>('.filters [data-kind]');
+    const items = grid.querySelectorAll<HTMLElement>(':scope > [data-kind]');
+    btns.forEach((b) =>
+      b.addEventListener('click', () => {
+        btns.forEach((x) => x.classList.toggle('is-on', x === b));
+        const k = b.dataset.kind;
+        items.forEach((it) => (it.style.display = k === 'all' || it.dataset.kind === k ? '' : 'none'));
+      }),
+    );
+  }
+  bindFilters();
+  document.addEventListener('astro:page-load', bindFilters);
 </script>

@@ -13,16 +13,18 @@ interface Props {
   tags?: string[];
   badge?: string;
   rotate?: number; // 角度，用于错落感
+  index?: number; // 入场动画交错
+  transitionName?: string; // 与详情页标题共享的过渡名
 }
-const { href, title, date, description, tags = [], badge, rotate = 0 } = Astro.props;
+const { href, title, date, description, tags = [], badge, rotate = 0, index = 0, transitionName } = Astro.props;
 ---
 
-<a href={href} class="hand-card is-link post-card" style={`--r:${rotate}deg`}>
+<a href={href} class="hand-card is-link post-card reveal" style={`--r:${rotate}deg; --i:${index}`}>
   <div class="post-card-top">
     <time class="meta" datetime={date.toISOString()}>{formatDate(date)}</time>
     {badge && <span class="badge">{badge}</span>}
   </div>
-  <h3 class="post-card-title">{title}</h3>
+  <h3 class="post-card-title" transition:name={transitionName}>{title}</h3>
   {description && <p class="post-card-desc">{description}</p>}
   {tags.length > 0 && <Tags tags={tags} small />}
 </a>

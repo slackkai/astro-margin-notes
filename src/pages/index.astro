@@ -26,27 +26,27 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
   <!-- Hero -->
   <section class="container section hero">
     <svg class="doodle" viewBox="0 0 100 100" fill="none" aria-hidden="true">
-      <path d="M10 50 Q30 10 50 50 T90 50" stroke="currentColor" stroke-width="3" stroke-dasharray="6 4" />
-      <circle cx="85" cy="48" r="4" fill="currentColor" />
+      <path class="doodle-path" d="M10 50 Q30 10 50 50 T90 50" stroke="currentColor" stroke-width="3" stroke-dasharray="6 4" pathLength="100" />
+      <circle class="doodle-dot" cx="85" cy="48" r="4" fill="currentColor" />
     </svg>
-    <span class="postit">🎉 欢迎光临～</span>
-    <h1 class="hero-title">{SITE.title}<span class="hero-dot">.</span></h1>
-    <p class="hero-sub">{SITE.tagline}</p>
-    <p class="hero-desc">{SITE.description}</p>
+    <span class="postit reveal" style="--i:0">🎉 欢迎光临～</span>
+    <h1 class="hero-title reveal" style="--i:1">{SITE.title}<span class="hero-dot">.</span></h1>
+    <p class="hero-sub reveal" style="--i:2">{SITE.tagline}</p>
+    <p class="hero-desc reveal" style="--i:3">{SITE.description}</p>
   </section>
 
   <!-- 四个板块入口 -->
   <section class="container sections-grid">
-    <SectionCard {...SECTIONS.academic} count={counts.academic} />
-    <SectionCard {...SECTIONS.insight} count={counts.insight} />
-    <SectionCard {...SECTIONS.dailies} count={counts.dailies} unit="条" />
-    <SectionCard {...SECTIONS.library} count={counts.library} unit="项" />
+    <SectionCard {...SECTIONS.academic} count={counts.academic} index={4} />
+    <SectionCard {...SECTIONS.insight} count={counts.insight} index={5} />
+    <SectionCard {...SECTIONS.dailies} count={counts.dailies} unit="条" index={6} />
+    <SectionCard {...SECTIONS.library} count={counts.library} unit="项" index={7} />
   </section>
 
   <!-- 最新洞见 + 最新学术 -->
   <section class="container section">
     <div class="two-col">
-      <div class="panel" style="transform: rotate(-0.4deg)">
+      <div class="panel reveal" style="--r:-0.4deg; --i:8">
         <span class="panel-label">最新洞见</span>
         <div class="stack">
           {latestInsight.map((p, i) => (
@@ -56,6 +56,8 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
               date={p.data.date}
               description={p.data.description}
               rotate={rot(i)}
+              index={9 + i}
+              transitionName={`insight-${p.id}`}
             />
           ))}
           {latestInsight.length === 0 && <p class="muted">还没有内容，去 src/content/insight 写第一篇吧。</p>}
@@ -63,7 +65,7 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
         <a href={SECTIONS.insight.href} class="hand-btn more">全部洞见 →</a>
       </div>
 
-      <div class="panel" style="transform: rotate(0.4deg)">
+      <div class="panel reveal" style="--r:0.4deg; --i:9">
         <span class="panel-label">最新学术</span>
         <div class="stack">
           {latestAcademic.map((p, i) => (
@@ -74,6 +76,8 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
               description={p.data.description ?? p.data.venue}
               badge={p.data.kind}
               rotate={rot(i + 1)}
+              index={10 + i}
+              transitionName={`academic-${p.id}`}
             />
           ))}
           {latestAcademic.length === 0 && <p class="muted">还没有内容，去 src/content/academic 写第一篇吧。</p>}
@@ -86,14 +90,16 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
   <!-- 日常快照 + 资料库 -->
   <section class="container section">
     <div class="two-col">
-      <div class="panel" style="transform: rotate(0.3deg)">
+      <div class="panel reveal" style="--r:0.3deg; --i:12">
         <span class="panel-label">日常快照</span>
         <ul class="daily-list">
           {latestDailies.map((d) => (
             <li>
               <a href={`/dailies/${d.id}/`} class="daily-row">
                 <time class="meta">{formatDate(d.data.date, 'short')}</time>
-                <span class="daily-row-title">{d.data.title ?? d.data.description ?? '（无题）'}</span>
+                <span class="daily-row-title" transition:name={d.data.title ? `dailies-${d.id}` : undefined}>
+                  {d.data.title ?? d.data.description ?? '（无题）'}
+                </span>
                 {d.data.mood && <span class="meta">{d.data.mood}</span>}
               </a>
             </li>
@@ -103,7 +109,7 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
         <a href={SECTIONS.dailies.href} class="hand-btn more">全部日常 →</a>
       </div>
 
-      <div class="panel" style="transform: rotate(-0.3deg)">
+      <div class="panel reveal" style="--r:-0.3deg; --i:13">
         <span class="panel-label">资料库上新</span>
         <div class="stack">
           {latestLibrary.map((l, i) => (
@@ -117,6 +123,8 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
               status={l.data.status}
               summary={l.data.summary}
               rotate={rot(i)}
+              index={14 + i}
+              transitionName={`library-${l.id}`}
             />
           ))}
           {latestLibrary.length === 0 && <p class="muted">资料库还是空的。</p>}
@@ -143,6 +151,15 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
     transform: rotate(-12deg);
     display: none;
   }
+  .doodle-path {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: draw 1.2s ease-out 0.3s forwards;
+  }
+  .doodle-dot {
+    transform-origin: 85px 48px;
+    animation: pop 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) 1.3s both;
+  }
   @media (min-width: 768px) {
     .doodle {
       display: block;
@@ -154,7 +171,9 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
     margin: 1.2rem 0 0.75rem;
   }
   .hero-dot {
+    display: inline-block;
     color: var(--marker);
+    animation: pop 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.5s both;
   }
   .hero-sub {
     font-family: var(--font-heading);
@@ -192,6 +211,9 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
       grid-template-columns: 1fr 1fr;
       gap: 3rem;
     }
+  }
+  .panel {
+    transform: rotate(var(--r));
   }
   .stack {
     display: flex;

@@ -28,18 +28,21 @@ interface Props {
   cover?: string;
   tags?: string[];
   rotate?: number;
+  index?: number;
+  transitionName?: string;
 }
-const { href, title, type, url, author, rating, status, summary, cover, tags = [], rotate = 0 } = Astro.props;
+const { href, title, type, url, author, rating, status, summary, cover, tags = [], rotate = 0, index = 0, transitionName } =
+  Astro.props;
 ---
 
-<article class="hand-card lib-card" style={`--r:${rotate}deg`}>
+<article class="hand-card lib-card reveal" style={`--r:${rotate}deg; --i:${index}`}>
   {cover && <img class="lib-cover" src={cover} alt="" loading="lazy" decoding="async" />}
   <div class="lib-body">
     <div class="lib-top">
       <span class="lib-type">{TYPE_LABEL[type] ?? TYPE_LABEL.other}</span>
       {status && <span class="lib-status">{STATUS_LABEL[status] ?? status}</span>}
     </div>
-    <h3 class="lib-title"><a href={href}>{title}</a></h3>
+    <h3 class="lib-title" transition:name={transitionName}><a href={href}>{title}</a></h3>
     {author && <p class="meta lib-author">{author}</p>}
     {
       rating && (

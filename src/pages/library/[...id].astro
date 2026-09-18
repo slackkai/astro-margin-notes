@@ -19,6 +19,7 @@ const STATUS_LABEL: Record<string, string> = { todo: '待读', reading: '在读'
 
 <PostLayout
   section="library"
+  transitionName={`library-${post.id}`}
   title={d.title}
   description={d.summary ?? d.description}
   date={d.date}

@@ -87,10 +87,10 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     color: #2d2d2d;
     box-shadow: var(--shadow-hand-sm);
     transform: rotate(-4deg);
-    transition: transform 0.15s ease;
+    transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   .brand:hover .brand-mark {
-    transform: rotate(4deg);
+    transform: rotate(8deg) scale(1.08);
   }
   .nav {
     display: none;
@@ -114,6 +114,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   .nav-link:hover {
     border-color: var(--pencil);
     background: var(--paper-2);
+    transform: translateY(-1px);
   }
   .nav-link.active {
     border-color: var(--pencil);
@@ -121,6 +122,9 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     color: #2d2d2d;
     box-shadow: var(--shadow-hand-sm);
     transform: rotate(-1.5deg);
+  }
+  .nav-link.active:hover {
+    animation: wiggle 0.35s ease-in-out;
   }
   .header-actions {
     display: flex;
@@ -136,11 +140,21 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     border-radius: var(--radius-wobble-sm);
     background: var(--paper-2);
     box-shadow: var(--shadow-hand-sm);
+    transition: transform 0.1s ease;
+  }
+  .menu-btn[aria-expanded='true'] {
+    background: var(--postit);
+    color: #2d2d2d;
+    transform: rotate(90deg);
   }
   .mobile-nav ul {
     flex-direction: column;
     gap: 0.4rem;
     padding-block: 0.75rem 1rem;
+  }
+  .mobile-nav:not([hidden]) li {
+    animation: fade-up 0.3s both;
+    animation-delay: calc(var(--i, 0) * 40ms);
   }
   .mobile-nav[hidden] {
     display: none;
@@ -157,9 +171,12 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
 </style>
 
 <script>
-  const btn = document.getElementById('menu-btn');
-  const nav = document.getElementById('mobile-nav');
-  if (btn && nav) {
+  function bindMenu() {
+    const btn = document.getElementById('menu-btn');
+    const nav = document.getElementById('mobile-nav');
+    if (!btn || !nav || btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    nav.querySelectorAll('li').forEach((li, i) => li.style.setProperty('--i', String(i)));
     btn.addEventListener('click', () => {
       const open = nav.hasAttribute('hidden');
       if (open) nav.removeAttribute('hidden');
@@ -167,4 +184,6 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
       btn.setAttribute('aria-expanded', String(open));
     });
   }
+  bindMenu();
+  document.addEventListener('astro:page-load', bindMenu);
 </script>

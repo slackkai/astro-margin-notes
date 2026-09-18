@@ -2,10 +2,53 @@
    全局样式：手绘笔记本风格（纸张点阵背景 + 铅笔描边 + 硬阴影）
    ------------------------------------------------------------------ */
 
-@import '@fontsource/patrick-hand/400.css';
-@import '@fontsource/kalam/400.css';
-@import '@fontsource/kalam/700.css';
 @import 'katex/dist/katex.min.css';
+
+/* ---------- 字体：本地自托管 + 度量匹配的回退字体，避免切换时跳版 ---------- */
+@font-face {
+  font-family: 'Patrick Hand';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/patrick-hand-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Kalam';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/kalam-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Kalam';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/kalam-latin-700-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* 回退字体：用系统字体模拟手写字体的度量，首屏短暂回退时不跳版 */
+@font-face {
+  font-family: 'Patrick Hand Fallback';
+  src: local('Segoe UI'), local('Arial'), local('Helvetica');
+  size-adjust: 91%;
+  ascent-override: 106%;
+  descent-override: 28%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Kalam Fallback';
+  src: local('Segoe UI'), local('Arial'), local('Helvetica');
+  size-adjust: 104%;
+  ascent-override: 108%;
+  descent-override: 40%;
+  line-gap-override: 0%;
+}
 
 :root {
   --paper: #fdfbf7;
@@ -24,8 +67,8 @@
   --shadow-hand: 4px 4px 0 0 var(--pencil);
   --shadow-hand-sm: 2px 2px 0 0 var(--pencil);
   --shadow-soft: 3px 3px 0 0 rgba(45, 45, 45, 0.1);
-  --font-body: 'Patrick Hand', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', cursive, sans-serif;
-  --font-heading: 'Kalam', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', cursive, sans-serif;
+  --font-body: 'Patrick Hand', 'Patrick Hand Fallback', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-heading: 'Kalam', 'Kalam Fallback', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
   --radius-wobble: 255px 15px 225px 15px / 15px 225px 15px 255px;
   --radius-wobble-sm: 180px 15px 180px 15px / 15px 180px 15px 180px;
@@ -172,6 +215,11 @@ button {
   text-decoration-style: wavy;
   text-decoration-color: var(--marker);
   text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s ease, text-underline-offset 0.2s ease;
+}
+.wavy:hover {
+  text-decoration-color: var(--pen);
+  text-underline-offset: 6px;
 }
 
 .dashed {
@@ -205,6 +253,11 @@ button {
   background: var(--marker);
   box-shadow: var(--shadow-hand-sm);
   z-index: 2;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.hand-card:hover > .tack {
+  transform: translateX(-50%) translateY(1px) scale(0.92);
+  box-shadow: 1px 1px 0 0 var(--pencil);
 }
 .tack::after {
   content: '';
@@ -283,6 +336,7 @@ button {
   background: var(--paper-2);
   box-shadow: var(--shadow-soft);
   padding: 2.5rem 1.25rem 1.5rem;
+  transform: rotate(var(--r, 0deg));
 }
 @media (min-width: 768px) {
   .panel {
@@ -471,6 +525,69 @@ html[data-theme='dark'] .prose pre {
 }
 
 /* ---------- 动效 ---------- */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px) rotate(var(--r, 0deg));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--r, 0deg));
+  }
+}
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes pop {
+  0% {
+    transform: scale(0.6) rotate(-20deg);
+  }
+  60% {
+    transform: scale(1.15) rotate(6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* 入场：opacity/transform 交错动画，index 通过 --i 传入。
+   fill-mode 用 backwards：动画结束后回到正常样式，不覆盖 hover 时的 transform */
+.reveal {
+  animation: fade-up 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+/* View Transitions：主内容淡入上移 */
+::view-transition-old(main) {
+  animation: 0.16s ease-in both vt-out;
+}
+::view-transition-new(main) {
+  animation: 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both vt-in;
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -480,5 +597,10 @@ html[data-theme='dark'] .prose pre {
   }
   html {
     scroll-behavior: auto;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

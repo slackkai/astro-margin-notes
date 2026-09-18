@@ -5,11 +5,11 @@ import { SITE } from '../consts';
 
 <BaseLayout title="关于" description={`关于 ${SITE.title} 和它的作者`}>
   <section class="container section">
-    <span class="postit">👋 你好</span>
-    <h1 class="page-title">About</h1>
+    <span class="postit reveal" style="--i:0">👋 你好</span>
+    <h1 class="page-title reveal" style="--i:1">About</h1>
 
     <div class="about-grid">
-      <div class="prose about-text">
+      <div class="prose about-text reveal" style="--i:2">
         <p>
           这里是 <strong>{SITE.author}</strong> 的个人站点。我用它记录研究、想法、日常，以及那些值得反复翻看的资料。
         </p>
@@ -28,7 +28,7 @@ import { SITE } from '../consts';
         <p class="meta">本站使用 <a href="https://astro.build" target="_blank" rel="noopener">Astro</a> 构建，托管在 GitHub Pages。</p>
       </div>
 
-      <aside class="hand-card about-card">
+      <aside class="hand-card about-card reveal" style="--i:3; --r:1deg">
         <span class="tack" aria-hidden="true"></span>
         <div class="avatar" aria-hidden="true">K</div>
         <p class="about-name">{SITE.author}</p>
@@ -56,7 +56,7 @@ import { SITE } from '../consts';
   .about-card {
     padding: 2rem 1.5rem 1.5rem;
     text-align: center;
-    transform: rotate(1deg);
+    transform: rotate(var(--r));
   }
   .avatar {
     width: 6rem;

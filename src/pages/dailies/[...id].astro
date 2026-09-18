@@ -20,6 +20,7 @@ const label = (p: typeof post) => p.data.title ?? formatDate(p.data.date);
 
 <PostLayout
   section="dailies"
+  transitionName={d.title ? `dailies-${post.id}` : undefined}
   title={title}
   description={d.description}
   date={d.date}

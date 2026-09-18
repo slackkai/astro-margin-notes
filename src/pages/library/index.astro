@@ -22,11 +22,11 @@ const types = [...new Set(items.map((i) => i.data.type))];
 
 <BaseLayout title={sec.label} description={sec.desc}>
   <section class="container section">
-    <span class="postit">{sec.emoji} {sec.zh}</span>
-    <h1 class="page-title">{sec.label}</h1>
-    <p class="page-desc">{sec.desc}</p>
+    <span class="postit reveal" style="--i:0">{sec.emoji} {sec.zh}</span>
+    <h1 class="page-title reveal" style="--i:1">{sec.label}</h1>
+    <p class="page-desc reveal" style="--i:2">{sec.desc}</p>
 
-    <div class="toolbar">
+    <div class="toolbar reveal" style="--i:3">
       {
         types.length > 1 && (
           <div class="filters" role="group" aria-label="按类型筛选">
@@ -63,6 +63,8 @@ const types = [...new Set(items.map((i) => i.data.type))];
               cover={it.data.cover}
               tags={it.data.tags}
               rotate={i % 3 === 0 ? -0.5 : i % 3 === 1 ? 0.4 : -0.2}
+              index={4 + i}
+              transitionName={`library-${it.id}`}
             />
           </div>
         ))
@@ -101,11 +103,14 @@ const types = [...new Set(items.map((i) => i.data.type))];
     color: var(--pencil);
     box-shadow: var(--shadow-hand-sm);
     min-width: 14rem;
+    transition: all 0.12s ease;
   }
   .search:focus {
     outline: none;
     background: var(--postit);
     color: #2d2d2d;
+    transform: translate(-1px, -1px);
+    box-shadow: var(--shadow-hand);
   }
   .grid {
     display: grid;
@@ -127,31 +132,38 @@ const types = [...new Set(items.map((i) => i.data.type))];
 </style>
 
 <script>
-  const btns = document.querySelectorAll<HTMLButtonElement>('.filters [data-type]');
-  const items = document.querySelectorAll<HTMLElement>('#lib-grid > [data-type]');
-  const input = document.getElementById('lib-search') as HTMLInputElement | null;
-  const empty = document.getElementById('lib-empty');
-  let type = 'all';
-  let q = '';
+  function bindLibrary() {
+    const grid = document.getElementById('lib-grid');
+    if (!grid || grid.dataset.bound) return;
+    grid.dataset.bound = '1';
+    const btns = document.querySelectorAll<HTMLButtonElement>('.filters [data-type]');
+    const items = grid.querySelectorAll<HTMLElement>(':scope > [data-type]');
+    const input = document.getElementById('lib-search') as HTMLInputElement | null;
+    const empty = document.getElementById('lib-empty');
+    let type = 'all';
+    let q = '';
 
-  function apply() {
-    let shown = 0;
-    items.forEach((it) => {
-      const ok = (type === 'all' || it.dataset.type === type) && (!q || (it.dataset.search ?? '').includes(q));
-      it.style.display = ok ? '' : 'none';
-      if (ok) shown++;
-    });
-    if (empty) empty.hidden = shown > 0;
-  }
-  btns.forEach((b) =>
-    b.addEventListener('click', () => {
-      btns.forEach((x) => x.classList.toggle('is-on', x === b));
-      type = b.dataset.type ?? 'all';
+    function apply() {
+      let shown = 0;
+      items.forEach((it) => {
+        const ok = (type === 'all' || it.dataset.type === type) && (!q || (it.dataset.search ?? '').includes(q));
+        it.style.display = ok ? '' : 'none';
+        if (ok) shown++;
+      });
+      if (empty) empty.hidden = shown > 0;
+    }
+    btns.forEach((b) =>
+      b.addEventListener('click', () => {
+        btns.forEach((x) => x.classList.toggle('is-on', x === b));
+        type = b.dataset.type ?? 'all';
+        apply();
+      }),
+    );
+    input?.addEventListener('input', () => {
+      q = input.value.trim().toLowerCase();
       apply();
-    }),
-  );
-  input?.addEventListener('input', () => {
-    q = input.value.trim().toLowerCase();
-    apply();
-  });
+    });
+  }
+  bindLibrary();
+  document.addEventListener('astro:page-load', bindLibrary);
 </script>

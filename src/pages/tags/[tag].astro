@@ -18,9 +18,9 @@ const { tag, entries } = Astro.props;
 
 <BaseLayout title={`#${tag}`} description={`标签「${tag}」下的全部内容`}>
   <section class="container section">
-    <a href="/tags/" class="postit">🏷️ 全部标签</a>
-    <h1 class="page-title">#{tag}</h1>
-    <p class="page-desc">{entries.length} 条内容</p>
+    <a href="/tags/" class="postit reveal" style="--i:0">🏷️ 全部标签</a>
+    <h1 class="page-title reveal" style="--i:1">#{tag}</h1>
+    <p class="page-desc reveal" style="--i:2">{entries.length} 条内容</p>
 
     <div class="grid">
       {
@@ -32,6 +32,8 @@ const { tag, entries } = Astro.props;
             description={e.data.description}
             badge={`${SECTIONS[e.collection].emoji} ${SECTIONS[e.collection].label}`}
             rotate={i % 2 ? 0.4 : -0.4}
+            index={3 + i}
+            transitionName={e.data.title ? `${e.collection}-${e.id}` : undefined}
           />
         ))
       }

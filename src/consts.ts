@@ -49,8 +49,8 @@ export const SECTIONS: Record<
 };
 
 export const NAV = [
-  { label: '首页', href: '/' },
+  { label: 'Home', href: '/' },
   ...Object.values(SECTIONS).map((s) => ({ label: s.label, href: s.href })),
-  { label: '标签', href: '/tags/' },
-  { label: '关于', href: '/about/' },
+  { label: 'Tags', href: '/tags/' },
+  { label: 'About', href: '/about/' },
 ];

@@ -13,11 +13,13 @@ interface Props {
   location?: string;
   tags?: string[];
   images?: string[];
+  index?: number;
+  transitionName?: string;
 }
-const { href, title, date, mood, location, tags = [], images = [] } = Astro.props;
+const { href, title, date, mood, location, tags = [], images = [], index = 0, transitionName } = Astro.props;
 ---
 
-<li class="daily">
+<li class="daily reveal" style={`--i:${index}`}>
   <div class="daily-dot" aria-hidden="true"></div>
   <div class="daily-body">
     <p class="meta daily-meta">
@@ -25,7 +27,7 @@ const { href, title, date, mood, location, tags = [], images = [] } = Astro.prop
       {mood && <span> · {mood}</span>}
       {location && <span> · 📍{location}</span>}
     </p>
-    {title && <h3 class="daily-title"><a href={href}>{title}</a></h3>}
+    {title && <h3 class="daily-title" transition:name={transitionName}><a href={href}>{title}</a></h3>}
     <div class="daily-content">
       <slot />
     </div>

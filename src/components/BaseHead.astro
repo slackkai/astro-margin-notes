@@ -14,6 +14,12 @@ const { title, description = SITE.description, image, type = 'website', publishe
 const fullTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} — ${SITE.tagline}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = image ? new URL(image, Astro.site) : undefined;
+
+const FONTS = [
+  '/fonts/patrick-hand-latin-400-normal.woff2',
+  '/fonts/kalam-latin-400-normal.woff2',
+  '/fonts/kalam-latin-700-normal.woff2',
+];
 ---
 
 <meta charset="utf-8" />
@@ -26,6 +32,8 @@ const ogImage = image ? new URL(image, Astro.site) : undefined;
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="sitemap" href="/sitemap-index.xml" />
 <link rel="alternate" type="application/rss+xml" title={SITE.title} href={new URL('rss.xml', Astro.site)} />
+
+{FONTS.map((href) => <link rel="preload" as="font" type="font/woff2" href={href} crossorigin />)}
 
 <meta property="og:type" content={type} />
 <meta property="og:title" content={fullTitle} />
@@ -40,11 +48,13 @@ const ogImage = image ? new URL(image, Astro.site) : undefined;
 {ogImage && <meta name="twitter:image" content={ogImage} />}
 
 <script is:inline>
-  // 首屏前设置主题，避免闪烁
+  // 首屏前设置主题，避免闪烁；切页时把主题带到新文档上
   (function () {
-    const stored = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = stored ?? (prefersDark ? 'dark' : 'light');
-    document.documentElement.setAttribute('data-theme', theme);
+    const getTheme = () =>
+      localStorage.getItem('theme') ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', getTheme());
+    document.addEventListener('astro:before-swap', (e) => {
+      e.newDocument.documentElement.setAttribute('data-theme', getTheme());
+    });
   })();
 </script>

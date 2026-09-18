@@ -28,6 +28,12 @@
     color: #2d2d2d;
     transform: rotate(-6deg);
   }
+  .theme-toggle svg {
+    grid-area: 1 / 1;
+  }
+  .theme-toggle.is-switching svg {
+    animation: pop 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
   .moon {
     display: none;
   }
@@ -40,11 +46,20 @@
 </style>
 
 <script>
-  const btn = document.getElementById('theme-toggle');
-  btn?.addEventListener('click', () => {
-    const root = document.documentElement;
-    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
-  });
+  function bindThemeToggle() {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn || btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => {
+      const root = document.documentElement;
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      btn.classList.remove('is-switching');
+      void btn.offsetWidth; // 重启动画
+      btn.classList.add('is-switching');
+    });
+  }
+  bindThemeToggle();
+  document.addEventListener('astro:page-load', bindThemeToggle);
 </script>

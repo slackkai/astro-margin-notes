@@ -12,13 +12,13 @@ const sec = SECTIONS.insight;
 
 <BaseLayout title={sec.label} description={sec.desc}>
   <section class="container section">
-    <span class="postit">{sec.emoji} {sec.zh}</span>
-    <h1 class="page-title">{sec.label}</h1>
-    <p class="page-desc">{sec.desc}</p>
+    <span class="postit reveal" style="--i:0">{sec.emoji} {sec.zh}</span>
+    <h1 class="page-title reveal" style="--i:1">{sec.label}</h1>
+    <p class="page-desc reveal" style="--i:2">{sec.desc}</p>
 
     {
       pinned.length > 0 && (
-        <div class="panel" style="transform: rotate(-0.3deg); margin-top: 2.5rem">
+        <div class="panel reveal" style="--i:3; --r:-0.3deg; margin-top: 2.5rem">
           <span class="panel-label">📌 置顶</span>
           <div class="grid">
             {pinned.map((p, i) => (
@@ -29,6 +29,8 @@ const sec = SECTIONS.insight;
                 description={p.data.description}
                 tags={p.data.tags}
                 rotate={i % 2 ? 0.4 : -0.4}
+                index={4 + i}
+                transitionName={`insight-${p.id}`}
               />
             ))}
           </div>
@@ -46,6 +48,8 @@ const sec = SECTIONS.insight;
             description={p.data.description}
             tags={p.data.tags}
             rotate={i % 3 === 0 ? -0.5 : i % 3 === 1 ? 0.4 : -0.2}
+            index={4 + pinned.length + i}
+            transitionName={`insight-${p.id}`}
           />
         ))
       }

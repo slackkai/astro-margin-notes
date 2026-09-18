@@ -9,9 +9,9 @@ const max = Math.max(1, ...tags.values());
 
 <BaseLayout title="标签" description="按标签浏览全部内容">
   <section class="container section">
-    <span class="postit">🏷️ 标签</span>
-    <h1 class="page-title">Tags</h1>
-    <p class="page-desc">共 {tags.size} 个标签，覆盖学术、洞见与日常。</p>
+    <span class="postit reveal" style="--i:0">🏷️ 标签</span>
+    <h1 class="page-title reveal" style="--i:1">Tags</h1>
+    <p class="page-desc reveal" style="--i:2">共 {tags.size} 个标签，覆盖学术、洞见与日常。</p>
 
     <ul class="cloud">
       {
@@ -19,8 +19,8 @@ const max = Math.max(1, ...tags.values());
           <li>
             <a
               href={`/tags/${encodeURIComponent(tag)}/`}
-              class="cloud-tag"
-              style={`--s:${0.9 + (count / max) * 0.8}; --r:${(i % 5) - 2}deg`}
+              class="cloud-tag reveal"
+              style={`--s:${0.9 + (count / max) * 0.8}; --r:${(i % 5) - 2}deg; --i:${3 + i}`}
             >
               #{tag} <span class="meta">{count}</span>
             </a>

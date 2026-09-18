@@ -19,18 +19,19 @@ for (const p of posts) {
 // 短内容直接渲染在时间线里
 const rendered = await Promise.all(posts.map(async (p) => [p.id, (await render(p)).Content] as const));
 const contentMap = new Map(rendered);
+let idx = 3;
 ---
 
 <BaseLayout title={sec.label} description={sec.desc}>
   <section class="container section narrow">
-    <span class="postit">{sec.emoji} {sec.zh}</span>
-    <h1 class="page-title">{sec.label}</h1>
-    <p class="page-desc">{sec.desc}</p>
+    <span class="postit reveal" style="--i:0">{sec.emoji} {sec.zh}</span>
+    <h1 class="page-title reveal" style="--i:1">{sec.label}</h1>
+    <p class="page-desc reveal" style="--i:2">{sec.desc}</p>
 
     {
       [...groups.entries()].map(([month, items]) => (
         <div class="month">
-          <h2 class="month-title">
+          <h2 class="month-title reveal" style={`--i:${idx++}`}>
             <span class="postit blue">{month}</span>
           </h2>
           <ul class="timeline">
@@ -45,6 +46,8 @@ const contentMap = new Map(rendered);
                   location={p.data.location}
                   tags={p.data.tags}
                   images={p.data.images}
+                  index={idx++}
+                  transitionName={p.data.title ? `dailies-${p.id}` : undefined}
                 >
                   <Content />
                 </DailyItem>

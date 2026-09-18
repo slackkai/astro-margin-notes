@@ -17,17 +17,18 @@ interface Props {
   image?: string;
   prev?: { href: string; title: string };
   next?: { href: string; title: string };
+  transitionName?: string;
 }
 
-const { section, title, description, date, updated, tags = [], image, prev, next } = Astro.props;
+const { section, title, description, date, updated, tags = [], image, prev, next, transitionName } = Astro.props;
 const sec = SECTIONS[section];
 ---
 
 <BaseLayout title={title} description={description} image={image} type="article" publishedTime={date}>
   <article class="container section">
-    <header class="post-header">
+    <header class="post-header reveal">
       <a href={sec.href} class="postit">{sec.emoji} {sec.label}</a>
-      <h1 class="post-title">{title}</h1>
+      <h1 class="post-title" transition:name={transitionName}>{title}</h1>
       {description && <p class="post-desc">{description}</p>}
       <p class="meta">
         <time datetime={date.toISOString()}>{formatDate(date)}</time>
@@ -36,11 +37,11 @@ const sec = SECTIONS[section];
       <slot name="extra" />
     </header>
 
-    <div class="prose">
+    <div class="prose reveal" style="--i: 2">
       <slot />
     </div>
 
-    <footer class="post-footer">
+    <footer class="post-footer reveal" style="--i: 4">
       {tags.length > 0 && <Tags tags={tags} />}
       <nav class="post-nav" aria-label="上一篇 / 下一篇">
         {
