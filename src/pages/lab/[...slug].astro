@@ -7,7 +7,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArmHero from '../../components/ArmHero.astro';
 import Toc from '../../components/Toc.astro';
 import ReadingProgress from '../../components/ReadingProgress.astro';
-import SignOff from '../../components/SignOff.astro';
 import LibrarySort from '../../lab/LibrarySort.astro';
 import Workbench from '../../lab/Workbench.astro';
 
@@ -20,8 +19,8 @@ const items = [
   { id: 'toc', title: '13 · 文章目录', desc: '宽屏（≥1200px）贴在正文左侧页边，随滚动高亮当前章节；窄屏折叠在正文上方。下面是一段假文章。' },
   { id: 'libsort', title: '14 · 资料库排序与随机', desc: '按最新 / 评分 / 在读优先排序；"随机来一本"会滚到一张随机卡片并晃一下。' },
   { id: 'bench', title: '15 · 关于页工作台', desc: '工具、硬件、正在追的三个问题。文案是占位。' },
-  { id: 'signoff', title: '16 · 页脚结束语', desc: '页脚随机抽一句手写结束语。本页页脚已挂上，点按钮换一句。' },
-  { id: 'progress', title: '· 右侧阅读进度（已改）', desc: '现在在页面右边缘：虚线轨道、强调色填充、小圆钮和百分比。本页已挂上。' },
+  { id: 'signoff', title: '16 · 页脚结束语', desc: '页脚随机抽一句手写结束语，每次加载不同。本页页脚已挂上（滚到最底下），点下面按钮换一句。' },
+  { id: 'progress', title: '· 右侧阅读进度（已改）', desc: '现在在页面右边缘：虚线轨道、强调色填充、小圆钮和百分比。可以拖圆钮或点轨道任意位置跳转，键盘聚焦后上下键也能用。' },
 ];
 
 const fakeHeadings = [
@@ -34,7 +33,7 @@ const fakeHeadings = [
 const filler = '这是一段用来撑长度的占位文字。目录在左侧随滚动高亮当前章节。你可以点目录项跳转，也可以直接滚动观察高亮变化。';
 ---
 
-<BaseLayout title="Lab" description="个性化原型试验场">
+<BaseLayout title="Lab" description="个性化原型试验场" signoff>
   <ReadingProgress />
   <div class="lab" id="lab">
     <section class="container section">
@@ -88,8 +87,7 @@ const filler = '这是一段用来撑长度的占位文字。目录在左侧随�
     <section class="container lab-item" id="signoff">
       <div class="lab-head"><h2>{items[4].title}</h2><p class="muted">{items[4].desc}</p></div>
       <div class="signoff-demo">
-        <SignOff />
-        <button class="hand-btn small" id="signoff-next">换一句</button>
+        <button class="hand-btn small" id="signoff-next">换一句并滚到页脚</button>
       </div>
     </section>
 
@@ -136,17 +134,25 @@ const filler = '这是一段用来撑长度的占位文字。目录在左侧随�
 </style>
 
 <script>
-  document.getElementById('signoff-next')?.addEventListener('click', () => {
-    const el = document.getElementById('signoff');
-    const text = el?.querySelector<HTMLElement>('.signoff-text');
-    if (!el || !text) return;
-    const lines: string[] = JSON.parse(el.dataset.lines ?? '[]');
-    const cur = text.textContent;
-    let next = cur;
-    while (next === cur && lines.length > 1) next = lines[Math.floor(Math.random() * lines.length)];
-    text.style.animation = 'none';
-    void text.offsetWidth;
-    text.style.animation = '';
-    text.textContent = next ?? '';
-  });
+  function initSignoffDemo() {
+    const btn = document.getElementById('signoff-next');
+    if (!btn || btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => {
+      const el = document.getElementById('site-signoff');
+      const text = el?.querySelector<HTMLElement>('.signoff-text');
+      if (!el || !text) return;
+      const lines: string[] = JSON.parse(el.dataset.lines ?? '[]');
+      const cur = text.textContent;
+      let next = cur;
+      while (next === cur && lines.length > 1) next = lines[Math.floor(Math.random() * lines.length)];
+      text.style.animation = 'none';
+      void text.offsetWidth;
+      text.style.animation = '';
+      text.textContent = next ?? '';
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+  initSignoffDemo();
+  document.addEventListener('astro:page-load', initSignoffDemo);
 </script>

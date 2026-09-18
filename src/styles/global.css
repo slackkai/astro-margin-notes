@@ -713,7 +713,7 @@ html[data-theme='dark'] .prose pre {
   }
 }
 
-/* ---------- 文章阅读进度：右侧竖向轨道，虚线底 + 强调色填充 + 小圆钮 ---------- */
+/* ---------- 文章阅读进度：右侧竖向轨道，虚线底 + 强调色填充 + 可拖动圆钮 ---------- */
 .read-progress {
   display: none;
   position: fixed;
@@ -723,7 +723,20 @@ html[data-theme='dark'] .prose pre {
   width: 0;
   border-left: 2px dashed var(--pencil-25);
   z-index: 40;
-  pointer-events: none;
+  outline: none;
+}
+/* 透明的宽命中区，方便拖动 */
+.read-progress-hit {
+  position: absolute;
+  top: -0.5rem;
+  bottom: -0.5rem;
+  left: -0.9rem;
+  width: 1.8rem;
+  cursor: grab;
+  touch-action: none;
+}
+.read-progress.is-dragging .read-progress-hit {
+  cursor: grabbing;
 }
 .read-progress-fill {
   position: absolute;
@@ -734,6 +747,7 @@ html[data-theme='dark'] .prose pre {
   background: var(--marker);
   transform-origin: top;
   transform: scaleY(0);
+  pointer-events: none;
 }
 .read-progress-knob {
   position: absolute;
@@ -746,6 +760,14 @@ html[data-theme='dark'] .prose pre {
   background: var(--marker);
   box-shadow: 1px 1px 0 0 var(--pencil);
   transform: translateY(-50%);
+  pointer-events: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.read-progress:hover .read-progress-knob,
+.read-progress.is-dragging .read-progress-knob,
+.read-progress:focus-visible .read-progress-knob {
+  transform: translateY(-50%) scale(1.3);
+  box-shadow: var(--shadow-hand-sm);
 }
 .read-progress-label {
   position: absolute;
@@ -755,6 +777,11 @@ html[data-theme='dark'] .prose pre {
   font-size: 0.75rem;
   color: var(--pencil-45);
   white-space: nowrap;
+  pointer-events: none;
+}
+.read-progress.is-dragging .read-progress-label {
+  color: var(--pencil);
+  font-weight: 700;
 }
 @media (min-width: 900px) {
   .read-progress {

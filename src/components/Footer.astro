@@ -1,19 +1,28 @@
 ---
 import { SITE } from '../consts';
+import SignOff from './SignOff.astro';
+
+interface Props {
+  signoff?: boolean;
+}
+const { signoff = false } = Astro.props;
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <div class="container footer-inner">
-    <p>
-      © {year} <a href="/" class="wavy">{SITE.title}</a> · {SITE.tagline}
-    </p>
-    <ul class="footer-links">
-      <li><a href="/rss.xml">RSS</a></li>
-      <li><a href="/sitemap-index.xml">Sitemap</a></li>
-      {SITE.github && <li><a href={SITE.github} target="_blank" rel="noopener">GitHub</a></li>}
-      <li><a href="https://astro.build" target="_blank" rel="noopener">Built with Astro</a></li>
-    </ul>
+  <div class="container">
+    {signoff && <SignOff />}
+    <div class="footer-inner">
+      <p>
+        © {year} <a href="/" class="wavy">{SITE.title}</a> · {SITE.tagline}
+      </p>
+      <ul class="footer-links">
+        <li><a href="/rss.xml">RSS</a></li>
+        <li><a href="/sitemap-index.xml">Sitemap</a></li>
+        {SITE.github && <li><a href={SITE.github} target="_blank" rel="noopener">GitHub</a></li>}
+        <li><a href="https://astro.build" target="_blank" rel="noopener">Built with Astro</a></li>
+      </ul>
+    </div>
   </div>
 </footer>
 

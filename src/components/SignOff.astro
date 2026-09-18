@@ -11,7 +11,7 @@ export const SIGNOFFS = [
 ];
 ---
 
-<p class="signoff" id="signoff" data-lines={JSON.stringify(SIGNOFFS)}>
+<p class="signoff" id="site-signoff" data-lines={JSON.stringify(SIGNOFFS)}>
   <span class="signoff-dash" aria-hidden="true">—</span>
   <span class="signoff-text">{SIGNOFFS[0]}</span>
 </p>
@@ -37,7 +37,7 @@ export const SIGNOFFS = [
 
 <script>
   function initSignoff() {
-    const el = document.getElementById('signoff');
+    const el = document.getElementById('site-signoff');
     if (!el || el.dataset.bound) return;
     el.dataset.bound = '1';
     const text = el.querySelector<HTMLElement>('.signoff-text');
