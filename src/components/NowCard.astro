@@ -1,0 +1,136 @@
+---
+/**
+ * Now 卡片：横线索引卡 + 回形针。
+ * 数据来自 src/content/now/now.md，"在读"自动合并资料库中 status: reading 的条目。
+ */
+import { getEntry } from 'astro:content';
+import { getPosts, formatDate } from '../utils/content';
+
+interface Props {
+  index?: number;
+}
+const { index = 0 } = Astro.props;
+
+const now = await getEntry('now', 'now');
+const libReading = (await getPosts('library')).filter((l) => l.data.status === 'reading').slice(0, 3);
+const doing = now?.data.doing ?? [];
+const listening = now?.data.listening ?? [];
+const manualReading = now?.data.reading ?? [];
+const updated = now?.data.updated;
+---
+
+<article class="index-card reveal" style={`--i:${index}`}>
+  <svg class="clip left" viewBox="0 0 24 48" aria-hidden="true">
+    <path d="M8 44 V10 a4 4 0 0 1 8 0 V38 a2 2 0 0 1 -4 0 V14" />
+  </svg>
+  <header>
+    <span class="stamp">NOW</span>
+    {updated && <span class="meta">更新于 {formatDate(updated)}</span>}
+  </header>
+  <dl>
+    {
+      doing.length > 0 && (
+        <>
+          <dt>在做</dt>
+          <dd>{doing.join('；')}</dd>
+        </>
+      )
+    }
+    {
+      (libReading.length > 0 || manualReading.length > 0) && (
+        <>
+          <dt>在读</dt>
+          <dd>
+            {libReading.map((r, i) => (
+              <>
+                <a href={`/library/${r.id}/`}>{r.data.title}</a>
+                {(i < libReading.length - 1 || manualReading.length > 0) && '、'}
+              </>
+            ))}
+            {manualReading.join('、')}
+          </dd>
+        </>
+      )
+    }
+    {
+      listening.length > 0 && (
+        <>
+          <dt>在听</dt>
+          <dd>{listening.join('；')}</dd>
+        </>
+      )
+    }
+  </dl>
+</article>
+
+<style>
+  .index-card {
+    position: relative;
+    padding: 1.25rem 1.5rem;
+    background-color: var(--paper-2);
+    background-image: linear-gradient(transparent 0, transparent calc(100% - 1px), var(--pencil-12) calc(100% - 1px));
+    background-size: 100% 1.9rem;
+    background-position: 0 3.2rem;
+    border: 2px solid var(--pencil);
+    border-radius: 8px 14px 10px 12px / 12px 10px 14px 8px;
+    box-shadow: var(--shadow-soft);
+    --r: -1.2deg;
+    transform: rotate(var(--r));
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .index-card:hover {
+    transform: rotate(-0.4deg) translate(-1px, -1px);
+    box-shadow: var(--shadow-hand);
+  }
+  .index-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 3.1rem;
+    border-top: 2px solid color-mix(in srgb, var(--marker) 55%, transparent);
+  }
+  .clip.left {
+    right: auto;
+    left: 1.5rem;
+    transform: rotate(-6deg);
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.9rem;
+  }
+  .stamp {
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 0 0.5rem;
+    border: 2px solid var(--marker);
+    color: var(--marker);
+    border-radius: 4px;
+    transform: rotate(-3deg);
+    display: inline-block;
+  }
+  dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 3.2rem 1fr;
+    row-gap: 0.25rem;
+    line-height: 1.9rem;
+  }
+  dt {
+    font-weight: 700;
+    color: var(--pen);
+  }
+  dd {
+    margin: 0;
+  }
+  dd a {
+    text-decoration: underline wavy;
+    text-decoration-color: var(--marker);
+    text-underline-offset: 3px;
+  }
+  dd a:hover {
+    color: var(--marker);
+  }
+</style>

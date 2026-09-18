@@ -1,0 +1,126 @@
+---
+/**
+ * 原型 11：手写签名 logo。用文楷渲染 "latentk" 并做描边动画；采纳后可替换为真实手写 SVG 路径。
+ */
+---
+
+<div class="sig-demo">
+  <div class="sig-row">
+    <p class="label">现状</p>
+    <a class="brand" href="#signature">
+      <span class="brand-mark">K</span>
+      <span>LatentK</span>
+    </a>
+  </div>
+  <div class="sig-row">
+    <p class="label">提案：签名描边</p>
+    <a class="brand" href="#signature">
+      <svg class="sig" viewBox="0 0 220 64" aria-label="latentk">
+        <text class="sig-text" x="4" y="46">latentk</text>
+        <path class="sig-line" d="M6 56 C60 52, 120 60, 214 54" pathLength="100" />
+        <circle class="sig-dot" cx="212" cy="30" r="4" />
+      </svg>
+    </a>
+    <button class="hand-btn small" id="sig-replay">重播</button>
+  </div>
+</div>
+
+<style>
+  .sig-demo {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .sig-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .label {
+    margin: 0;
+    width: 8rem;
+    font-size: 0.9rem;
+    color: var(--pencil-45);
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    font-size: 1.35rem;
+  }
+  .brand-mark {
+    display: inline-grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+    background: var(--postit);
+    box-shadow: var(--shadow-hand-sm);
+    transform: rotate(-4deg);
+  }
+  .sig {
+    height: 3rem;
+    width: auto;
+    overflow: visible;
+  }
+  .sig-text {
+    font-family: var(--font-body);
+    font-size: 44px;
+    font-style: italic;
+    fill: var(--pencil);
+    stroke: var(--pencil);
+    stroke-width: 1.2;
+    stroke-linejoin: round;
+    stroke-dasharray: 420;
+    stroke-dashoffset: 420;
+    fill-opacity: 0;
+    animation: sig-draw 1.4s ease-out forwards, sig-fill 0.4s ease-out 1.2s forwards;
+  }
+  .sig-line {
+    fill: none;
+    stroke: var(--marker);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: sig-draw 0.5s ease-out 1.3s forwards;
+  }
+  .sig-dot {
+    fill: var(--marker);
+    transform-origin: 212px 30px;
+    animation: pop 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) 1.8s both;
+  }
+  .sig.replay .sig-text,
+  .sig.replay .sig-line,
+  .sig.replay .sig-dot {
+    animation: none;
+  }
+  @keyframes sig-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes sig-fill {
+    to {
+      fill-opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  function initSig() {
+    const btn = document.getElementById('sig-replay');
+    const svg = document.querySelector<SVGElement>('.sig');
+    if (!btn || !svg || btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => {
+      svg.classList.add('replay');
+      void svg.getBoundingClientRect();
+      svg.classList.remove('replay');
+    });
+  }
+  initSig();
+  document.addEventListener('astro:page-load', initSig);
+</script>

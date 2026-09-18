@@ -72,4 +72,15 @@ const library = defineCollection({
   }),
 });
 
-export const collections = { academic, insight, dailies, library };
+/** Now：首页索引卡，单文件 src/content/now/now.md */
+const now = defineCollection({
+  loader: glob({ pattern: 'now.md', base: './src/content/now' }),
+  schema: z.object({
+    updated: z.coerce.date(),
+    doing: z.array(z.string()).default([]),
+    reading: z.array(z.string()).default([]), // 手填，会与资料库 status: reading 合并
+    listening: z.array(z.string()).default([]),
+  }),
+});
+
+export const collections = { academic, insight, dailies, library, now };

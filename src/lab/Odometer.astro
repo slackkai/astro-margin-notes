@@ -1,0 +1,87 @@
+---
+/**
+ * 原型 7：里程计阅读进度。固定在页面顶部，小车随滚动前进，轮子转动。
+ */
+---
+
+<div class="odo" id="odo" aria-hidden="true">
+  <div class="odo-track"></div>
+  <div class="odo-fill" id="odo-fill"></div>
+  <svg class="odo-bot" id="odo-bot" viewBox="0 0 40 28">
+    <rect x="6" y="4" width="26" height="14" rx="4" fill="var(--paper-2)" />
+    <rect x="11" y="8" width="16" height="6" rx="2" fill="var(--erased)" />
+    <path d="M19 4 v-3" />
+    <circle cx="19" cy="0.5" r="1.6" fill="var(--marker)" stroke="none" />
+    <g class="w" style="transform-origin: 12px 22px"><circle cx="12" cy="22" r="4.5" fill="var(--paper-2)" /><path d="M12 17.5 v9 M7.5 22 h9" /></g>
+    <g class="w" style="transform-origin: 26px 22px"><circle cx="26" cy="22" r="4.5" fill="var(--paper-2)" /><path d="M26 17.5 v9 M21.5 22 h9" /></g>
+  </svg>
+</div>
+
+<style>
+  .odo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0;
+    z-index: 60;
+    pointer-events: none;
+  }
+  .odo-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    border-top: 2px dashed var(--pencil-25);
+  }
+  .odo-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    border-top: 3px solid var(--marker);
+    transition: width 0.08s linear;
+  }
+  .odo-bot {
+    position: absolute;
+    top: -2px;
+    left: 0;
+    width: 40px;
+    height: 28px;
+    transform: translateX(-20px);
+    fill: none;
+    stroke: var(--pencil);
+    stroke-width: 2;
+    stroke-linecap: round;
+    transition: transform 0.08s linear;
+  }
+  .odo-bot .w {
+    transition: transform 0.08s linear;
+  }
+</style>
+
+<script>
+  function initOdo() {
+    const fill = document.getElementById('odo-fill');
+    const bot = document.getElementById('odo-bot');
+    if (!fill || !bot || fill.dataset.bound) return;
+    fill.dataset.bound = '1';
+    const fillEl = fill, botEl = bot;
+    const wheels = botEl.querySelectorAll<SVGGElement>('.w');
+    function update() {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      const w = window.innerWidth;
+      fillEl.style.width = `${p * 100}%`;
+      botEl.style.transform = `translateX(${p * w - 20}px)`;
+      // 轮子转角与走过的像素成正比：周长 ≈ 2π·4.5
+      const deg = ((p * w) / (2 * Math.PI * 4.5)) * 360;
+      wheels.forEach((g) => (g.style.transform = `rotate(${deg}deg)`));
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+  initOdo();
+  document.addEventListener('astro:page-load', initOdo);
+</script>

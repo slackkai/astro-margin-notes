@@ -16,8 +16,7 @@ interface Props {
 const { href, emoji, label, zh, desc, count, unit = '篇', rotate = '0deg', index = 0 } = Astro.props;
 ---
 
-<a href={href} class="hand-card is-link sec-card reveal" style={`--r:${rotate}; --i:${index}`}>
-  <span class="tack" aria-hidden="true"></span>
+<a href={href} class="hand-card is-link sec-card reveal taped single" style={`--r:${rotate}; --i:${index}`}>
   <div class="sec-emoji" aria-hidden="true">{emoji}</div>
   <h2 class="sec-title">{label} <span class="sec-zh">{zh}</span></h2>
   <p class="sec-desc">{desc}</p>

@@ -1,77 +1,82 @@
 ---
 /**
- * 原型 1：手绘机械臂 hero。三连杆 CCD 逆运动学跟随鼠标，离开后回到休息姿态。
+ * 首页 hero：站名 + 手绘三连杆机械臂（CCD 逆运动学跟随鼠标，离开后回到休息姿态）。
  */
+import { SITE } from '../consts';
 ---
 
-<div class="arm-hero hand-card">
-  <div class="arm-copy">
-    <span class="postit">🤖 具身 · embodied</span>
-    <h1 class="arm-title">LatentK<span class="dot">.</span></h1>
-    <p class="arm-sub">把想法留在纸上，把动作交给身体。</p>
-    <p class="muted">把鼠标移到右边试试。</p>
+<section class="container section hero">
+  <div class="hero-copy">
+    <span class="postit reveal" style="--i:0">🤖 具身 · embodied</span>
+    <h1 class="hero-title reveal" style="--i:1">{SITE.title}<span class="hero-dot">.</span></h1>
+    <p class="hero-sub reveal" style="--i:2">{SITE.tagline}</p>
+    <p class="hero-desc reveal" style="--i:3">{SITE.description}</p>
   </div>
-  <svg class="arm" id="arm-svg" viewBox="0 0 400 300" aria-hidden="true">
-    <!-- 底座 -->
+
+  <svg class="arm reveal" id="arm-svg" viewBox="0 0 400 300" aria-hidden="true" style="--i:2">
     <g class="base">
       <path d="M40 270 h80" />
       <path d="M50 270 l10 -18 h40 l10 18" />
       <circle cx="80" cy="252" r="7" fill="var(--paper-2)" />
     </g>
-    <!-- 连杆（由脚本更新） -->
-    <g class="links" id="arm-links">
-      <line id="l1" x1="80" y1="252" x2="80" y2="170" />
-      <line id="l2" x1="80" y1="170" x2="150" y2="120" />
-      <line id="l3" x1="150" y1="120" x2="200" y2="120" />
-      <circle id="j1" cx="80" cy="170" r="6" fill="var(--paper-2)" />
-      <circle id="j2" cx="150" cy="120" r="6" fill="var(--paper-2)" />
+    <g class="links">
+      <line id="arm-l1" x1="80" y1="252" x2="80" y2="170" />
+      <line id="arm-l2" x1="80" y1="170" x2="150" y2="120" />
+      <line id="arm-l3" x1="150" y1="120" x2="200" y2="120" />
+      <circle id="arm-j1" cx="80" cy="170" r="6" fill="var(--paper-2)" />
+      <circle id="arm-j2" cx="150" cy="120" r="6" fill="var(--paper-2)" />
     </g>
-    <!-- 末端夹爪 -->
-    <g id="gripper" class="gripper" transform="translate(200 120) rotate(0)">
+    <g id="arm-gripper" class="gripper" transform="translate(200 120) rotate(0)">
       <path d="M0 -10 l14 -6 l4 6" />
       <path d="M0 10 l14 6 l4 -6" />
       <circle cx="0" cy="0" r="5" fill="var(--marker)" />
     </g>
-    <!-- 目标十字 -->
-    <g id="target" class="target" transform="translate(-100 -100)">
+    <g id="arm-target" class="target" transform="translate(-100 -100)">
       <circle r="9" />
       <path d="M-14 0 h28 M0 -14 v28" />
     </g>
-    <!-- 手写标注 -->
     <text class="note" x="250" y="60">← end effector</text>
     <text class="note" x="20" y="295">base</text>
   </svg>
-</div>
+</section>
 
 <style>
-  .arm-hero {
+  .hero {
     display: grid;
     gap: 1.5rem;
-    padding: 2rem 1.5rem;
-    overflow: hidden;
+    padding-bottom: 1rem;
   }
   @media (min-width: 768px) {
-    .arm-hero {
-      grid-template-columns: 1fr 1fr;
+    .hero {
+      grid-template-columns: 1.15fr 1fr;
       align-items: center;
     }
   }
-  .arm-title {
-    font-size: clamp(2.5rem, 7vw, 4.5rem);
-    line-height: 1;
-    margin: 1rem 0 0.5rem;
+  .hero-title {
+    font-size: clamp(3rem, 9vw, 5.5rem);
+    line-height: 1.05;
+    margin: 1.2rem 0 0.75rem;
   }
-  .dot {
+  .hero-dot {
+    display: inline-block;
     color: var(--marker);
+    animation: pop 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.5s both;
   }
-  .arm-sub {
-    font-family: var(--font-heading);
-    font-size: 1.3rem;
+  .hero-sub {
+    font-size: 1.5rem;
     color: var(--pencil-60);
     margin: 0 0 0.5rem;
   }
+  .hero-desc {
+    max-width: 30rem;
+    color: var(--pencil-60);
+    font-size: 1.15rem;
+    margin: 0;
+  }
   .arm {
     width: 100%;
+    max-width: 26rem;
+    justify-self: center;
     height: auto;
     aspect-ratio: 4 / 3;
     cursor: crosshair;
@@ -98,7 +103,7 @@
   .arm .note {
     fill: var(--pencil-45);
     stroke: none;
-    font-family: var(--font-heading);
+    font-family: var(--font-body);
     font-size: 14px;
   }
 </style>
@@ -108,18 +113,18 @@
     const svg = document.getElementById('arm-svg') as SVGSVGElement | null;
     if (!svg || svg.dataset.bound) return;
     svg.dataset.bound = '1';
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const base = { x: 80, y: 252 };
     const lens = [82, 86, 50];
-    // 关节角（弧度），相对世界坐标
-    let ang = [-Math.PI / 2, -Math.PI / 4, 0];
+    const ang = [-Math.PI / 2, -Math.PI / 4, 0];
     const rest = [...ang];
     let target: { x: number; y: number } | null = null;
 
-    const l = [1, 2, 3].map((i) => document.getElementById(`l${i}`) as unknown as SVGLineElement);
-    const j = [1, 2].map((i) => document.getElementById(`j${i}`) as unknown as SVGCircleElement);
-    const gripper = document.getElementById('gripper')!;
-    const tgt = document.getElementById('target')!;
+    const l = [1, 2, 3].map((i) => document.getElementById(`arm-l${i}`) as unknown as SVGLineElement);
+    const j = [1, 2].map((i) => document.getElementById(`arm-j${i}`) as unknown as SVGCircleElement);
+    const gripper = document.getElementById('arm-gripper')!;
+    const tgt = document.getElementById('arm-target')!;
 
     function forward(a: number[]) {
       const pts = [{ ...base }];
@@ -132,7 +137,7 @@
       return pts;
     }
 
-    // CCD：从末端关节向底座逐个旋转，逼近目标
+    // CCD 逆运动学：从末端关节到底座逐个旋转逼近目标
     function solve(t: { x: number; y: number }) {
       for (let iter = 0; iter < 6; iter++) {
         for (let i = 2; i >= 0; i--) {
@@ -163,15 +168,13 @@
       gripper.setAttribute('transform', `translate(${e.x} ${e.y}) rotate(${(ang[2] * 180) / Math.PI})`);
     }
 
+    let raf = 0;
     function tick() {
-      if (target) {
-        solve(target);
-      } else {
-        // 缓慢回到休息姿态
-        for (let i = 0; i < 3; i++) ang[i] += (rest[i] - ang[i]) * 0.08;
-      }
+      if (!document.body.contains(svg)) return; // 切页后停止
+      if (target) solve(target);
+      else for (let i = 0; i < 3; i++) ang[i] += (rest[i] - ang[i]) * 0.08;
       draw();
-      requestAnimationFrame(tick);
+      raf = requestAnimationFrame(tick);
     }
 
     function toSvg(e: PointerEvent) {
@@ -191,9 +194,10 @@
       target = null;
       svg!.classList.remove('is-active');
     });
+    document.addEventListener('astro:before-swap', () => cancelAnimationFrame(raf), { once: true });
 
     draw();
-    requestAnimationFrame(tick);
+    raf = requestAnimationFrame(tick);
   }
   initArm();
   document.addEventListener('astro:page-load', initArm);

@@ -36,6 +36,9 @@ const { href, title, type, url, author, rating, status, summary, cover, tags = [
 ---
 
 <article class="hand-card lib-card reveal" style={`--r:${rotate}deg; --i:${index}`}>
+  <svg class="clip" viewBox="0 0 24 48" aria-hidden="true">
+    <path d="M8 44 V10 a4 4 0 0 1 8 0 V38 a2 2 0 0 1 -4 0 V14" />
+  </svg>
   {cover && <img class="lib-cover" src={cover} alt="" loading="lazy" decoding="async" />}
   <div class="lib-body">
     <div class="lib-top">
@@ -70,7 +73,7 @@ const { href, title, type, url, author, rating, status, summary, cover, tags = [
   .lib-card {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
     transform: rotate(var(--r));
     height: 100%;
   }
@@ -83,6 +86,7 @@ const { href, title, type, url, author, rating, status, summary, cover, tags = [
     aspect-ratio: 16/9;
     object-fit: cover;
     border-bottom: 2px solid var(--pencil);
+    border-radius: 200px 12px 0 0 / 12px 200px 0 0;
   }
   .lib-body {
     display: flex;

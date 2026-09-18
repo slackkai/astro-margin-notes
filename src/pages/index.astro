@@ -1,9 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ArmHero from '../components/ArmHero.astro';
+import NowCard from '../components/NowCard.astro';
 import SectionCard from '../components/SectionCard.astro';
 import PostCard from '../components/PostCard.astro';
 import LibraryCard from '../components/LibraryCard.astro';
-import { SITE, SECTIONS } from '../consts';
+import { SECTIONS } from '../consts';
 import { getPosts, formatDate } from '../utils/content';
 
 const [academic, insight, dailies, library] = await Promise.all([
@@ -15,7 +17,7 @@ const [academic, insight, dailies, library] = await Promise.all([
 
 const latestInsight = insight.slice(0, 3);
 const latestAcademic = academic.slice(0, 3);
-const latestDailies = dailies.slice(0, 4);
+const latestDailies = dailies.slice(0, 5);
 const latestLibrary = library.slice(0, 3);
 
 const counts = { academic: academic.length, insight: insight.length, dailies: dailies.length, library: library.length };
@@ -23,17 +25,7 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
 ---
 
 <BaseLayout>
-  <!-- Hero -->
-  <section class="container section hero">
-    <svg class="doodle" viewBox="0 0 100 100" fill="none" aria-hidden="true">
-      <path class="doodle-path" d="M10 50 Q30 10 50 50 T90 50" stroke="currentColor" stroke-width="3" stroke-dasharray="6 4" pathLength="100" />
-      <circle class="doodle-dot" cx="85" cy="48" r="4" fill="currentColor" />
-    </svg>
-    <span class="postit reveal" style="--i:0">🎉 欢迎光临～</span>
-    <h1 class="hero-title reveal" style="--i:1">{SITE.title}<span class="hero-dot">.</span></h1>
-    <p class="hero-sub reveal" style="--i:2">{SITE.tagline}</p>
-    <p class="hero-desc reveal" style="--i:3">{SITE.description}</p>
-  </section>
+  <ArmHero />
 
   <!-- 四个板块入口 -->
   <section class="container sections-grid">
@@ -43,10 +35,14 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
     <SectionCard {...SECTIONS.library} count={counts.library} unit="项" index={7} />
   </section>
 
-  <!-- 最新洞见 + 最新学术 -->
+  <!-- Now 卡片 + 最新洞见 -->
   <section class="container section">
-    <div class="two-col">
-      <div class="panel reveal" style="--r:-0.4deg; --i:8">
+    <div class="two-col now-row">
+      <div class="now-col">
+        <NowCard index={8} />
+      </div>
+
+      <div class="panel reveal" style="--r:0.4deg; --i:9">
         <span class="panel-label">最新洞见</span>
         <div class="stack">
           {latestInsight.map((p, i) => (
@@ -56,7 +52,7 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
               date={p.data.date}
               description={p.data.description}
               rotate={rot(i)}
-              index={9 + i}
+              index={10 + i}
               transitionName={`insight-${p.id}`}
             />
           ))}
@@ -64,8 +60,13 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
         </div>
         <a href={SECTIONS.insight.href} class="hand-btn more">全部洞见 →</a>
       </div>
+    </div>
+  </section>
 
-      <div class="panel reveal" style="--r:0.4deg; --i:9">
+  <!-- 最新学术 + 日常快照 -->
+  <section class="container section">
+    <div class="two-col">
+      <div class="panel reveal" style="--r:-0.4deg; --i:12">
         <span class="panel-label">最新学术</span>
         <div class="stack">
           {latestAcademic.map((p, i) => (
@@ -76,7 +77,7 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
               description={p.data.description ?? p.data.venue}
               badge={p.data.kind}
               rotate={rot(i + 1)}
-              index={10 + i}
+              index={13 + i}
               transitionName={`academic-${p.id}`}
             />
           ))}
@@ -84,13 +85,8 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
         </div>
         <a href={SECTIONS.academic.href} class="hand-btn more">全部学术 →</a>
       </div>
-    </div>
-  </section>
 
-  <!-- 日常快照 + 资料库 -->
-  <section class="container section">
-    <div class="two-col">
-      <div class="panel reveal" style="--r:0.3deg; --i:12">
+      <div class="panel reveal" style="--r:0.3deg; --i:13">
         <span class="panel-label">日常快照</span>
         <ul class="daily-list">
           {latestDailies.map((d) => (
@@ -108,85 +104,37 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
         </ul>
         <a href={SECTIONS.dailies.href} class="hand-btn more">全部日常 →</a>
       </div>
+    </div>
+  </section>
 
-      <div class="panel reveal" style="--r:-0.3deg; --i:13">
-        <span class="panel-label">资料库上新</span>
-        <div class="stack">
-          {latestLibrary.map((l, i) => (
-            <LibraryCard
-              href={`/library/${l.id}/`}
-              title={l.data.title}
-              type={l.data.type}
-              url={l.data.url}
-              author={l.data.author}
-              rating={l.data.rating}
-              status={l.data.status}
-              summary={l.data.summary}
-              rotate={rot(i)}
-              index={14 + i}
-              transitionName={`library-${l.id}`}
-            />
-          ))}
-          {latestLibrary.length === 0 && <p class="muted">资料库还是空的。</p>}
-        </div>
-        <a href={SECTIONS.library.href} class="hand-btn more">进入资料库 →</a>
+  <!-- 资料库上新 -->
+  <section class="container section">
+    <div class="panel reveal" style="--r:-0.25deg; --i:15">
+      <span class="panel-label">资料库上新</span>
+      <div class="lib-grid">
+        {latestLibrary.map((l, i) => (
+          <LibraryCard
+            href={`/library/${l.id}/`}
+            title={l.data.title}
+            type={l.data.type}
+            url={l.data.url}
+            author={l.data.author}
+            rating={l.data.rating}
+            status={l.data.status}
+            summary={l.data.summary}
+            rotate={rot(i)}
+            index={16 + i}
+            transitionName={`library-${l.id}`}
+          />
+        ))}
+        {latestLibrary.length === 0 && <p class="muted">资料库还是空的。</p>}
       </div>
+      <a href={SECTIONS.library.href} class="hand-btn more">进入资料库 →</a>
     </div>
   </section>
 </BaseLayout>
 
 <style>
-  .hero {
-    position: relative;
-    padding-bottom: 1rem;
-  }
-  .doodle {
-    position: absolute;
-    right: 0;
-    top: 2rem;
-    width: 6rem;
-    height: 6rem;
-    color: var(--marker);
-    opacity: 0.35;
-    transform: rotate(-12deg);
-    display: none;
-  }
-  .doodle-path {
-    stroke-dasharray: 100;
-    stroke-dashoffset: 100;
-    animation: draw 1.2s ease-out 0.3s forwards;
-  }
-  .doodle-dot {
-    transform-origin: 85px 48px;
-    animation: pop 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) 1.3s both;
-  }
-  @media (min-width: 768px) {
-    .doodle {
-      display: block;
-    }
-  }
-  .hero-title {
-    font-size: clamp(3rem, 9vw, 5.5rem);
-    line-height: 1.05;
-    margin: 1.2rem 0 0.75rem;
-  }
-  .hero-dot {
-    display: inline-block;
-    color: var(--marker);
-    animation: pop 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.5s both;
-  }
-  .hero-sub {
-    font-family: var(--font-heading);
-    font-size: 1.5rem;
-    color: var(--pencil-60);
-    margin: 0 0 0.5rem;
-  }
-  .hero-desc {
-    max-width: 34rem;
-    color: var(--pencil-60);
-    font-size: 1.15rem;
-    margin: 0;
-  }
   .sections-grid {
     display: grid;
     gap: 1.5rem;
@@ -211,14 +159,27 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
       grid-template-columns: 1fr 1fr;
       gap: 3rem;
     }
+    .now-row {
+      grid-template-columns: 0.8fr 1.2fr;
+      align-items: start;
+    }
   }
-  .panel {
-    transform: rotate(var(--r));
+  .now-col {
+    padding-top: 1.25rem;
   }
   .stack {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+  }
+  .lib-grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .lib-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
   .more {
     margin-top: 1.5rem;
@@ -245,11 +206,10 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
     border-style: solid;
     border-color: var(--pencil);
     background: var(--postit);
-    color: #2d2d2d;
     transform: rotate(-0.5deg);
   }
   .daily-row-title {
-    font-family: var(--font-heading);
+    font-weight: 700;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

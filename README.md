@@ -44,8 +44,14 @@ draft: false     # true 时仅在本地 dev 可见
 ## 站点配置
 
 - 站点名、作者、导航：`src/consts.ts`
-- 主题色、字体：`src/styles/global.css` 顶部的 CSS 变量
+- 主题色：`src/styles/global.css` 顶部的 CSS 变量（`--paper` `--pencil` `--marker` `--pen` `--postit`）
+- 字体：全站使用 [霞鹜文楷 Screen](https://github.com/lxgw/LxgwWenKai-Screen)，通过 npm 包 `lxgw-wenkai-screen-webfont` 自托管。它被拆成 97 个按 unicode-range 划分的子集，浏览器只下载页面实际用到的块。
+- Now 卡片：`src/content/now/now.md`
 - 域名：`astro.config.mjs` 的 `site`
+
+## 原型试验场
+
+`src/pages/lab/` 是仅在 `npm run dev` 下可见的页面（http://localhost:4321/lab/），用于在并入主站前预览个性化设计。生产构建不会生成它。
 
 ## 部署到 GitHub Pages
 

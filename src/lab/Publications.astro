@@ -1,0 +1,160 @@
+---
+/**
+ * 原型 10：研究方向卡片 + Publications 按年份列表（kind: paper）。
+ */
+import { getPosts } from '../utils/content';
+
+const TOPICS = [
+  { title: '机器人学习', desc: '让机器人从数据和交互中学会技能，而不是靠人手写控制律。', emoji: '🦾' },
+  { title: '具身智能', desc: '感知、决策与动作在同一个身体里闭环。', emoji: '🧠' },
+  { title: 'Sim-to-Real', desc: '在仿真里训练，在真实世界里成立。', emoji: '🔁' },
+];
+
+const papers = (await getPosts('academic')).filter((p) => p.data.kind === 'paper');
+const byYear = new Map<number, typeof papers>();
+for (const p of papers) {
+  const y = p.data.year ?? p.data.date.getFullYear();
+  if (!byYear.has(y)) byYear.set(y, []);
+  byYear.get(y)!.push(p);
+}
+const years = [...byYear.keys()].sort((a, b) => b - a);
+---
+
+<div class="pubs">
+  <div class="topics">
+    {
+      TOPICS.map((t, i) => (
+        <div class="hand-card topic" style={`--r:${i % 2 ? 0.6 : -0.6}deg`}>
+          <span class="topic-emoji" aria-hidden="true">{t.emoji}</span>
+          <strong>{t.title}</strong>
+          <span class="muted">{t.desc}</span>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="panel" style="--r:-0.2deg">
+    <span class="panel-label">Publications</span>
+    {
+      years.map((y) => (
+        <div class="year">
+          <h3 class="year-label">{y}</h3>
+          <ul class="pub-list">
+            {byYear.get(y)!.map((p) => (
+              <li class="pub">
+                <div class="pub-main">
+                  <a href={`/academic/${p.id}/`} class="pub-title">
+                    {p.data.title}
+                  </a>
+                  {p.data.authors && <p class="pub-authors meta">{p.data.authors.join(', ')}</p>}
+                </div>
+                <div class="pub-side">
+                  {p.data.venue && <span class="venue">{p.data.venue}</span>}
+                  <span class="links">
+                    {p.data.links?.pdf && <a href={p.data.links.pdf}>PDF</a>}
+                    {p.data.links?.arxiv && <a href={p.data.links.arxiv}>arXiv</a>}
+                    {p.data.links?.code && <a href={p.data.links.code}>Code</a>}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+    {years.length === 0 && <p class="muted">还没有 kind: paper 的条目。</p>}
+  </div>
+</div>
+
+<style>
+  .topics {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  @media (min-width: 768px) {
+    .topics {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .topic {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem 1.2rem;
+    transform: rotate(var(--r));
+  }
+  .topic-emoji {
+    font-size: 1.5rem;
+  }
+  .topic strong {
+    font-size: 1.15rem;
+  }
+  .year {
+    display: grid;
+    grid-template-columns: 4rem 1fr;
+    gap: 1rem;
+    padding-block: 0.5rem;
+  }
+  .year + .year {
+    border-top: 2px dashed var(--pencil-25);
+  }
+  .year-label {
+    font-size: 1.5rem;
+    color: var(--marker);
+    transform: rotate(-4deg);
+    transform-origin: left top;
+  }
+  .pub-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .pub {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .pub-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  .pub-title:hover {
+    color: var(--marker);
+  }
+  .pub-authors {
+    margin: 0.1rem 0 0;
+  }
+  .pub-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+  }
+  .venue {
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0 0.55rem;
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+    background: var(--postit-3);
+    transform: rotate(1.5deg);
+  }
+  .links {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .links a {
+    color: var(--pen);
+    text-decoration: underline wavy;
+    text-underline-offset: 3px;
+  }
+  .links a:hover {
+    color: var(--marker);
+  }
+</style>

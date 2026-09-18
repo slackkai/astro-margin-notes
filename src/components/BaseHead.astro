@@ -15,11 +15,9 @@ const fullTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} — ${SIT
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = image ? new URL(image, Astro.site) : undefined;
 
-const FONTS = [
-  '/fonts/patrick-hand-latin-400-normal.woff2',
-  '/fonts/kalam-latin-400-normal.woff2',
-  '/fonts/kalam-latin-700-normal.woff2',
-];
+// 文楷 Screen 中包含基本拉丁字母与常用标点的子集块，预加载它让首屏英文/数字尽早就位
+import latinChunk from 'lxgw-wenkai-screen-webfont/files/lxgwwenkaiscreen-subset-119.woff2?url';
+const FONTS = [latinChunk];
 ---
 
 <meta charset="utf-8" />
