@@ -1,0 +1,120 @@
+---
+/**
+ * 原型 13：关于页"工作台"区块：工具 / 硬件 / 正在追的三个问题。文案为占位。
+ */
+const TOOLS = [
+  { name: 'Isaac Lab', note: '仿真训练主力' },
+  { name: 'MuJoCo', note: '快速验证动力学' },
+  { name: 'ROS 2', note: '真机通信' },
+  { name: 'Zotero', note: '文献' },
+  { name: 'Obsidian', note: '笔记' },
+];
+const HARDWARE = [
+  { name: 'Unitree Go2', note: '四足实验平台' },
+  { name: 'RealSense D435', note: '深度相机' },
+  { name: '4090 工作站', note: '训练' },
+];
+const QUESTIONS = [
+  '仿真与真机之间，到底是哪些差距最要命？',
+  '机器人需要"记忆"吗，还是反应式策略就够了？',
+  '一个策略能不能同时会走路和会抓东西？',
+];
+---
+
+<div class="bench">
+  <div class="hand-card bench-card taped single" style="--r:-0.6deg">
+    <h3>🔧 工具</h3>
+    <ul>
+      {TOOLS.map((t) => (
+        <li>
+          <strong>{t.name}</strong>
+          <span class="meta">{t.note}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+  <div class="hand-card bench-card taped single" style="--r:0.5deg">
+    <h3>🤖 硬件</h3>
+    <ul>
+      {HARDWARE.map((t) => (
+        <li>
+          <strong>{t.name}</strong>
+          <span class="meta">{t.note}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+  <div class="hand-card bench-card questions" style="--r:-0.3deg">
+    <svg class="clip" viewBox="0 0 24 48" aria-hidden="true">
+      <path d="M8 44 V10 a4 4 0 0 1 8 0 V38 a2 2 0 0 1 -4 0 V14" />
+    </svg>
+    <h3>❓ 正在追的三个问题</h3>
+    <ol>
+      {QUESTIONS.map((q) => (
+        <li>{q}</li>
+      ))}
+    </ol>
+  </div>
+</div>
+
+<style>
+  .bench {
+    display: grid;
+    gap: 1.25rem;
+  }
+  @media (min-width: 900px) {
+    .bench {
+      grid-template-columns: 1fr 1fr 1.3fr;
+      align-items: start;
+    }
+  }
+  .bench-card {
+    padding: 1.4rem 1.3rem 1.1rem;
+    transform: rotate(var(--r));
+  }
+  .bench-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.6rem;
+  }
+  .bench-card ul,
+  .bench-card ol {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .bench-card ul li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-bottom: 1.5px dashed var(--pencil-12);
+    padding-bottom: 0.25rem;
+  }
+  .questions ol {
+    counter-reset: q;
+    gap: 0.6rem;
+  }
+  .questions ol li {
+    counter-increment: q;
+    padding-left: 1.8rem;
+    position: relative;
+    line-height: 1.5;
+  }
+  .questions ol li::before {
+    content: counter(q);
+    position: absolute;
+    left: 0;
+    top: 0.1rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    display: grid;
+    place-items: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--marker);
+    border: 1.5px solid var(--marker);
+    border-radius: 50% 40% 55% 45% / 50% 55% 45% 50%;
+  }
+</style>

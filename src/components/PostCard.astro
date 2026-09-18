@@ -1,6 +1,8 @@
 ---
 /**
- * 通用文章卡片（academic / insight 列表用）
+ * 通用文章卡片（academic / insight 列表用）。
+ * 根元素是 article 而非 a：卡片内还有标签链接，链接不能嵌套。
+ * 整卡可点击由标题链接的 ::after 覆盖层实现，标签在其上层。
  */
 import Tags from './Tags.astro';
 import { formatDate } from '../utils/content';
@@ -19,15 +21,21 @@ interface Props {
 const { href, title, date, description, tags = [], badge, rotate = 0, index = 0, transitionName } = Astro.props;
 ---
 
-<a href={href} class="hand-card is-link post-card reveal" style={`--r:${rotate}deg; --i:${index}`}>
+<article class="hand-card is-link post-card reveal" style={`--r:${rotate}deg; --i:${index}`}>
   <div class="post-card-top">
     <time class="meta" datetime={date.toISOString()}>{formatDate(date)}</time>
     {badge && <span class="badge">{badge}</span>}
   </div>
-  <h3 class="post-card-title" transition:name={transitionName}>{title}</h3>
+  <h3 class="post-card-title" transition:name={transitionName}><a href={href}>{title}</a></h3>
   {description && <p class="post-card-desc">{description}</p>}
-  {tags.length > 0 && <Tags tags={tags} small />}
-</a>
+  {
+    tags.length > 0 && (
+      <div class="post-card-tags">
+        <Tags tags={tags} small />
+      </div>
+    )
+  }
+</article>
 
 <style>
   .post-card {
@@ -52,14 +60,21 @@ const { href, title, date, description, tags = [], badge, rotate = 0, index = 0,
     border: 2px solid var(--pencil);
     border-radius: var(--radius-wobble-sm);
     background: var(--postit-3);
-    color: #2d2d2d;
-    font-family: var(--font-heading);
+    font-weight: 700;
   }
   .post-card-title {
     font-size: 1.35rem;
+  }
+  .post-card-title a {
     transition: color 0.15s ease;
   }
-  .post-card:hover .post-card-title {
+  /* 覆盖整张卡片的点击区 */
+  .post-card-title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .post-card:hover .post-card-title a {
     color: var(--marker);
   }
   .post-card-desc {
@@ -70,5 +85,9 @@ const { href, title, date, description, tags = [], badge, rotate = 0, index = 0,
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+  .post-card-tags {
+    position: relative;
+    z-index: 1;
   }
 </style>

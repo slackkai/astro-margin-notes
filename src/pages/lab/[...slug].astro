@@ -1,19 +1,152 @@
 ---
 /**
  * /lab/ —— 个性化原型试验场。只在 `npm run dev` 下可见，生产构建不生成此页面。
- * 当前没有待审阅的原型。新提案会以独立区块加在这里。
+ * 第三批提案。
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArmHero from '../../components/ArmHero.astro';
+import Toc from '../../components/Toc.astro';
+import ReadingProgress from '../../components/ReadingProgress.astro';
+import SignOff from '../../components/SignOff.astro';
+import LibrarySort from '../../lab/LibrarySort.astro';
+import Workbench from '../../lab/Workbench.astro';
 
 export function getStaticPaths() {
   return import.meta.env.DEV ? [{ params: { slug: undefined } }] : [];
 }
+
+const items = [
+  { id: 'arm-idle', title: '12 · 机械臂空闲活动', desc: '鼠标不在时，每隔几秒自己伸向一个随机点，停一会儿再收回。移动端因此不再是静止的。把鼠标移开等 4 秒看效果。' },
+  { id: 'toc', title: '13 · 文章目录', desc: '宽屏（≥1200px）贴在正文左侧页边，随滚动高亮当前章节；窄屏折叠在正文上方。下面是一段假文章。' },
+  { id: 'libsort', title: '14 · 资料库排序与随机', desc: '按最新 / 评分 / 在读优先排序；"随机来一本"会滚到一张随机卡片并晃一下。' },
+  { id: 'bench', title: '15 · 关于页工作台', desc: '工具、硬件、正在追的三个问题。文案是占位。' },
+  { id: 'signoff', title: '16 · 页脚结束语', desc: '页脚随机抽一句手写结束语。本页页脚已挂上，点按钮换一句。' },
+  { id: 'progress', title: '· 右侧阅读进度（已改）', desc: '现在在页面右边缘：虚线轨道、强调色填充、小圆钮和百分比。本页已挂上。' },
+];
+
+const fakeHeadings = [
+  { depth: 2, slug: 'lab-h-1', text: '为什么需要目录' },
+  { depth: 2, slug: 'lab-h-2', text: '它怎么工作' },
+  { depth: 3, slug: 'lab-h-2-1', text: '高亮当前章节' },
+  { depth: 3, slug: 'lab-h-2-2', text: '窄屏折叠' },
+  { depth: 2, slug: 'lab-h-3', text: '什么时候不显示' },
+];
+const filler = '这是一段用来撑长度的占位文字。目录在左侧随滚动高亮当前章节。你可以点目录项跳转，也可以直接滚动观察高亮变化。';
 ---
 
 <BaseLayout title="Lab" description="个性化原型试验场">
-  <section class="container section">
-    <span class="postit">🧪 Lab · 仅本地可见</span>
-    <h1 class="page-title">原型试验场</h1>
-    <p class="page-desc">当前没有待审阅的原型。前两批已并入主站或按你的意见删除。</p>
-  </section>
+  <ReadingProgress />
+  <div class="lab" id="lab">
+    <section class="container section">
+      <span class="postit">🧪 Lab · 仅本地可见 · 第三批</span>
+      <h1 class="page-title">原型试验场</h1>
+      <p class="page-desc">每一块是一个独立提案。看完告诉我编号：并入、修改、或删掉。</p>
+      <ol class="toc-list" start="12">
+        {items.map((it) => (
+          <li>
+            <a href={`#${it.id}`}>{it.title}</a>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="container lab-item" id="arm-idle">
+      <div class="lab-head"><h2>{items[0].title}</h2><p class="muted">{items[0].desc}</p></div>
+    </section>
+    <ArmHero idle />
+
+    <section class="container lab-item" id="toc">
+      <div class="lab-head"><h2>{items[1].title}</h2><p class="muted">{items[1].desc}</p></div>
+      <div class="fake-article">
+        <Toc headings={fakeHeadings} />
+        <div class="prose">
+          <h2 id="lab-h-1">为什么需要目录</h2>
+          {[1, 2, 3].map(() => <p>{filler}</p>)}
+          <h2 id="lab-h-2">它怎么工作</h2>
+          {[1, 2].map(() => <p>{filler}</p>)}
+          <h3 id="lab-h-2-1">高亮当前章节</h3>
+          {[1, 2, 3].map(() => <p>{filler}</p>)}
+          <h3 id="lab-h-2-2">窄屏折叠</h3>
+          {[1, 2].map(() => <p>{filler}</p>)}
+          <h2 id="lab-h-3">什么时候不显示</h2>
+          <p>标题少于两个时目录不渲染。</p>
+          {[1, 2].map(() => <p>{filler}</p>)}
+        </div>
+      </div>
+    </section>
+
+    <section class="container lab-item" id="libsort">
+      <div class="lab-head"><h2>{items[2].title}</h2><p class="muted">{items[2].desc}</p></div>
+      <LibrarySort />
+    </section>
+
+    <section class="container lab-item" id="bench">
+      <div class="lab-head"><h2>{items[3].title}</h2><p class="muted">{items[3].desc}</p></div>
+      <Workbench />
+    </section>
+
+    <section class="container lab-item" id="signoff">
+      <div class="lab-head"><h2>{items[4].title}</h2><p class="muted">{items[4].desc}</p></div>
+      <div class="signoff-demo">
+        <SignOff />
+        <button class="hand-btn small" id="signoff-next">换一句</button>
+      </div>
+    </section>
+
+    <section class="container lab-item" id="progress">
+      <div class="lab-head"><h2>{items[5].title}</h2><p class="muted">{items[5].desc}</p></div>
+    </section>
+  </div>
 </BaseLayout>
+
+<style>
+  .toc-list {
+    margin: 1.5rem 0 0;
+    padding-left: 1.25rem;
+    columns: 2;
+    font-weight: 700;
+  }
+  .toc-list a:hover {
+    color: var(--marker);
+  }
+  .lab-item {
+    padding-block: 2.5rem;
+    border-top: 2px dashed var(--pencil-25);
+  }
+  .lab-head h2 {
+    font-size: 1.6rem;
+    margin-bottom: 0.25rem;
+  }
+  .lab-head p {
+    margin: 0 0 1.5rem;
+    max-width: 44rem;
+  }
+  .fake-article {
+    position: relative;
+  }
+  .fake-article .prose {
+    margin-inline: auto;
+  }
+  .signoff-demo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+</style>
+
+<script>
+  document.getElementById('signoff-next')?.addEventListener('click', () => {
+    const el = document.getElementById('signoff');
+    const text = el?.querySelector<HTMLElement>('.signoff-text');
+    if (!el || !text) return;
+    const lines: string[] = JSON.parse(el.dataset.lines ?? '[]');
+    const cur = text.textContent;
+    let next = cur;
+    while (next === cur && lines.length > 1) next = lines[Math.floor(Math.random() * lines.length)];
+    text.style.animation = 'none';
+    void text.offsetWidth;
+    text.style.animation = '';
+    text.textContent = next ?? '';
+  });
+</script>

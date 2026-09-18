@@ -236,7 +236,7 @@ button {
 
 ::selection {
   background: var(--postit);
-  color: #2d2d2d;
+  color: var(--pencil);
 }
 
 ::-webkit-scrollbar {
@@ -713,18 +713,53 @@ html[data-theme='dark'] .prose pre {
   }
 }
 
-/* ---------- 文章阅读进度：顶部一条与强调色一致的细线 ---------- */
+/* ---------- 文章阅读进度：右侧竖向轨道，虚线底 + 强调色填充 + 小圆钮 ---------- */
 .read-progress {
+  display: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: var(--marker);
-  transform-origin: left;
-  transform: scaleX(0);
-  z-index: 60;
+  right: 1.1rem;
+  top: 6rem;
+  bottom: 6rem;
+  width: 0;
+  border-left: 2px dashed var(--pencil-25);
+  z-index: 40;
   pointer-events: none;
+}
+.read-progress-fill {
+  position: absolute;
+  left: -2px;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--marker);
+  transform-origin: top;
+  transform: scaleY(0);
+}
+.read-progress-knob {
+  position: absolute;
+  left: -0.45rem;
+  top: 0;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50% 45% 55% 50% / 55% 50% 50% 45%;
+  border: 2px solid var(--pencil);
+  background: var(--marker);
+  box-shadow: 1px 1px 0 0 var(--pencil);
+  transform: translateY(-50%);
+}
+.read-progress-label {
+  position: absolute;
+  right: 1rem;
+  top: 0;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: var(--pencil-45);
+  white-space: nowrap;
+}
+@media (min-width: 900px) {
+  .read-progress {
+    display: block;
+  }
 }
 
 /* ---------- 动效 ---------- */

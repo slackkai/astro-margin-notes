@@ -22,7 +22,10 @@
       "Bash(node -e ' *)",
       "Bash(curl -s http://localhost:4321/ -o home.tmp.html)",
       "Bash(curl -s http://localhost:4321/)",
-      "Bash(git commit -q -m 'Apply review feedback: palette switcher, dot grid, heatmap, publications, margin notes *)"
+      "Bash(git commit -q -m 'Apply review feedback: palette switcher, dot grid, heatmap, publications, margin notes *)",
+      "Bash(printf '\\\\n# screenshots\\\\n.shots/\\\\n')",
+      "Bash(git rm *)",
+      "Bash(git commit -q -m 'Fix blank cards, heatmap overflow, right-side reading progress; lab batch 3 *)"
     ]
   }
 }

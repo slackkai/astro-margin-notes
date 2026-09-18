@@ -3,6 +3,12 @@
  * 首页 hero：站名 + 手绘三连杆机械臂（CCD 逆运动学跟随鼠标，离开后回到休息姿态）。
  */
 import { SITE } from '../consts';
+
+interface Props {
+  /** 无鼠标时是否自己活动（伸个懒腰）。移动端没有 hover，开启后不会一直是静止姿态 */
+  idle?: boolean;
+}
+const { idle = false } = Astro.props;
 ---
 
 <section class="container section hero">
@@ -13,7 +19,7 @@ import { SITE } from '../consts';
     <p class="hero-desc reveal" style="--i:3">{SITE.description}</p>
   </div>
 
-  <svg class="arm reveal" id="arm-svg" viewBox="0 0 400 300" aria-hidden="true" style="--i:2">
+  <svg class="arm reveal" id="arm-svg" viewBox="0 0 400 300" aria-hidden="true" style="--i:2" data-idle={idle ? '1' : undefined}>
     <g class="base">
       <path d="M40 270 h80" />
       <path d="M50 270 l10 -18 h40 l10 18" />
@@ -121,6 +127,17 @@ import { SITE } from '../consts';
     const rest = [...ang];
     let target: { x: number; y: number } | null = null;
 
+    // 空闲活动：没有鼠标时，每隔几秒去一个随机可达点，停一会儿，再回休息姿态
+    const idleOn = svg.dataset.idle === '1';
+    let idleTarget: { x: number; y: number } | null = null;
+    let idleAt = performance.now() + 2500;
+    let idlePhase: 'reach' | 'rest' = 'reach';
+    function pickIdle() {
+      const reach = (lens[0] + lens[1] + lens[2]) * (0.55 + Math.random() * 0.35);
+      const a = -Math.PI * (0.15 + Math.random() * 0.7); // 上半平面
+      return { x: base.x + Math.cos(a) * reach, y: base.y + Math.sin(a) * reach };
+    }
+
     const l = [1, 2, 3].map((i) => document.getElementById(`arm-l${i}`) as unknown as SVGLineElement);
     const j = [1, 2].map((i) => document.getElementById(`arm-j${i}`) as unknown as SVGCircleElement);
     const gripper = document.getElementById('arm-gripper')!;
@@ -137,9 +154,9 @@ import { SITE } from '../consts';
       return pts;
     }
 
-    // CCD 逆运动学：从末端关节到底座逐个旋转逼近目标
-    function solve(t: { x: number; y: number }) {
-      for (let iter = 0; iter < 6; iter++) {
+    // CCD 逆运动学：从末端关节到底座逐个旋转逼近目标。gain 越小动作越慢
+    function solve(t: { x: number; y: number }, iters = 6, gain = 0.6) {
+      for (let iter = 0; iter < iters; iter++) {
         for (let i = 2; i >= 0; i--) {
           const pts = forward(ang);
           const pivot = pts[i], end = pts[3];
@@ -147,7 +164,7 @@ import { SITE } from '../consts';
           const a2 = Math.atan2(t.y - pivot.y, t.x - pivot.x);
           let d = a2 - a1;
           d = Math.atan2(Math.sin(d), Math.cos(d));
-          for (let k = i; k < 3; k++) ang[k] += d * 0.6;
+          for (let k = i; k < 3; k++) ang[k] += d * gain;
         }
       }
     }
@@ -169,10 +186,26 @@ import { SITE } from '../consts';
     }
 
     let raf = 0;
-    function tick() {
+    function tick(now: number) {
       if (!document.body.contains(svg)) return; // 切页后停止
-      if (target) solve(target);
-      else for (let i = 0; i < 3; i++) ang[i] += (rest[i] - ang[i]) * 0.08;
+      if (target) {
+        solve(target);
+        idleAt = now + 4000; // 鼠标离开后先歇 4 秒再自己活动
+      } else if (idleOn && now >= idleAt) {
+        if (idlePhase === 'reach') {
+          idleTarget = pickIdle();
+          idlePhase = 'rest';
+          idleAt = now + 1800 + Math.random() * 1200;
+        } else {
+          idleTarget = null;
+          idlePhase = 'reach';
+          idleAt = now + 2500 + Math.random() * 2500;
+        }
+      }
+      if (!target) {
+        if (idleTarget) solve(idleTarget, 1, 0.08);
+        else for (let i = 0; i < 3; i++) ang[i] += (rest[i] - ang[i]) * 0.08;
+      }
       draw();
       raf = requestAnimationFrame(tick);
     }
@@ -192,6 +225,8 @@ import { SITE } from '../consts';
     });
     svg.addEventListener('pointerleave', () => {
       target = null;
+      idleTarget = null;
+      idlePhase = 'reach';
       svg!.classList.remove('is-active');
     });
     document.addEventListener('astro:before-swap', () => cancelAnimationFrame(raf), { once: true });

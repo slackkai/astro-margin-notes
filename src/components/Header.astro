@@ -86,7 +86,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     border: 2px solid var(--pencil);
     border-radius: var(--radius-wobble-sm);
     background: var(--postit);
-    color: #2d2d2d;
+    color: var(--pencil);
     box-shadow: var(--shadow-hand-sm);
     transform: rotate(-4deg);
     transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -121,7 +121,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   .nav-link.active {
     border-color: var(--pencil);
     background: var(--postit);
-    color: #2d2d2d;
+    color: var(--pencil);
     box-shadow: var(--shadow-hand-sm);
     transform: rotate(-1.5deg);
   }
@@ -146,7 +146,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   }
   .menu-btn[aria-expanded='true'] {
     background: var(--postit);
-    color: #2d2d2d;
+    color: var(--pencil);
     transform: rotate(90deg);
   }
   .mobile-nav ul {

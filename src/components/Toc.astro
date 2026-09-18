@@ -1,0 +1,167 @@
+---
+/**
+ * 文章目录：宽屏时贴在左侧页边，随滚动高亮当前章节；窄屏折叠为可展开块。
+ * 用法：const { headings } = await render(post); <Toc headings={headings} />
+ */
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+interface Props {
+  headings: Heading[];
+  minDepth?: number;
+  maxDepth?: number;
+}
+const { headings, minDepth = 2, maxDepth = 3 } = Astro.props;
+const items = headings.filter((h) => h.depth >= minDepth && h.depth <= maxDepth);
+---
+
+{
+  items.length > 1 && (
+    <nav class="toc" id="toc" aria-label="目录">
+      <details class="toc-details">
+        <summary class="toc-title">目录</summary>
+        <ul class="toc-list">
+          {items.map((h) => (
+            <li class:list={['toc-item', `d${h.depth}`]}>
+              <a href={`#${h.slug}`} data-slug={h.slug}>
+                {h.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </nav>
+  )
+}
+
+<style>
+  .toc {
+    max-width: var(--max-w-prose);
+    margin: 0 auto 2rem;
+  }
+  .toc-details {
+    border: 2px dashed var(--pencil-25);
+    border-radius: var(--radius-wobble-sm);
+    padding: 0.5rem 1rem;
+    background: var(--paper-2);
+  }
+  .toc-title {
+    cursor: pointer;
+    font-weight: 700;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .toc-title::before {
+    content: '▸';
+    color: var(--marker);
+    transition: transform 0.15s ease;
+  }
+  .toc-details[open] .toc-title::before {
+    transform: rotate(90deg);
+  }
+  .toc-list {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .toc-item a {
+    display: block;
+    padding: 0.1rem 0.5rem;
+    border-left: 2px solid transparent;
+    color: var(--pencil-60);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    transition: all 0.12s ease;
+  }
+  .toc-item.d3 a {
+    padding-left: 1.4rem;
+    font-size: 0.88rem;
+  }
+  .toc-item a:hover {
+    color: var(--pencil);
+  }
+  .toc-item a.is-active {
+    color: var(--marker);
+    border-left-color: var(--marker);
+    transform: translateX(2px);
+  }
+
+  /* 宽屏：贴到正文左侧页边，sticky 跟随 */
+  @media (min-width: 1200px) {
+    .toc {
+      position: sticky;
+      top: 5.5rem;
+      float: left;
+      width: 12rem;
+      margin: 0 0 0 calc((100% - var(--max-w-prose)) / 2 - 12rem - 2rem);
+      z-index: 1;
+    }
+    .toc-details {
+      border: 0;
+      background: transparent;
+      padding: 0;
+    }
+    .toc-title {
+      pointer-events: none;
+      font-size: 0.85rem;
+      color: var(--pencil-45);
+      letter-spacing: 0.1em;
+    }
+    .toc-title::before {
+      display: none;
+    }
+    .toc-list {
+      border-left: 2px dashed var(--pencil-25);
+    }
+    .toc-item a {
+      margin-left: -2px;
+    }
+  }
+</style>
+
+<script>
+  function initToc() {
+    const toc = document.getElementById('toc');
+    if (!toc || toc.dataset.bound) return;
+    toc.dataset.bound = '1';
+    const links = [...toc.querySelectorAll<HTMLAnchorElement>('a[data-slug]')];
+    const heads = links
+      .map((a) => document.getElementById(a.dataset.slug!))
+      .filter((h): h is HTMLElement => !!h);
+    if (heads.length === 0) return;
+
+    // 宽屏默认展开
+    const details = toc.querySelector<HTMLDetailsElement>('details');
+    const wide = window.matchMedia('(min-width: 1200px)');
+    const syncOpen = () => {
+      if (details) details.open = wide.matches;
+    };
+    syncOpen();
+    wide.addEventListener('change', syncOpen);
+
+    let current = '';
+    const setActive = (slug: string) => {
+      if (slug === current) return;
+      current = slug;
+      links.forEach((a) => a.classList.toggle('is-active', a.dataset.slug === slug));
+    };
+    // 取视口上方最近的一个标题作为当前章节
+    const update = () => {
+      const line = window.scrollY + 120;
+      let active = heads[0];
+      for (const h of heads) if (h.offsetTop <= line) active = h;
+      setActive(active.id);
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+  initToc();
+  document.addEventListener('astro:page-load', initToc);
+</script>
