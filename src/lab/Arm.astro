@@ -1,0 +1,200 @@
+---
+/**
+ * 原型 1：手绘机械臂 hero。三连杆 CCD 逆运动学跟随鼠标，离开后回到休息姿态。
+ */
+---
+
+<div class="arm-hero hand-card">
+  <div class="arm-copy">
+    <span class="postit">🤖 具身 · embodied</span>
+    <h1 class="arm-title">LatentK<span class="dot">.</span></h1>
+    <p class="arm-sub">把想法留在纸上，把动作交给身体。</p>
+    <p class="muted">把鼠标移到右边试试。</p>
+  </div>
+  <svg class="arm" id="arm-svg" viewBox="0 0 400 300" aria-hidden="true">
+    <!-- 底座 -->
+    <g class="base">
+      <path d="M40 270 h80" />
+      <path d="M50 270 l10 -18 h40 l10 18" />
+      <circle cx="80" cy="252" r="7" fill="var(--paper-2)" />
+    </g>
+    <!-- 连杆（由脚本更新） -->
+    <g class="links" id="arm-links">
+      <line id="l1" x1="80" y1="252" x2="80" y2="170" />
+      <line id="l2" x1="80" y1="170" x2="150" y2="120" />
+      <line id="l3" x1="150" y1="120" x2="200" y2="120" />
+      <circle id="j1" cx="80" cy="170" r="6" fill="var(--paper-2)" />
+      <circle id="j2" cx="150" cy="120" r="6" fill="var(--paper-2)" />
+    </g>
+    <!-- 末端夹爪 -->
+    <g id="gripper" class="gripper" transform="translate(200 120) rotate(0)">
+      <path d="M0 -10 l14 -6 l4 6" />
+      <path d="M0 10 l14 6 l4 -6" />
+      <circle cx="0" cy="0" r="5" fill="var(--marker)" />
+    </g>
+    <!-- 目标十字 -->
+    <g id="target" class="target" transform="translate(-100 -100)">
+      <circle r="9" />
+      <path d="M-14 0 h28 M0 -14 v28" />
+    </g>
+    <!-- 手写标注 -->
+    <text class="note" x="250" y="60">← end effector</text>
+    <text class="note" x="20" y="295">base</text>
+  </svg>
+</div>
+
+<style>
+  .arm-hero {
+    display: grid;
+    gap: 1.5rem;
+    padding: 2rem 1.5rem;
+    overflow: hidden;
+  }
+  @media (min-width: 768px) {
+    .arm-hero {
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+    }
+  }
+  .arm-title {
+    font-size: clamp(2.5rem, 7vw, 4.5rem);
+    line-height: 1;
+    margin: 1rem 0 0.5rem;
+  }
+  .dot {
+    color: var(--marker);
+  }
+  .arm-sub {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    color: var(--pencil-60);
+    margin: 0 0 0.5rem;
+  }
+  .arm {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    cursor: crosshair;
+    fill: none;
+    stroke: var(--pencil);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    touch-action: none;
+  }
+  .arm .links line {
+    stroke-width: 6;
+  }
+  .arm .target {
+    stroke: var(--marker);
+    stroke-width: 2.5;
+    stroke-dasharray: 4 3;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .arm.is-active .target {
+    opacity: 1;
+  }
+  .arm .note {
+    fill: var(--pencil-45);
+    stroke: none;
+    font-family: var(--font-heading);
+    font-size: 14px;
+  }
+</style>
+
+<script>
+  function initArm() {
+    const svg = document.getElementById('arm-svg') as SVGSVGElement | null;
+    if (!svg || svg.dataset.bound) return;
+    svg.dataset.bound = '1';
+
+    const base = { x: 80, y: 252 };
+    const lens = [82, 86, 50];
+    // 关节角（弧度），相对世界坐标
+    let ang = [-Math.PI / 2, -Math.PI / 4, 0];
+    const rest = [...ang];
+    let target: { x: number; y: number } | null = null;
+
+    const l = [1, 2, 3].map((i) => document.getElementById(`l${i}`) as unknown as SVGLineElement);
+    const j = [1, 2].map((i) => document.getElementById(`j${i}`) as unknown as SVGCircleElement);
+    const gripper = document.getElementById('gripper')!;
+    const tgt = document.getElementById('target')!;
+
+    function forward(a: number[]) {
+      const pts = [{ ...base }];
+      let x = base.x, y = base.y;
+      for (let i = 0; i < 3; i++) {
+        x += Math.cos(a[i]) * lens[i];
+        y += Math.sin(a[i]) * lens[i];
+        pts.push({ x, y });
+      }
+      return pts;
+    }
+
+    // CCD：从末端关节向底座逐个旋转，逼近目标
+    function solve(t: { x: number; y: number }) {
+      for (let iter = 0; iter < 6; iter++) {
+        for (let i = 2; i >= 0; i--) {
+          const pts = forward(ang);
+          const pivot = pts[i], end = pts[3];
+          const a1 = Math.atan2(end.y - pivot.y, end.x - pivot.x);
+          const a2 = Math.atan2(t.y - pivot.y, t.x - pivot.x);
+          let d = a2 - a1;
+          d = Math.atan2(Math.sin(d), Math.cos(d));
+          for (let k = i; k < 3; k++) ang[k] += d * 0.6;
+        }
+      }
+    }
+
+    function draw() {
+      const pts = forward(ang);
+      for (let i = 0; i < 3; i++) {
+        l[i].setAttribute('x1', String(pts[i].x));
+        l[i].setAttribute('y1', String(pts[i].y));
+        l[i].setAttribute('x2', String(pts[i + 1].x));
+        l[i].setAttribute('y2', String(pts[i + 1].y));
+      }
+      for (let i = 0; i < 2; i++) {
+        j[i].setAttribute('cx', String(pts[i + 1].x));
+        j[i].setAttribute('cy', String(pts[i + 1].y));
+      }
+      const e = pts[3];
+      gripper.setAttribute('transform', `translate(${e.x} ${e.y}) rotate(${(ang[2] * 180) / Math.PI})`);
+    }
+
+    function tick() {
+      if (target) {
+        solve(target);
+      } else {
+        // 缓慢回到休息姿态
+        for (let i = 0; i < 3; i++) ang[i] += (rest[i] - ang[i]) * 0.08;
+      }
+      draw();
+      requestAnimationFrame(tick);
+    }
+
+    function toSvg(e: PointerEvent) {
+      const pt = svg!.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const p = pt.matrixTransform(svg!.getScreenCTM()!.inverse());
+      return { x: p.x, y: p.y };
+    }
+
+    svg.addEventListener('pointermove', (e) => {
+      target = toSvg(e);
+      tgt.setAttribute('transform', `translate(${target.x} ${target.y})`);
+      svg!.classList.add('is-active');
+    });
+    svg.addEventListener('pointerleave', () => {
+      target = null;
+      svg!.classList.remove('is-active');
+    });
+
+    draw();
+    requestAnimationFrame(tick);
+  }
+  initArm();
+  document.addEventListener('astro:page-load', initArm);
+</script>

@@ -1,0 +1,137 @@
+---
+/**
+ * /lab/ —— 个性化原型试验场。只在 `npm run dev` 下可见，生产构建不生成此页面。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Arm from '../../lab/Arm.astro';
+import Paper from '../../lab/Paper.astro';
+import Fonts from '../../lab/Fonts.astro';
+import Palettes from '../../lab/Palettes.astro';
+import NowCard from '../../lab/NowCard.astro';
+import NotFound from '../../lab/NotFound.astro';
+
+export function getStaticPaths() {
+  return import.meta.env.DEV ? [{ params: { slug: undefined } }] : [];
+}
+
+const items = [
+  { id: 'arm', title: '1 · 机械臂 hero', desc: '手绘三连杆机械臂，逆运动学跟随鼠标。替代参考站的涂鸦线条，是具身智能的直接隐喻。' },
+  { id: 'paper', title: '2 · 方格纸 + 胶带', desc: '方格纸替代点阵背景，胶带贴角替代图钉。左边是现状，右边是提案。' },
+  { id: 'fonts', title: '3 · 字体', desc: '中文换霞鹜文楷，英文标题换 Caveat。上为现状，下为提案。' },
+  { id: 'palettes', title: '4 · 配色', desc: '三套配色，点按钮整页切换，配合上面的原型一起看。' },
+  { id: 'now', title: '5 · Now 卡片', desc: '首页索引卡：在做 / 在读 / 在听。在读自动取自资料库中 status: reading 的条目。' },
+  { id: '404', title: '6 · 404', desc: '一台找不到路的小机器人，替代纯文字 404。' },
+];
+---
+
+<BaseLayout title="Lab" description="个性化原型试验场">
+  <div class="lab" id="lab" data-palette="current">
+    <section class="container section">
+      <span class="postit">🧪 Lab · 仅本地可见</span>
+      <h1 class="page-title">原型试验场</h1>
+      <p class="page-desc">每一块是一个独立提案。看完告诉我编号：并入、修改、或删掉。</p>
+      <ol class="toc">
+        {items.map((it) => (
+          <li>
+            <a href={`#${it.id}`}>{it.title}</a>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    {
+      items.map((it) => (
+        <section class="container lab-item" id={it.id}>
+          <div class="lab-head">
+            <h2>{it.title}</h2>
+            <p class="muted">{it.desc}</p>
+          </div>
+          <div class="lab-body">
+            {it.id === 'arm' && <Arm />}
+            {it.id === 'paper' && <Paper />}
+            {it.id === 'fonts' && <Fonts />}
+            {it.id === 'palettes' && <Palettes />}
+            {it.id === 'now' && <NowCard />}
+            {it.id === '404' && <NotFound />}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .toc {
+    margin: 1.5rem 0 0;
+    padding-left: 1.25rem;
+    columns: 2;
+    font-family: var(--font-heading);
+  }
+  .toc a:hover {
+    color: var(--marker);
+  }
+  .lab-item {
+    padding-block: 2.5rem;
+    border-top: 2px dashed var(--pencil-25);
+  }
+  .lab-head h2 {
+    font-size: 1.6rem;
+    margin-bottom: 0.25rem;
+  }
+  .lab-head p {
+    margin: 0 0 1.5rem;
+    max-width: 44rem;
+  }
+
+  /* ---- 配色试验：由 Palettes 组件的按钮切换 data-palette ---- */
+  .lab {
+    background: var(--paper);
+    color: var(--pencil);
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+  .lab[data-palette='green'] {
+    --paper: #f7f4ec;
+    --paper-2: #fffdf8;
+    --erased: #e3ded2;
+    --pencil: #23302a;
+    --pencil-60: rgba(35, 48, 42, 0.6);
+    --pencil-45: rgba(35, 48, 42, 0.45);
+    --pencil-25: rgba(35, 48, 42, 0.25);
+    --pencil-12: rgba(35, 48, 42, 0.12);
+    --marker: #e8962e;
+    --pen: #2f6b4f;
+    --postit: #fbe9c7;
+    --postit-2: #d9eadf;
+    --postit-3: #e5ecf4;
+  }
+  .lab[data-palette='blue'] {
+    --paper: #f6f7f4;
+    --paper-2: #ffffff;
+    --erased: #e0e3e0;
+    --pencil: #1f2433;
+    --pencil-60: rgba(31, 36, 51, 0.6);
+    --pencil-45: rgba(31, 36, 51, 0.45);
+    --pencil-25: rgba(31, 36, 51, 0.25);
+    --pencil-12: rgba(31, 36, 51, 0.12);
+    --marker: #c4562f;
+    --pen: #3b4f9e;
+    --postit: #e6ebfa;
+    --postit-2: #dcefe4;
+    --postit-3: #f8e5dc;
+  }
+  .lab[data-palette='mono'] {
+    --paper: #f3f1ed;
+    --paper-2: #fbfaf8;
+    --erased: #e1ded8;
+    --pencil: #1c1b19;
+    --pencil-60: rgba(28, 27, 25, 0.6);
+    --pencil-45: rgba(28, 27, 25, 0.45);
+    --pencil-25: rgba(28, 27, 25, 0.25);
+    --pencil-12: rgba(28, 27, 25, 0.12);
+    --marker: #b8336a;
+    --pen: #1c1b19;
+    --postit: #f6dde7;
+    --postit-2: #e9e6df;
+    --postit-3: #e9e6df;
+  }
+</style>
