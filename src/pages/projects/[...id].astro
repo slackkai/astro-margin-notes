@@ -1,0 +1,111 @@
+---
+import { render } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+import { getPosts, readingStats, gitLastModified } from '../../utils/content';
+
+export async function getStaticPaths() {
+  const items = await getPosts('projects');
+  return items.map((post, i) => ({
+    params: { id: post.id },
+    props: { post, prev: items[i + 1], next: items[i - 1] },
+  }));
+}
+
+const { post, prev, next } = Astro.props;
+const { Content, headings } = await render(post);
+const d = post.data;
+const STATUS_LABEL: Record<string, string> = { active: '进行中', done: '已完成', archived: '已归档', idea: '想法' };
+const links = [
+  ['GitHub', d.links?.github],
+  ['Demo', d.links?.demo],
+  ['Paper', d.links?.paper],
+  ['Docs', d.links?.docs],
+].filter(([, u]) => u) as [string, string][];
+const stats = readingStats(post.body);
+const modified = await gitLastModified(post.filePath);
+---
+
+<PostLayout
+  section="projects"
+  title={d.title}
+  description={d.description}
+  date={d.date}
+  updated={d.updated}
+  tags={d.tags}
+  image={d.cover}
+  headings={headings}
+  meta={{ ...stats, modified }}
+  prev={prev && { href: `/projects/${prev.id}/`, title: prev.data.title }}
+  next={next && { href: `/projects/${next.id}/`, title: next.data.title }}
+>
+  <div slot="extra" class="proj-meta">
+    <div class="row">
+      <span class="postit green">{STATUS_LABEL[d.status] ?? d.status}</span>
+      {
+        d.stack.length > 0 && (
+          <ul class="stack">
+            {d.stack.map((s) => (
+              <li>{s}</li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+    {
+      links.length > 0 && (
+        <div class="links">
+          {links.map(([label, u]) => (
+            <a href={u} target="_blank" rel="noopener" class="hand-btn small">
+              {label}
+            </a>
+          ))}
+        </div>
+      )
+    }
+  </div>
+
+  {d.video ? <video class="media" src={d.video} autoplay muted loop playsinline controls /> : d.cover && <img class="media" src={d.cover} alt="" />}
+  <Content />
+</PostLayout>
+
+<style>
+  .proj-meta {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .stack {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .stack li {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    padding: 0 0.5rem;
+    background: var(--erased);
+    border-radius: 4px;
+    color: var(--pencil-60);
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .media {
+    margin-bottom: 2rem;
+    border: 3px solid var(--pencil);
+    border-radius: 16px 24px 20px 18px / 18px 20px 24px 16px;
+    box-shadow: var(--shadow-soft);
+  }
+</style>

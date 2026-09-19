@@ -54,13 +54,22 @@ const level = (n: number) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n === 3 
       {
         weeks.map((col) => (
           <div class="col">
-            {col.map((c) => (
-              <span
-                class:list={['cell', `l${level(c.n)}`, { future: c.future }]}
-                title={`${c.key}${c.n ? ` · ${c.n} 条` : ''}`}
-                style={`--jit:${((c.date.getDate() * 7) % 5) - 2}deg`}
-              />
-            ))}
+            {col.map((c) =>
+              c.n > 0 ? (
+                <a
+                  href={`/archive/#m${c.key.slice(0, 7)}`}
+                  class:list={['cell', `l${level(c.n)}`]}
+                  title={`${c.key} · ${c.n} 条，查看归档`}
+                  style={`--jit:${((c.date.getDate() * 7) % 5) - 2}deg`}
+                />
+              ) : (
+                <span
+                  class:list={['cell', 'l0', { future: c.future }]}
+                  title={c.key}
+                  style={`--jit:${((c.date.getDate() * 7) % 5) - 2}deg`}
+                />
+              ),
+            )}
           </div>
         ))
       }

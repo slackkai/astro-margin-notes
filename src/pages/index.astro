@@ -8,11 +8,12 @@ import LibraryCard from '../components/LibraryCard.astro';
 import { SECTIONS } from '../consts';
 import { getPosts, formatDate } from '../utils/content';
 
-const [academic, insight, dailies, library] = await Promise.all([
+const [academic, insight, dailies, library, projects] = await Promise.all([
   getPosts('academic'),
   getPosts('insight'),
   getPosts('dailies'),
   getPosts('library'),
+  getPosts('projects'),
 ]);
 
 const latestInsight = insight.slice(0, 3);
@@ -20,19 +21,26 @@ const latestAcademic = academic.slice(0, 3);
 const latestDailies = dailies.slice(0, 5);
 const latestLibrary = library.slice(0, 3);
 
-const counts = { academic: academic.length, insight: insight.length, dailies: dailies.length, library: library.length };
+const counts = {
+  academic: academic.length,
+  insight: insight.length,
+  dailies: dailies.length,
+  library: library.length,
+  projects: projects.length,
+};
 const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
 ---
 
 <BaseLayout>
-  <ArmHero />
+  <ArmHero idle />
 
-  <!-- 四个板块入口 -->
+  <!-- 五个板块入口 -->
   <section class="container sections-grid">
     <SectionCard {...SECTIONS.academic} count={counts.academic} index={4} />
     <SectionCard {...SECTIONS.insight} count={counts.insight} index={5} />
     <SectionCard {...SECTIONS.dailies} count={counts.dailies} unit="条" index={6} />
     <SectionCard {...SECTIONS.library} count={counts.library} unit="项" index={7} />
+    <SectionCard {...SECTIONS.projects} count={counts.projects} unit="个" index={8} />
   </section>
 
   <!-- Now 卡片 + 最新洞见 -->
@@ -147,7 +155,8 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
   }
   @media (min-width: 1024px) {
     .sections-grid {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.1rem;
     }
   }
   .two-col {

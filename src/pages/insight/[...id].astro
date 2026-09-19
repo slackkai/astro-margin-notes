@@ -1,7 +1,7 @@
 ---
 import { render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
-import { getPosts } from '../../utils/content';
+import { getPosts, getAllTagged, getSeries, readingStats, gitLastModified, relatedTo } from '../../utils/content';
 
 export async function getStaticPaths() {
   const posts = await getPosts('insight');
@@ -12,8 +12,13 @@ export async function getStaticPaths() {
 }
 
 const { post, prev, next } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
 const d = post.data;
+
+const stats = readingStats(post.body);
+const modified = await gitLastModified(post.filePath);
+const related = relatedTo(post, await getAllTagged());
+const series = d.series ? { name: d.series.name, entries: await getSeries(d.series.name), current: post } : undefined;
 ---
 
 <PostLayout
@@ -25,6 +30,10 @@ const d = post.data;
   updated={d.updated}
   tags={d.tags}
   image={d.cover}
+  headings={headings}
+  meta={{ ...stats, modified }}
+  series={series}
+  related={related}
   prev={prev && { href: `/insight/${prev.id}/`, title: prev.data.title }}
   next={next && { href: `/insight/${next.id}/`, title: next.data.title }}
 >

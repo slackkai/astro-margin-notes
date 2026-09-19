@@ -1,7 +1,7 @@
 ---
 import { render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
-import { getPosts } from '../../utils/content';
+import { getPosts, getAllTagged, getSeries, readingStats, gitLastModified, relatedTo } from '../../utils/content';
 
 export async function getStaticPaths() {
   const posts = await getPosts('academic');
@@ -12,7 +12,7 @@ export async function getStaticPaths() {
 }
 
 const { post, prev, next } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
 const d = post.data;
 const links = d.links ?? {};
 const linkList = [
@@ -23,6 +23,11 @@ const linkList = [
   ['Slides', links.slides],
   ['Site', links.site],
 ].filter(([, url]) => url) as [string, string][];
+
+const stats = readingStats(post.body);
+const modified = await gitLastModified(post.filePath);
+const related = relatedTo(post, await getAllTagged());
+const series = d.series ? { name: d.series.name, entries: await getSeries(d.series.name), current: post } : undefined;
 ---
 
 <PostLayout
@@ -33,6 +38,10 @@ const linkList = [
   date={d.date}
   updated={d.updated}
   tags={d.tags}
+  headings={headings}
+  meta={{ ...stats, modified }}
+  series={series}
+  related={related}
   prev={prev && { href: `/academic/${prev.id}/`, title: prev.data.title }}
   next={next && { href: `/academic/${next.id}/`, title: next.data.title }}
 >
@@ -80,7 +89,7 @@ const linkList = [
   }
   .authors {
     margin: 0;
-    font-family: var(--font-heading);
+    font-weight: 700;
   }
   .venue {
     margin: 0;
@@ -97,7 +106,6 @@ const linkList = [
   }
   .bibtex summary {
     cursor: pointer;
-    font-family: var(--font-heading);
     font-weight: 700;
   }
 </style>

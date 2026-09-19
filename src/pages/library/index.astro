@@ -17,6 +17,7 @@ const TYPE_LABEL: Record<string, string> = {
   dataset: '数据集',
   other: '其他',
 };
+const STATUS_ORDER: Record<string, number> = { reading: 0, todo: 1, done: 2 };
 const types = [...new Set(items.map((i) => i.data.type))];
 ---
 
@@ -43,12 +44,24 @@ const types = [...new Set(items.map((i) => i.data.type))];
       }
       <input id="lib-search" class="search" type="search" placeholder="搜标题 / 作者 / 标签…" aria-label="搜索资料库" />
     </div>
+    <div class="toolbar reveal" style="--i:4">
+      <div class="sorts" role="group" aria-label="排序">
+        <span class="meta">排序</span>
+        <button class="hand-btn small is-on" data-sort="date">最新</button>
+        <button class="hand-btn small" data-sort="rating">评分</button>
+        <button class="hand-btn small" data-sort="status">在读优先</button>
+      </div>
+      <button class="hand-btn small" id="lib-random">🎲 随机来一本</button>
+    </div>
 
     <div class="grid" id="lib-grid">
       {
         items.map((it, i) => (
           <div
             data-type={it.data.type}
+            data-date={it.data.date.valueOf()}
+            data-rating={it.data.rating ?? 0}
+            data-status={STATUS_ORDER[it.data.status ?? ''] ?? 3}
             data-search={[it.data.title, it.data.author, it.data.summary, ...it.data.tags].filter(Boolean).join(' ').toLowerCase()}
           >
             <LibraryCard
@@ -63,7 +76,7 @@ const types = [...new Set(items.map((i) => i.data.type))];
               cover={it.data.cover}
               tags={it.data.tags}
               rotate={i % 3 === 0 ? -0.5 : i % 3 === 1 ? 0.4 : -0.2}
-              index={4 + i}
+              index={5 + i}
               transitionName={`library-${it.id}`}
             />
           </div>
@@ -82,16 +95,17 @@ const types = [...new Set(items.map((i) => i.data.type))];
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    margin: 1.5rem 0;
+    margin: 1.25rem 0 0;
   }
-  .filters {
+  .filters,
+  .sorts {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 0.5rem;
   }
   .hand-btn.is-on {
     background: var(--postit);
-    color: var(--pencil);
   }
   .search {
     font: inherit;
@@ -108,13 +122,13 @@ const types = [...new Set(items.map((i) => i.data.type))];
   .search:focus {
     outline: none;
     background: var(--postit);
-    color: var(--pencil);
     transform: translate(-1px, -1px);
     box-shadow: var(--shadow-hand);
   }
   .grid {
     display: grid;
     gap: 1.25rem;
+    margin-top: 1.5rem;
   }
   @media (min-width: 640px) {
     .grid {
@@ -129,6 +143,27 @@ const types = [...new Set(items.map((i) => i.data.type))];
   .empty {
     margin-top: 1.5rem;
   }
+  :global(.is-picked) {
+    animation: pick 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  :global(.is-picked > .hand-card) {
+    box-shadow: var(--shadow-hand) !important;
+    background: var(--postit) !important;
+  }
+  @keyframes pick {
+    0% {
+      transform: rotate(0) scale(1);
+    }
+    30% {
+      transform: rotate(-3deg) scale(1.05);
+    }
+    60% {
+      transform: rotate(2deg) scale(1.04);
+    }
+    100% {
+      transform: rotate(0) scale(1);
+    }
+  }
 </style>
 
 <script>
@@ -136,32 +171,59 @@ const types = [...new Set(items.map((i) => i.data.type))];
     const grid = document.getElementById('lib-grid');
     if (!grid || grid.dataset.bound) return;
     grid.dataset.bound = '1';
-    const btns = document.querySelectorAll<HTMLButtonElement>('.filters [data-type]');
-    const items = grid.querySelectorAll<HTMLElement>(':scope > [data-type]');
+    const gridEl = grid;
+    const typeBtns = document.querySelectorAll<HTMLButtonElement>('.filters [data-type]');
+    const sortBtns = document.querySelectorAll<HTMLButtonElement>('.sorts [data-sort]');
+    const dice = document.getElementById('lib-random');
     const input = document.getElementById('lib-search') as HTMLInputElement | null;
     const empty = document.getElementById('lib-empty');
+    const items = () => [...gridEl.children] as HTMLElement[];
     let type = 'all';
     let q = '';
 
     function apply() {
       let shown = 0;
-      items.forEach((it) => {
+      items().forEach((it) => {
         const ok = (type === 'all' || it.dataset.type === type) && (!q || (it.dataset.search ?? '').includes(q));
         it.style.display = ok ? '' : 'none';
         if (ok) shown++;
       });
       if (empty) empty.hidden = shown > 0;
     }
-    btns.forEach((b) =>
+    function sortBy(key: string) {
+      const kids = items();
+      kids.sort((a, b) => {
+        const av = Number(a.dataset[key] ?? 0), bv = Number(b.dataset[key] ?? 0);
+        return key === 'status' ? av - bv : bv - av;
+      });
+      kids.forEach((k) => gridEl.appendChild(k));
+    }
+    typeBtns.forEach((b) =>
       b.addEventListener('click', () => {
-        btns.forEach((x) => x.classList.toggle('is-on', x === b));
+        typeBtns.forEach((x) => x.classList.toggle('is-on', x === b));
         type = b.dataset.type ?? 'all';
         apply();
+      }),
+    );
+    sortBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        sortBtns.forEach((x) => x.classList.toggle('is-on', x === b));
+        sortBy(b.dataset.sort ?? 'date');
       }),
     );
     input?.addEventListener('input', () => {
       q = input.value.trim().toLowerCase();
       apply();
+    });
+    dice?.addEventListener('click', () => {
+      const visible = items().filter((k) => k.style.display !== 'none');
+      visible.forEach((k) => k.classList.remove('is-picked'));
+      const pick = visible[Math.floor(Math.random() * visible.length)];
+      if (!pick) return;
+      pick.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      void pick.offsetWidth;
+      pick.classList.add('is-picked');
+      setTimeout(() => pick.classList.remove('is-picked'), 2500);
     });
   }
   bindLibrary();

@@ -1,31 +1,15 @@
 ---
 /**
- * 原型 13：关于页"工作台"区块：工具 / 硬件 / 正在追的三个问题。文案为占位。
+ * 关于页"工作台"：工具 / 硬件 / 正在追的问题。数据在 consts.WORKBENCH。
  */
-const TOOLS = [
-  { name: 'Isaac Lab', note: '仿真训练主力' },
-  { name: 'MuJoCo', note: '快速验证动力学' },
-  { name: 'ROS 2', note: '真机通信' },
-  { name: 'Zotero', note: '文献' },
-  { name: 'Obsidian', note: '笔记' },
-];
-const HARDWARE = [
-  { name: 'Unitree Go2', note: '四足实验平台' },
-  { name: 'RealSense D435', note: '深度相机' },
-  { name: '4090 工作站', note: '训练' },
-];
-const QUESTIONS = [
-  '仿真与真机之间，到底是哪些差距最要命？',
-  '机器人需要"记忆"吗，还是反应式策略就够了？',
-  '一个策略能不能同时会走路和会抓东西？',
-];
+import { WORKBENCH } from '../consts';
 ---
 
 <div class="bench">
-  <div class="hand-card bench-card taped single" style="--r:-0.6deg">
+  <div class="hand-card bench-card taped single reveal" style="--r:-0.6deg; --i:4">
     <h3>🔧 工具</h3>
     <ul>
-      {TOOLS.map((t) => (
+      {WORKBENCH.tools.map((t) => (
         <li>
           <strong>{t.name}</strong>
           <span class="meta">{t.note}</span>
@@ -33,10 +17,10 @@ const QUESTIONS = [
       ))}
     </ul>
   </div>
-  <div class="hand-card bench-card taped single" style="--r:0.5deg">
+  <div class="hand-card bench-card taped single reveal" style="--r:0.5deg; --i:5">
     <h3>🤖 硬件</h3>
     <ul>
-      {HARDWARE.map((t) => (
+      {WORKBENCH.hardware.map((t) => (
         <li>
           <strong>{t.name}</strong>
           <span class="meta">{t.note}</span>
@@ -44,13 +28,13 @@ const QUESTIONS = [
       ))}
     </ul>
   </div>
-  <div class="hand-card bench-card questions" style="--r:-0.3deg">
+  <div class="hand-card bench-card questions reveal" style="--r:-0.3deg; --i:6">
     <svg class="clip" viewBox="0 0 24 48" aria-hidden="true">
       <path d="M8 44 V10 a4 4 0 0 1 8 0 V38 a2 2 0 0 1 -4 0 V14" />
     </svg>
-    <h3>❓ 正在追的三个问题</h3>
+    <h3>❓ 正在追的问题</h3>
     <ol>
-      {QUESTIONS.map((q) => (
+      {WORKBENCH.questions.map((q) => (
         <li>{q}</li>
       ))}
     </ol>

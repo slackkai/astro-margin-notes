@@ -2,12 +2,13 @@
 import { NAV, SITE } from '../consts';
 import ThemeToggle from './ThemeToggle.astro';
 import PaletteToggle from './PaletteToggle.astro';
+import Search from './Search.astro';
 
 const path = Astro.url.pathname;
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
 ---
 
-<header class="site-header">
+<header class="site-header" data-pagefind-ignore>
   <div class="container header-inner">
     <a href="/" class="brand" aria-label={SITE.title}>
       <span class="brand-mark" aria-hidden="true">K</span>
@@ -29,6 +30,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     </nav>
 
     <div class="header-actions">
+      <Search />
       <PaletteToggle />
       <ThemeToggle />
       <button class="menu-btn" id="menu-btn" aria-label="打开菜单" aria-expanded="false" aria-controls="mobile-nav">

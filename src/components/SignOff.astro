@@ -1,14 +1,8 @@
 ---
 /**
- * 页脚结束语：从几句里随机抽一句，每次加载不同。
+ * 页脚结束语：从 consts.SIGNOFFS 里随机抽一句，每次加载不同。
  */
-export const SIGNOFFS = [
-  '今天也把想法留在纸上了。',
-  '读到这里，起来动一动身体。',
-  '机器人还在学走路，我也是。',
-  '仿真里成立的，去真实世界试试。',
-  '写下来，才知道自己没想清楚。',
-];
+import { SIGNOFFS } from '../consts';
 ---
 
 <p class="signoff" id="site-signoff" data-lines={JSON.stringify(SIGNOFFS)}>

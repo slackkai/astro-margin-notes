@@ -1,12 +1,22 @@
 ---
 /**
- * 文章详情布局：标题区 + 元信息 + 正文 + 标签 + 上一篇/下一篇
+ * 文章详情布局：目录 + 标题区 + 元信息 + 合集导航 + 正文 + 标签 + 相关文章 + 上一篇/下一篇
  */
 import BaseLayout from './BaseLayout.astro';
 import Tags from '../components/Tags.astro';
 import ReadingProgress from '../components/ReadingProgress.astro';
-import { formatDate } from '../utils/content';
+import Toc from '../components/Toc.astro';
+import PostMeta from '../components/PostMeta.astro';
+import SeriesNav from '../components/SeriesNav.astro';
+import Related from '../components/Related.astro';
+import { formatDate, type SeriesEntry, type TaggedEntry } from '../utils/content';
 import { SECTIONS, type SectionKey } from '../consts';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
 
 interface Props {
   section: SectionKey;
@@ -19,9 +29,28 @@ interface Props {
   prev?: { href: string; title: string };
   next?: { href: string; title: string };
   transitionName?: string;
+  headings?: Heading[];
+  meta?: { words: number; minutes: number; modified?: Date | null };
+  series?: { name: string; entries: SeriesEntry[]; current: { collection: string; id: string } };
+  related?: TaggedEntry[];
 }
 
-const { section, title, description, date, updated, tags = [], image, prev, next, transitionName } = Astro.props;
+const {
+  section,
+  title,
+  description,
+  date,
+  updated,
+  tags = [],
+  image,
+  prev,
+  next,
+  transitionName,
+  headings = [],
+  meta,
+  series,
+  related = [],
+} = Astro.props;
 const sec = SECTIONS[section];
 ---
 
@@ -36,15 +65,21 @@ const sec = SECTIONS[section];
         <time datetime={date.toISOString()}>{formatDate(date)}</time>
         {updated && <span> · 更新于 {formatDate(updated)}</span>}
       </p>
+      {meta && <PostMeta words={meta.words} minutes={meta.minutes} modified={meta.modified} />}
       <slot name="extra" />
     </header>
+
+    {series && <SeriesNav name={series.name} entries={series.entries} current={series.current} />}
+
+    <Toc headings={headings} />
 
     <div class="prose reveal" style="--i: 2">
       <slot />
     </div>
 
-    <footer class="post-footer reveal" style="--i: 4">
+    <footer class="post-footer reveal" style="--i: 4" data-pagefind-ignore>
       {tags.length > 0 && <Tags tags={tags} />}
+      <Related entries={related} />
       <nav class="post-nav" aria-label="上一篇 / 下一篇">
         {
           prev ? (
@@ -90,11 +125,12 @@ const sec = SECTIONS[section];
     margin: 3rem auto 0;
     padding-top: 1.5rem;
     border-top: 2px dashed var(--pencil-25);
+    clear: both;
   }
   .post-nav {
     display: grid;
     gap: 1rem;
-    margin-top: 1.5rem;
+    margin-top: 2rem;
   }
   @media (min-width: 640px) {
     .post-nav {
@@ -106,7 +142,7 @@ const sec = SECTIONS[section];
     flex-direction: column;
     gap: 0.15rem;
     padding: 0.75rem 1rem;
-    font-family: var(--font-heading);
+    font-weight: 700;
   }
   .post-nav-item.next {
     text-align: right;

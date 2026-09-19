@@ -14,7 +14,7 @@ interface Props {
   /** 页脚是否显示随机结束语 */
   signoff?: boolean;
 }
-const { signoff = false, ...head } = Astro.props;
+const { signoff = true, ...head } = Astro.props;
 ---
 
 <!doctype html>

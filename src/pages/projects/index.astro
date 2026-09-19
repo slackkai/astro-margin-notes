@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { SECTIONS } from '../../consts';
+import { getPosts } from '../../utils/content';
+
+const projects = await getPosts('projects');
+const sec = SECTIONS.projects;
+const featured = projects.filter((p) => p.data.featured);
+const rest = projects.filter((p) => !p.data.featured);
+const STATUS_LABEL: Record<string, string> = { active: '进行中', done: '已完成', archived: '已归档', idea: '想法' };
+const statuses = [...new Set(projects.map((p) => p.data.status))];
+---
+
+<BaseLayout title={sec.label} description={sec.desc}>
+  <section class="container section">
+    <span class="postit reveal" style="--i:0">{sec.emoji} {sec.zh}</span>
+    <h1 class="page-title reveal" style="--i:1">{sec.label}</h1>
+    <p class="page-desc reveal" style="--i:2">{sec.desc}</p>
+
+    {
+      statuses.length > 1 && (
+        <div class="filters reveal" style="--i:3" role="group" aria-label="按状态筛选">
+          <button class="hand-btn small is-on" data-status="all">
+            全部
+          </button>
+          {statuses.map((s) => (
+            <button class="hand-btn small" data-status={s}>
+              {STATUS_LABEL[s] ?? s}
+            </button>
+          ))}
+        </div>
+      )
+    }
+
+    <div class="grid" id="proj-grid">
+      {
+        [...featured, ...rest].map((p, i) => (
+          <div data-status={p.data.status}>
+            <ProjectCard project={p} rotate={i % 3 === 0 ? -0.5 : i % 3 === 1 ? 0.4 : -0.2} index={4 + i} />
+          </div>
+        ))
+      }
+    </div>
+    {projects.length === 0 && <p class="muted">还没有项目。</p>}
+  </section>
+</BaseLayout>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+  }
+  .hand-btn.is-on {
+    background: var(--postit);
+  }
+  .grid {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  @media (min-width: 640px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1024px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>
+
+<script>
+  function bindProjects() {
+    const grid = document.getElementById('proj-grid');
+    if (!grid || grid.dataset.bound) return;
+    grid.dataset.bound = '1';
+    const btns = document.querySelectorAll<HTMLButtonElement>('.filters [data-status]');
+    const items = grid.querySelectorAll<HTMLElement>(':scope > [data-status]');
+    btns.forEach((b) =>
+      b.addEventListener('click', () => {
+        btns.forEach((x) => x.classList.toggle('is-on', x === b));
+        const s = b.dataset.status;
+        items.forEach((it) => (it.style.display = s === 'all' || it.dataset.status === s ? '' : 'none'));
+      }),
+    );
+  }
+  bindProjects();
+  document.addEventListener('astro:page-load', bindProjects);
+</script>

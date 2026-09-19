@@ -6,12 +6,42 @@
 
 | 板块 | 目录 | 说明 |
 |---|---|---|
-| Academic | `src/content/academic/` | 论文笔记、研究记录、发表（支持 venue / links / bibtex） |
+| Academic | `src/content/academic/` | 论文笔记、研究记录、发表（支持 venue / links / bibtex，kind: paper 的条目进入 Publications 列表） |
 | Insight | `src/content/insight/` | 长文、观点（支持置顶、封面） |
-| Dailies | `src/content/dailies/` | 短记、日志，按月时间线展示（标题可省略） |
-| Library | `src/content/library/` | 书 / 论文 / 工具 / 课程收藏，卡片 + 筛选 + 搜索 |
+| Dailies | `src/content/dailies/` | 短记、日志，按月时间线展示（标题可省略），顶部有热力图 |
+| Library | `src/content/library/` | 书 / 论文 / 工具 / 课程收藏，卡片 + 筛选 + 搜索 + 排序 |
+| Projects | `src/content/projects/` | 项目卡片：状态、技术栈、链接，封面可为图片 / GIF / 短视频 |
 
 各板块的字段定义见 `src/content.config.ts`。
+
+### 合集
+
+Academic 与 Insight 的文章可以串成系列，frontmatter 里写：
+
+```yaml
+series:
+  name: '从零搭四足控制器'
+  order: 1
+```
+
+文章顶部会出现合集导航（第几篇、全部篇目、上下篇）。
+
+### 页边批注与荧光笔
+
+`.mdx` 文件里引入后使用：
+
+```mdx
+import Note from '../../components/mdx/Note.astro';
+import Mark from '../../components/mdx/Mark.astro';
+
+正文……<Mark>高亮</Mark>……<Note>旁注内容</Note>
+```
+
+宽屏时旁注浮在正文右侧页边，窄屏点上标展开。
+
+### 文章页自动附带
+
+目录（≥1200px 贴左侧）、字数与阅读时长、git 最后修改时间、按标签推荐的相关文章、右侧可拖动的阅读进度。
 
 ## 本地开发
 
@@ -44,6 +74,7 @@ draft: false     # true 时仅在本地 dev 可见
 ## 站点配置
 
 - 站点名、作者、导航：`src/consts.ts`
+- 研究方向卡片、工作台、页脚结束语：同样在 `src/consts.ts`（`RESEARCH_TOPICS` `WORKBENCH` `SIGNOFFS`）
 - 主题色：`src/styles/global.css` 顶部的 CSS 变量（`--paper` `--pencil` `--marker` `--pen` `--postit`）
 - 字体：全站使用 [霞鹜文楷 Screen](https://github.com/lxgw/LxgwWenKai-Screen)，通过 npm 包 `lxgw-wenkai-screen-webfont` 自托管。它被拆成 97 个按 unicode-range 划分的子集，浏览器只下载页面实际用到的块。
 - Now 卡片：`src/content/now/now.md`

@@ -5,11 +5,11 @@ import SignOff from './SignOff.astro';
 interface Props {
   signoff?: boolean;
 }
-const { signoff = false } = Astro.props;
+const { signoff = true } = Astro.props;
 const year = new Date().getFullYear();
 ---
 
-<footer class="site-footer">
+<footer class="site-footer" data-pagefind-ignore>
   <div class="container">
     {signoff && <SignOff />}
     <div class="footer-inner">
@@ -17,6 +17,7 @@ const year = new Date().getFullYear();
         © {year} <a href="/" class="wavy">{SITE.title}</a> · {SITE.tagline}
       </p>
       <ul class="footer-links">
+        <li><a href="/archive/">Archive</a></li>
         <li><a href="/rss.xml">RSS</a></li>
         <li><a href="/sitemap-index.xml">Sitemap</a></li>
         {SITE.github && <li><a href={SITE.github} target="_blank" rel="noopener">GitHub</a></li>}

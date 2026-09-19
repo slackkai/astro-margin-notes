@@ -1,7 +1,7 @@
 ---
 import { render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
-import { getPosts, formatDate } from '../../utils/content';
+import { getPosts, getAllTagged, formatDate, relatedTo } from '../../utils/content';
 
 export async function getStaticPaths() {
   const posts = await getPosts('dailies');
@@ -16,6 +16,7 @@ const { Content } = await render(post);
 const d = post.data;
 const title = d.title ?? formatDate(d.date);
 const label = (p: typeof post) => p.data.title ?? formatDate(p.data.date);
+const related = relatedTo(post, await getAllTagged());
 ---
 
 <PostLayout
@@ -25,6 +26,7 @@ const label = (p: typeof post) => p.data.title ?? formatDate(p.data.date);
   description={d.description}
   date={d.date}
   tags={d.tags}
+  related={related}
   prev={prev && { href: `/dailies/${prev.id}/`, title: label(prev) }}
   next={next && { href: `/dailies/${next.id}/`, title: label(next) }}
 >

@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Workbench from '../components/Workbench.astro';
 import { SITE } from '../consts';
 ---
 
@@ -19,6 +20,7 @@ import { SITE } from '../consts';
           <li><strong>Insight</strong>：长文、观点与方法论。</li>
           <li><strong>Dailies</strong>：碎碎念、日志与生活切片。</li>
           <li><strong>Library</strong>：书、论文、工具与链接的收藏架。</li>
+          <li><strong>Projects</strong>：机器人、软件与硬件项目。</li>
         </ul>
         <h2>联系</h2>
         <p>
@@ -34,10 +36,23 @@ import { SITE } from '../consts';
         <p class="meta">{SITE.tagline}</p>
       </aside>
     </div>
+
+    <h2 class="bench-title reveal" style="--i:4">工作台 <span class="muted-zh">Workbench</span></h2>
+    <Workbench />
   </section>
 </BaseLayout>
 
 <style>
+  .bench-title {
+    font-size: 1.8rem;
+    margin: 3rem 0 1.25rem;
+  }
+  .muted-zh {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--pencil-45);
+    margin-left: 0.25rem;
+  }
   .about-grid {
     display: grid;
     gap: 2.5rem;

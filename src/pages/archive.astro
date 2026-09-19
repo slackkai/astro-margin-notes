@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Archive from '../components/Archive.astro';
+---
+
+<BaseLayout title="Archive" description="全站归档，按年月排列">
+  <section class="container section">
+    <span class="postit reveal" style="--i:0">🗄️ 归档</span>
+    <h1 class="page-title reveal" style="--i:1">Archive</h1>
+    <p class="page-desc reveal" style="--i:2">全站内容按年月排列，一行一条。</p>
+    <div class="reveal" style="--i:3">
+      <Archive />
+    </div>
+  </section>
+</BaseLayout>
