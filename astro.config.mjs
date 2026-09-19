@@ -11,6 +11,14 @@ export default defineConfig({
   // 则改为 site: 'https://<user>.github.io', base: '/<repo>'
   site: 'https://latentk.com',
   integrations: [mdx(), sitemap()],
+  vite: {
+    build: {
+      rollupOptions: {
+        // Pagefind 索引在 astro build 之后才生成，运行时按需加载
+        external: ['/pagefind/pagefind.js'],
+      },
+    },
+  },
   markdown: {
     remarkPlugins: [remarkMath],
     rehypePlugins: [rehypeKatex],

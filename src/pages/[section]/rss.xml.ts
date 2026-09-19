@@ -1,0 +1,27 @@
+import rss from '@astrojs/rss';
+import type { APIContext } from 'astro';
+import { SITE, SECTIONS, type SectionKey } from '../../consts';
+import { getPosts, entryHref, formatDate } from '../../utils/content';
+
+export function getStaticPaths() {
+  return (Object.keys(SECTIONS) as SectionKey[]).map((section) => ({ params: { section } }));
+}
+
+export async function GET({ params, site }: APIContext) {
+  const section = params.section as SectionKey;
+  const sec = SECTIONS[section];
+  const entries = await getPosts(section);
+  return rss({
+    title: `${SITE.title} · ${sec.label}`,
+    description: sec.desc,
+    site: site!,
+    items: entries.map((e) => ({
+      title: ('title' in e.data && e.data.title) || `${sec.label} · ${formatDate(e.data.date)}`,
+      pubDate: e.data.date,
+      description: ('description' in e.data && e.data.description) || ('summary' in e.data ? e.data.summary : undefined),
+      link: entryHref(e),
+      categories: [section, ...e.data.tags],
+    })),
+    customData: '<language>zh-CN</language>',
+  });
+}

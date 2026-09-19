@@ -1,0 +1,200 @@
+---
+/**
+ * 项目卡片：封面 / 视频、状态、技术栈、链接。
+ */
+import Tags from './Tags.astro';
+import type { CollectionEntry } from 'astro:content';
+
+const STATUS: Record<string, { label: string; cls: string }> = {
+  active: { label: '进行中', cls: 'st-active' },
+  done: { label: '已完成', cls: 'st-done' },
+  archived: { label: '已归档', cls: 'st-archived' },
+  idea: { label: '想法', cls: 'st-idea' },
+};
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  rotate?: number;
+  index?: number;
+}
+const { project: p, rotate = 0, index = 0 } = Astro.props;
+const d = p.data;
+const st = STATUS[d.status] ?? STATUS.active;
+const href = `/projects/${p.id}/`;
+const links = [
+  ['GitHub', d.links?.github],
+  ['Demo', d.links?.demo],
+  ['Paper', d.links?.paper],
+  ['Docs', d.links?.docs],
+].filter(([, u]) => u) as [string, string][];
+---
+
+<article class:list={['hand-card proj reveal', { 'is-featured': d.featured }]} style={`--r:${rotate}deg; --i:${index}`}>
+  {
+    d.video ? (
+      <video class="proj-media" src={d.video} autoplay muted loop playsinline preload="metadata" />
+    ) : d.cover ? (
+      <img class="proj-media" src={d.cover} alt="" loading="lazy" decoding="async" />
+    ) : (
+      <div class="proj-media proj-placeholder" aria-hidden="true">
+        <svg viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <path d="M10 50 h100" />
+          <path d="M30 50 v-22 l20 -12 l14 16 l16 -6 v24" />
+          <circle cx="30" cy="28" r="3" fill="currentColor" />
+          <circle cx="80" cy="26" r="3" fill="currentColor" />
+        </svg>
+      </div>
+    )
+  }
+  <div class="proj-body">
+    <div class="proj-top">
+      <span class:list={['proj-status', st.cls]}>{st.label}</span>
+      {d.featured && <span class="proj-star" title="精选">★</span>}
+    </div>
+    <h3 class="proj-title"><a href={href}>{d.title}</a></h3>
+    {d.description && <p class="proj-desc">{d.description}</p>}
+    {
+      d.stack.length > 0 && (
+        <ul class="proj-stack">
+          {d.stack.map((s) => (
+            <li>{s}</li>
+          ))}
+        </ul>
+      )
+    }
+    <div class="proj-foot">
+      <Tags tags={d.tags} small />
+      {
+        links.length > 0 && (
+          <span class="proj-links">
+            {links.map(([label, u]) => (
+              <a href={u} target="_blank" rel="noopener">
+                {label}
+              </a>
+            ))}
+          </span>
+        )
+      }
+    </div>
+  </div>
+</article>
+
+<style>
+  .proj {
+    display: flex;
+    flex-direction: column;
+    transform: rotate(var(--r));
+    height: 100%;
+    overflow: visible;
+  }
+  .proj:hover {
+    transform: rotate(calc(var(--r) - 0.5deg)) translate(-1px, -1px);
+    box-shadow: var(--shadow-hand);
+  }
+  .proj.is-featured {
+    border-width: 3px;
+  }
+  .proj-media {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-bottom: 2px solid var(--pencil);
+    border-radius: 200px 12px 0 0 / 12px 200px 0 0;
+    background: var(--erased);
+  }
+  .proj-placeholder {
+    display: grid;
+    place-items: center;
+    color: var(--pencil-25);
+  }
+  .proj-placeholder svg {
+    width: 45%;
+  }
+  .proj-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1rem 1.2rem 1.1rem;
+    flex: 1;
+  }
+  .proj-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .proj-status {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0 0.55rem;
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+    transform: rotate(-1.5deg);
+  }
+  .st-active {
+    background: var(--postit-2);
+  }
+  .st-done {
+    background: var(--postit-3);
+  }
+  .st-archived {
+    background: var(--erased);
+    color: var(--pencil-60);
+  }
+  .st-idea {
+    background: var(--postit);
+    border-style: dashed;
+  }
+  .proj-star {
+    color: var(--marker);
+    font-size: 1.1rem;
+  }
+  .proj-title {
+    font-size: 1.3rem;
+  }
+  .proj-title a:hover {
+    color: var(--marker);
+  }
+  .proj-desc {
+    margin: 0;
+    color: var(--pencil-60);
+    font-size: 1rem;
+  }
+  .proj-stack {
+    list-style: none;
+    margin: 0.2rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .proj-stack li {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    padding: 0 0.45rem;
+    background: var(--erased);
+    border-radius: 4px;
+    color: var(--pencil-60);
+  }
+  .proj-foot {
+    margin-top: auto;
+    padding-top: 0.6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .proj-links {
+    display: flex;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+  }
+  .proj-links a {
+    color: var(--pen);
+    text-decoration: underline wavy;
+    text-underline-offset: 3px;
+  }
+  .proj-links a:hover {
+    color: var(--marker);
+  }
+</style>

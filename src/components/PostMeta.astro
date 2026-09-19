@@ -1,0 +1,28 @@
+---
+/**
+ * 文章元信息：字数、阅读时长、最后修改（git）。
+ */
+import { formatDate } from '../utils/content';
+
+interface Props {
+  words: number;
+  minutes: number;
+  modified?: Date | null;
+}
+const { words, minutes, modified } = Astro.props;
+---
+
+<p class="post-meta meta">
+  <span title="正文字数">✍️ {words.toLocaleString('zh-CN')} 字</span>
+  <span title="预计阅读时长">⏱️ 约 {minutes} 分钟</span>
+  {modified && <span title="最后一次 git 提交">🛠️ 修改于 {formatDate(modified)}</span>}
+</p>
+
+<style>
+  .post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    margin: 0.35rem 0 0;
+  }
+</style>

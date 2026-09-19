@@ -1,0 +1,55 @@
+---
+/**
+ * 相关文章：按标签重合度推荐，放在文章底部。
+ */
+import PostCard from './PostCard.astro';
+import { SECTIONS, type SectionKey } from '../consts';
+import { entryHref, formatDate, type TaggedEntry } from '../utils/content';
+
+interface Props {
+  entries: TaggedEntry[];
+}
+const { entries } = Astro.props;
+---
+
+{
+  entries.length > 0 && (
+    <section class="related">
+      <h2 class="related-title">
+        <span class="postit">🔗 相关</span>
+      </h2>
+      <div class="related-grid">
+        {entries.map((e, i) => (
+          <PostCard
+            href={entryHref(e)}
+            title={e.data.title ?? formatDate(e.data.date)}
+            date={e.data.date}
+            description={e.data.description}
+            badge={`${SECTIONS[e.collection as SectionKey].emoji} ${SECTIONS[e.collection as SectionKey].label}`}
+            rotate={i % 2 ? 0.4 : -0.4}
+            index={i}
+          />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .related {
+    max-width: var(--max-w-prose);
+    margin: 2.5rem auto 0;
+  }
+  .related-title {
+    margin-bottom: 1rem;
+  }
+  .related-grid {
+    display: grid;
+    gap: 1rem;
+  }
+  @media (min-width: 640px) {
+    .related-grid {
+      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    }
+  }
+</style>

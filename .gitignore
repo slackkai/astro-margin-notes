@@ -24,3 +24,6 @@ pnpm-debug.log*
 
 # screenshots
 .shots/
+
+# pagefind dev copy
+public/pagefind/

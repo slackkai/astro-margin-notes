@@ -27,7 +27,7 @@ const sec = SECTIONS[section];
 
 <BaseLayout title={title} description={description} image={image} type="article" publishedTime={date}>
   <ReadingProgress />
-  <article class="container section">
+  <article class="container section" data-pagefind-meta={`section:${sec.label}`}>
     <header class="post-header reveal">
       <a href={sec.href} class="postit">{sec.emoji} {sec.label}</a>
       <h1 class="post-title" transition:name={transitionName}>{title}</h1>

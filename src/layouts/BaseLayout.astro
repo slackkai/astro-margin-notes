@@ -26,7 +26,7 @@ const { signoff = false, ...head } = Astro.props;
   <body>
     <a class="skip sr-only" href="#main">跳到正文</a>
     <Header />
-    <main id="main" transition:name="main">
+    <main id="main" transition:name="main" data-pagefind-body>
       <slot />
     </main>
     <Footer signoff={signoff} />

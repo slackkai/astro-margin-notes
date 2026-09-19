@@ -10,12 +10,21 @@ const common = {
   draft: z.boolean().default(false),
 };
 
+/** 合集：多篇文章串成系列。name 相同即同一系列，order 决定顺序 */
+const series = z
+  .object({
+    name: z.string(),
+    order: z.number(),
+  })
+  .optional();
+
 /** 学术：论文笔记、研究、发表、讲座 */
 const academic = defineCollection({
   loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: './src/content/academic' }),
   schema: z.object({
     ...common,
     kind: z.enum(['note', 'paper', 'talk', 'course', 'project']).default('note'),
+    series,
     venue: z.string().optional(), // 会议 / 期刊 / 课程名
     authors: z.array(z.string()).optional(),
     year: z.number().optional(),
@@ -40,6 +49,7 @@ const insight = defineCollection({
     ...common,
     cover: z.string().optional(),
     pinned: z.boolean().default(false),
+    series,
   }),
 });
 
@@ -83,4 +93,25 @@ const now = defineCollection({
   }),
 });
 
-export const collections = { academic, insight, dailies, library, now };
+/** 项目：机器人 / 软件 / 硬件项目卡片 */
+const projects = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: './src/content/projects' }),
+  schema: z.object({
+    ...common,
+    status: z.enum(['active', 'done', 'archived', 'idea']).default('active'),
+    cover: z.string().optional(), // 图片或 GIF
+    video: z.string().optional(), // mp4/webm 短视频，优先于 cover
+    stack: z.array(z.string()).default([]), // 技术栈
+    links: z
+      .object({
+        github: z.string().url().optional(),
+        demo: z.string().url().optional(),
+        paper: z.string().url().optional(),
+        docs: z.string().url().optional(),
+      })
+      .optional(),
+    featured: z.boolean().default(false),
+  }),
+});
+
+export const collections = { academic, insight, dailies, library, now, projects };

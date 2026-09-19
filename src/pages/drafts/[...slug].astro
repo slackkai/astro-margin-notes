@@ -1,0 +1,59 @@
+---
+/**
+ * /drafts/ —— 草稿列表。只在 dev 下生成，方便找 draft: true 的内容。
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { SECTIONS, type SectionKey } from '../../consts';
+import { entryHref, formatDate, byDateDesc } from '../../utils/content';
+
+export function getStaticPaths() {
+  return import.meta.env.DEV ? [{ params: { slug: undefined } }] : [];
+}
+
+const cols = ['academic', 'insight', 'dailies', 'library', 'projects'] as const;
+const drafts = (
+  await Promise.all(cols.map((c) => getCollection(c, (e) => e.data.draft)))
+)
+  .flat()
+  .sort(byDateDesc);
+const label = (c: string) => (c in SECTIONS ? SECTIONS[c as SectionKey] : { emoji: '🛠️', label: 'Project' });
+---
+
+<BaseLayout title="Drafts" description="草稿">
+  <section class="container section">
+    <span class="postit">📝 仅本地可见</span>
+    <h1 class="page-title">Drafts</h1>
+    <p class="page-desc">{drafts.length} 篇草稿。frontmatter 里 draft: true 的内容只在 dev 下显示，生产构建会跳过。</p>
+    <div class="grid">
+      {
+        drafts.map((e, i) => (
+          <PostCard
+            href={entryHref(e)}
+            title={('title' in e.data && e.data.title) || formatDate(e.data.date)}
+            date={e.data.date}
+            description={'description' in e.data ? e.data.description : undefined}
+            badge={`${label(e.collection).emoji} ${label(e.collection).label}`}
+            rotate={i % 2 ? 0.4 : -0.4}
+            index={i}
+          />
+        ))
+      }
+    </div>
+    {drafts.length === 0 && <p class="muted">没有草稿。</p>}
+  </section>
+</BaseLayout>
+
+<style>
+  .grid {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+  @media (min-width: 768px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

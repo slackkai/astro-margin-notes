@@ -1,0 +1,271 @@
+---
+/**
+ * 全站搜索：Pagefind 静态索引 + 自绘弹窗。快捷键 / 或 Ctrl+K。
+ * 索引在 `npm run build` 后由 postbuild 生成到 dist/pagefind；
+ * 本地 dev 预览需先 build 一次并把 dist/pagefind 复制到 public/pagefind（见 README）。
+ */
+---
+
+<button class="search-btn" id="search-btn" aria-label="搜索" title="搜索 ( / )">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+    <circle cx="11" cy="11" r="7" />
+    <path d="m20 20-3.5-3.5" />
+  </svg>
+</button>
+
+<div class="search-modal" id="search-modal" hidden role="dialog" aria-modal="true" aria-label="全站搜索">
+  <div class="search-backdrop" id="search-backdrop"></div>
+  <div class="search-panel hand-card">
+    <div class="search-row">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.5-3.5" />
+      </svg>
+      <input id="search-input" type="search" placeholder="搜全站…" autocomplete="off" spellcheck="false" />
+      <kbd>Esc</kbd>
+    </div>
+    <ul class="search-results" id="search-results" role="listbox"></ul>
+    <p class="search-hint meta" id="search-hint">输入关键词，↑↓ 选择，Enter 打开</p>
+  </div>
+</div>
+
+<style>
+  .search-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+    background: var(--paper-2);
+    box-shadow: var(--shadow-hand-sm);
+    transition: all 0.1s ease;
+  }
+  .search-btn:hover {
+    background: var(--postit);
+    transform: rotate(-6deg);
+  }
+  .search-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: start center;
+    padding: 8vh 1rem 1rem;
+  }
+  .search-modal[hidden] {
+    display: none;
+  }
+  .search-backdrop {
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--pencil) 35%, transparent);
+    backdrop-filter: blur(3px);
+  }
+  .search-panel {
+    position: relative;
+    width: min(38rem, 100%);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0.9rem 1rem 0.75rem;
+    animation: fade-up 0.2s ease-out;
+    box-shadow: var(--shadow-hand);
+  }
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px dashed var(--pencil-25);
+  }
+  .search-row input {
+    flex: 1;
+    font: inherit;
+    font-size: 1.15rem;
+    border: 0;
+    background: transparent;
+    color: var(--pencil);
+    outline: none;
+  }
+  .search-row kbd {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 0.1rem 0.4rem;
+    border: 1.5px solid var(--pencil-25);
+    border-radius: 4px;
+    color: var(--pencil-45);
+  }
+  .search-results {
+    list-style: none;
+    margin: 0;
+    padding: 0.4rem 0 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .search-results li a {
+    display: block;
+    padding: 0.5rem 0.7rem;
+    border: 2px solid transparent;
+    border-radius: var(--radius-wobble-sm);
+  }
+  .search-results li a:hover,
+  .search-results li.is-active a {
+    border-color: var(--pencil);
+    background: var(--postit);
+  }
+  .search-results .r-title {
+    font-weight: 700;
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+  }
+  .search-results .r-sec {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--pencil-45);
+  }
+  .search-results .r-excerpt {
+    font-size: 0.9rem;
+    color: var(--pencil-60);
+    margin: 0.1rem 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .search-results .r-excerpt :global(mark) {
+    background: var(--postit-3);
+    color: inherit;
+    padding: 0 0.1em;
+    border-radius: 2px;
+  }
+  .search-hint {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+  }
+</style>
+
+<script>
+  type PF = {
+    init: () => Promise<void>;
+    debouncedSearch: (q: string) => Promise<{ results: { data: () => Promise<PFResult> }[] } | null>;
+  };
+  type PFResult = { url: string; meta: { title?: string; section?: string }; excerpt: string };
+
+  function initSearch() {
+    const btn = document.getElementById('search-btn');
+    const modal = document.getElementById('search-modal');
+    const input = document.getElementById('search-input') as HTMLInputElement | null;
+    const list = document.getElementById('search-results');
+    const hint = document.getElementById('search-hint');
+    const backdrop = document.getElementById('search-backdrop');
+    if (!btn || !modal || !input || !list || !hint || !backdrop || btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    const modalEl = modal, inputEl = input, listEl = list, hintEl = hint;
+
+    let pf: PF | null = null;
+    let loadFailed = false;
+    let active = -1;
+
+    async function loadPagefind() {
+      if (pf || loadFailed) return;
+      try {
+        // 路径拼接成变量，避免 Vite 在构建期尝试解析这个运行时才存在的文件
+        const url = '/pagefind/' + 'pagefind.js';
+        pf = (await import(/* @vite-ignore */ url)) as PF;
+        await pf.init();
+      } catch {
+        loadFailed = true;
+        hintEl.textContent = '搜索索引尚未生成：先 npm run build，再把 dist/pagefind 复制到 public/pagefind。';
+      }
+    }
+
+    const open = () => {
+      modalEl.hidden = false;
+      inputEl.value = '';
+      listEl.innerHTML = '';
+      active = -1;
+      inputEl.focus();
+      loadPagefind();
+    };
+    const close = () => {
+      modalEl.hidden = true;
+    };
+
+    function render(results: PFResult[]) {
+      listEl.innerHTML = '';
+      active = -1;
+      if (results.length === 0) {
+        hintEl.textContent = inputEl.value ? '没有结果。' : '输入关键词，↑↓ 选择，Enter 打开';
+        return;
+      }
+      hintEl.textContent = `${results.length} 条结果`;
+      for (const r of results) {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = r.url;
+        const title = document.createElement('div');
+        title.className = 'r-title';
+        title.textContent = r.meta.title ?? r.url;
+        if (r.meta.section) {
+          const sec = document.createElement('span');
+          sec.className = 'r-sec';
+          sec.textContent = r.meta.section;
+          title.appendChild(sec);
+        }
+        const ex = document.createElement('p');
+        ex.className = 'r-excerpt';
+        ex.innerHTML = r.excerpt; // Pagefind 已转义，只含 <mark>
+        a.append(title, ex);
+        li.appendChild(a);
+        listEl.appendChild(li);
+      }
+    }
+
+    let seq = 0;
+    inputEl.addEventListener('input', async () => {
+      const q = inputEl.value.trim();
+      const mySeq = ++seq;
+      if (!q) return render([]);
+      await loadPagefind();
+      if (!pf) return;
+      const res = await pf.debouncedSearch(q);
+      if (!res || mySeq !== seq) return;
+      const data = await Promise.all(res.results.slice(0, 10).map((r) => r.data()));
+      if (mySeq === seq) render(data);
+    });
+
+    const setActive = (i: number) => {
+      const items = listEl.querySelectorAll('li');
+      if (items.length === 0) return;
+      active = (i + items.length) % items.length;
+      items.forEach((li, k) => li.classList.toggle('is-active', k === active));
+      items[active].scrollIntoView({ block: 'nearest' });
+    };
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1); }
+      else if (e.key === 'Enter') {
+        const a = listEl.querySelectorAll('li a')[Math.max(active, 0)] as HTMLAnchorElement | undefined;
+        if (a) { e.preventDefault(); close(); location.href = a.href; }
+      }
+    });
+
+    btn.addEventListener('click', open);
+    backdrop.addEventListener('click', close);
+    document.addEventListener('keydown', (e) => {
+      const typing = (e.target as HTMLElement)?.matches?.('input, textarea, [contenteditable]');
+      if (e.key === 'Escape' && !modalEl.hidden) close();
+      else if ((e.key === '/' && !typing) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
+        e.preventDefault();
+        open();
+      }
+    });
+    document.addEventListener('astro:before-swap', close);
+  }
+  initSearch();
+  document.addEventListener('astro:page-load', initSearch);
+</script>

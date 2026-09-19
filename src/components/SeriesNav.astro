@@ -1,0 +1,93 @@
+---
+/**
+ * 合集导航：显示"本系列第 n / N 篇"、全部篇目和上下篇。
+ */
+import { entryHref, type SeriesEntry } from '../utils/content';
+
+interface Props {
+  name: string;
+  entries: SeriesEntry[];
+  current: { collection: string; id: string };
+}
+const { name, entries, current } = Astro.props;
+const idx = entries.findIndex((e) => e.collection === current.collection && e.id === current.id);
+const prev = idx > 0 ? entries[idx - 1] : undefined;
+const next = idx >= 0 && idx < entries.length - 1 ? entries[idx + 1] : undefined;
+---
+
+<aside class="series hand-card taped single">
+  <p class="series-head">
+    <span class="postit blue">📚 合集</span>
+    <strong>{name}</strong>
+    {idx >= 0 && <span class="meta">第 {idx + 1} / {entries.length} 篇</span>}
+  </p>
+  <ol class="series-list">
+    {
+      entries.map((e, i) => (
+        <li class:list={{ 'is-current': i === idx }}>
+          {i === idx ? <span>{e.data.title}</span> : <a href={entryHref(e)}>{e.data.title}</a>}
+        </li>
+      ))
+    }
+  </ol>
+  {
+    (prev || next) && (
+      <div class="series-nav">
+        {prev ? <a href={entryHref(prev)} class="hand-btn small">← {prev.data.title}</a> : <span />}
+        {next ? <a href={entryHref(next)} class="hand-btn small">{next.data.title} →</a> : <span />}
+      </div>
+    )
+  }
+</aside>
+
+<style>
+  .series {
+    padding: 1.4rem 1.3rem 1.1rem;
+    margin: 0 auto 2rem;
+    max-width: var(--max-w-prose);
+    --r: -0.4deg;
+    transform: rotate(var(--r));
+  }
+  .series-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0 0 0.6rem;
+  }
+  .series-list {
+    margin: 0;
+    padding-left: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 1rem;
+  }
+  .series-list a {
+    color: var(--pen);
+    text-decoration: underline wavy;
+    text-decoration-color: var(--pencil-25);
+    text-underline-offset: 3px;
+  }
+  .series-list a:hover {
+    color: var(--marker);
+  }
+  .series-list .is-current {
+    font-weight: 700;
+  }
+  .series-list .is-current::marker {
+    color: var(--marker);
+  }
+  .series-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.9rem;
+  }
+  .series-nav a {
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+  }
+</style>

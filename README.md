@@ -53,6 +53,19 @@ draft: false     # true 时仅在本地 dev 可见
 
 `src/pages/lab/` 是仅在 `npm run dev` 下可见的页面（http://localhost:4321/lab/），用于在并入主站前预览个性化设计。生产构建不会生成它。
 
+## 搜索
+
+全站搜索由 [Pagefind](https://pagefind.app) 在 `npm run build` 结束时生成静态索引到 `dist/pagefind/`。本地 dev 想试搜索，先跑一次：
+
+```bash
+npm run search:dev   # 构建并把索引复制到 public/pagefind（已 gitignore）
+```
+
+## 其他本地页面
+
+- `/drafts/`：所有 `draft: true` 的内容列表，仅 dev 可见。
+- `/<板块>/rss.xml`：分板块订阅，例如 `/insight/rss.xml`。
+
 ## 部署到 GitHub Pages
 
 1. 在 GitHub 新建仓库，把本项目推上去（分支 `main`）。
