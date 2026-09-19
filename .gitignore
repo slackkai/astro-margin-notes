@@ -27,3 +27,6 @@ pnpm-debug.log*
 
 # pagefind dev copy
 public/pagefind/
+
+# claude local settings
+.claude/settings.local.json

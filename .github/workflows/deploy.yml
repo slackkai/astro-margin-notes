@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 完整历史：文章"最后修改时间"从 git log 读取
       - name: Install, build, and upload site
         uses: withastro/action@v3
         with:
