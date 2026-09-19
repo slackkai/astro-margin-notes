@@ -4,23 +4,21 @@ date: 2026-06-01
 description: '这是一条“发表”类型的示例条目，用于展示 venue / links / bibtex 字段。'
 kind: paper
 venue: 'ICML 2026'
-authors: ['Kai', 'Coauthor A', 'Coauthor B']
+authors: ['Example Author', 'Coauthor A', 'Coauthor B']
 year: 2026
 tags: ['publication']
-links:
-  pdf: 'https://example.com/paper.pdf'
-  code: 'https://github.com/example/repo'
-  slides: 'https://example.com/slides.pdf'
 bibtex: |
-  @inproceedings{kai2026example,
+  @inproceedings{example2026,
     title={An Example Paper},
-    author={Kai and A and B},
+    author={Example Author and A and B},
     booktitle={ICML},
     year={2026}
   }
 ---
 
 ## 摘要
+
+这是一篇虚构的主题演示条目，不代表站点作者的发表经历。实际使用时请替换或删除。
 
 把论文摘要或一段中文介绍放在这里。正文可以是对论文的补充说明、审稿意见回应、后续工作等。
 

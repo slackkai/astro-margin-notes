@@ -1,7 +1,8 @@
 ---
+import { withBase } from '../utils/url';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Workbench from '../components/Workbench.astro';
-import { SITE } from '../consts';
+import { SITE, config, ENABLED_SECTIONS } from '../config';
 ---
 
 <BaseLayout title="关于" description={`关于 ${SITE.title} 和它的作者`}>
@@ -16,30 +17,26 @@ import { SITE } from '../consts';
         </p>
         <h2>这个站点有什么</h2>
         <ul>
-          <li><strong>Academic</strong>：论文笔记、研究记录与发表。</li>
-          <li><strong>Insight</strong>：长文、观点与方法论。</li>
-          <li><strong>Dailies</strong>：碎碎念、日志与生活切片。</li>
-          <li><strong>Library</strong>：书、论文、工具与链接的收藏架。</li>
-          <li><strong>Projects</strong>：机器人、软件与硬件项目。</li>
+          {ENABLED_SECTIONS.map(s => <li><strong>{s.label}</strong>：{s.desc}</li>)}
         </ul>
         <h2>联系</h2>
         <p>
-          {SITE.github && <a href={SITE.github} target="_blank" rel="noopener">GitHub</a>}
-          {SITE.email && <span> · <a href={`mailto:${SITE.email}`}>{SITE.email}</a></span>}
-          <span> · <a href="/guestbook/">给我留言</a></span>
+          {SITE.github && <a href={withBase(SITE.github)} target="_blank" rel="noopener">GitHub</a>}
+          {SITE.email && <span> · <a href={withBase(`mailto:${SITE.email}`)}>{SITE.email}</a></span>}
+          {config.features.guestbook && <span> · <a href={withBase('/guestbook/')}>给我留言</a></span>}
         </p>
         <p class="meta">本站使用 <a href="https://astro.build" target="_blank" rel="noopener">Astro</a> 构建，托管在 GitHub Pages。</p>
       </div>
 
       <aside class="hand-card about-card reveal taped" style="--i:3; --r:1deg">
-        <div class="avatar" aria-hidden="true">K</div>
+        <div class="avatar" aria-hidden="true">{SITE.author.charAt(0).toUpperCase()}</div>
         <p class="about-name">{SITE.author}</p>
         <p class="meta">{SITE.tagline}</p>
       </aside>
     </div>
 
-    <h2 class="bench-title reveal" style="--i:4">工作台 <span class="muted-zh">Workbench</span></h2>
-    <Workbench />
+    {config.about.workbench && <h2 class="bench-title reveal" style="--i:4">工作台 <span class="muted-zh">Workbench</span></h2>}
+    {config.about.workbench && <Workbench />}
   </section>
 </BaseLayout>
 

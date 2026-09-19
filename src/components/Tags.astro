@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../utils/url';
+import { tagSlug } from '../utils/base-path.mjs';
 interface Props {
   tags: string[];
   small?: boolean;
@@ -11,7 +13,7 @@ const { tags, small = false } = Astro.props;
     <ul class:list={['tags', { small }]}>
       {tags.map((t) => (
         <li>
-          <a href={`/tags/${encodeURIComponent(t)}/`} class="tag">
+          <a href={withBase(`/tags/${tagSlug(t)}/`)} class="tag">
             #{t}
           </a>
         </li>

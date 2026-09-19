@@ -1,133 +1,148 @@
-# latentk.com
+# Margin Notes · 页边笔记
 
-基于 [Astro](https://astro.build) 的个人静态博客，手绘笔记本风格，部署在 GitHub Pages。
+一个手绘笔记本风格的 Astro 个人网站主题。用纸张、便利贴、页边批注和一条会跟随鼠标的机械臂，收纳研究、想法与日常。
 
-## 板块
+**[在线演示](https://slackkai.github.io/astro-margin-notes/) · [内容管理后台](https://slackkai.github.io/astro-margin-notes/admin/) · [更新网站指南](docs/CONTENT-EDITING.md)**
 
-| 板块 | 目录 | 说明 |
-|---|---|---|
-| Academic | `src/content/academic/` | 论文笔记、研究记录、发表（支持 venue / links / bibtex，kind: paper 的条目进入 Publications 列表） |
-| Insight | `src/content/insight/` | 长文、观点（支持置顶、封面） |
-| Dailies | `src/content/dailies/` | 短记、日志，按月时间线展示（标题可省略），顶部有热力图 |
-| Library | `src/content/library/` | 书 / 论文 / 工具 / 课程收藏，卡片 + 筛选 + 搜索 + 排序 |
-| Projects | `src/content/projects/` | 项目卡片：状态、技术栈、链接，封面可为图片 / GIF / 短视频 |
+![Margin Notes 主题预览](docs/preview.png)
 
-各板块的字段定义见 `src/content.config.ts`。
+## 使用主题
 
-### 合集
+点击 GitHub 的 **Use this template → Create a new repository**，在自己的账号下创建仓库。也可以通过 Astro CLI 使用：
 
-Academic 与 Insight 的文章可以串成系列，frontmatter 里写：
+```sh
+npm create astro@latest -- --template slackkai/astro-margin-notes
+```
+
+要求 Node.js ≥ 22.12，推荐 Node.js 24。
+
+```sh
+npm ci
+npm run dev
+```
+
+打开终端显示的本地地址。附带文章都是主题示例，请在成为个人网站前替换成自己的内容。
+
+## 包含什么
+
+- **Academic**：论文笔记、研究记录、发表列表、BibTeX。
+- **Insight**：长文、置顶、封面与合集导航。
+- **Dailies**：时间线、图片、日常热力图。
+- **Library**：书 / 课程 / 工具等收藏，可筛选、搜索、排序。
+- **Projects**：项目状态、技术栈、链接、图片或视频封面。
+- Markdown / MDX、KaTeX 数学公式、代码高亮、页边批注、荧光笔。
+- 深浅色与四套配色、响应式菜单、目录、阅读进度、相关文章。
+- Pagefind 静态全文搜索、五个板块的标签 / 归档 / RSS、sitemap。
+- Sveltia 可视化后台：文章、图片、站点信息和 Now 卡片。
+- GitHub Actions 自动检查并部署到 GitHub Pages，兼容根域名与仓库子路径。
+
+## 日常更新：打开后台即可
+
+访问自己网站的 `/admin/`，首次连接 GitHub token 后，选板块、编辑正文、上传图片、保存。内容存入仓库，GitHub Actions 自动发布。
+
+新文章默认是草稿。发布时关闭“草稿”开关，再保存。草稿不出现在网站上，但公开仓库的源文件仍然公开。
+
+本地也能使用后台：启动 `npm run dev`，在 Chrome / Edge 的 `/admin/` 选择 **Work with Local Repository**，选择项目根目录。编辑后通过 GitHub Desktop 或 Git 提交推送。
+
+详细步骤、权限设置、MDX 边界和协作方式见 [可视化更新指南](docs/CONTENT-EDITING.md)。在线演示后台只能由仓库维护者编辑；使用模板创建自己的仓库后，部署会自动指向你自己的仓库。
+
+## 配置入口
+
+| 内容 | 位置 |
+| --- | --- |
+| 站名、作者、简介、联系链接 | 后台“站点设置”，或 `src/data/site.json` |
+| 板块开关、功能、默认配色、机械臂、研究方向与工作台 | `src/config.ts` |
+| 日常文章 | 后台五个板块，或 `src/content/<板块>/` |
+| 最近在做 / 在读 / 在听 | 后台“最近在做”，或 `src/content/now/now.md` |
+| 自定义关于页正文 | `src/pages/about.astro` |
+| 字体、颜色和样式 | `src/styles/global.css` |
+| 后台字段 | `cms.config.mjs` |
+| 内容校验规则 | `src/content.config.ts` |
+
+默认站点文案为中文。`src/i18n/` 提供部分界面的中英文字典，完整页面语言定制还需要编辑页面文案与板块描述。
+
+禁用板块会移除其导航、首页入口、文章、RSS 与标签；板块索引页保留为空页面并标记 noindex。若需彻底移除，可再删除对应 `src/pages/<板块>/`。
+
+## 部署到 GitHub Pages
+
+1. 创建自己的仓库，并将代码推送到 `main`。
+2. 仓库 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。
+3. 在 **Actions → Deploy to GitHub Pages → Run workflow** 运行首次部署。以后推送到 `main`（包括后台保存）自动部署。
+
+工作流从 GitHub Pages 自动获取站点域名和仓库路径，同时生成后台的目标仓库配置。通常无需手动修改 `astro.config.mjs`。
+
+`username.github.io` 仓库使用根路径；普通仓库使用 `/仓库名/`。设置自定义域名时，按 [GitHub 官方文档](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site) 配置 DNS 与仓库 Pages 自定义域名，然后重新部署。站点基本信息中的 `url` 用于本地或非 GitHub 构建；Pages 工作流以实际 Pages 配置为准。
+
+本地模拟仓库子路径（PowerShell）：
+
+```powershell
+$env:SITE_URL = 'https://your-name.github.io'
+$env:BASE_PATH = '/your-repo'
+npm run build
+npm run verify
+npm run preview
+```
+
+普通站内链接和 Markdown 图片会自动补部署前缀；新写 Astro 组件时，使用 `src/utils/url.ts` 的 `withBase('/path/')`。外部链接、锚点和相对链接不会被改写。
+
+## 写作功能
+
+新建 Markdown：
+
+```sh
+npm run new -- insight my-first-post "我的第一篇文章"
+```
+
+在 `src/content/insight/my-first-post.md` 中写正文，frontmatter 示例：
+
+```yaml
+---
+title: 我的第一篇文章
+date: 2026-09-19
+description: 一句话摘要
+tags: [writing]
+draft: true
+---
+```
+
+系列文章在 Academic / Insight 中添加：
 
 ```yaml
 series:
-  name: '从零搭四足控制器'
+  name: 我的研究笔记
   order: 1
 ```
 
-文章顶部会出现合集导航（第几篇、全部篇目、上下篇）。
-
-### 页边批注与荧光笔
-
-`.mdx` 文件里引入后使用：
+MDX 页边批注与高亮（MDX 使用代码编辑器维护，不经过 CMS 富文本转换）：
 
 ```mdx
 import Note from '../../components/mdx/Note.astro';
 import Mark from '../../components/mdx/Mark.astro';
 
-正文……<Mark>高亮</Mark>……<Note>旁注内容</Note>
+正文中的 <Mark>一个重点</Mark>。<Note>这里是一条页边批注。</Note>
 ```
 
-宽屏时旁注浮在正文右侧页边，窄屏点上标展开。
+`/drafts/` 和 `/lab/` 仅本地开发可见。公开搜索只索引已发布内容详情页，避免列表与标签页重复命中。
 
-### 文章页自动附带
+## 常用命令
 
-目录（≥1200px 贴左侧）、字数与阅读时长、git 最后修改时间、按标签推荐的相关文章、右侧可拖动的阅读进度。
+| 命令 | 用途 |
+| --- | --- |
+| `npm run dev` | 启动写作预览，显示草稿并生成后台资源 |
+| `npm run build` | 构建静态网站、后台与 Pagefind 索引 |
+| `npm run preview` | 预览生产构建，验证真实搜索 |
+| `npm run preview -- stop` | 停止 Astro 的后台预览服务 |
+| `npm run check` | 类型和 Astro 检查 |
+| `npm test` | 轻量回归测试 |
+| `npm run test:production` | 真实构建回归，验证草稿和配置开关；结束后重新构建 |
+| `npm run verify` | 检查构建后的站内链接、资源、锚点和部署产物 |
 
-## 本地开发
+开发时搜索索引不会实时更新。需要验证搜索时运行 `npm run build` 后使用 `npm run preview`；`npm run search:dev` 可以把一次构建的搜索索引复制到开发服务器，但它会随内容编辑过期。
 
-```bash
-npm install
-npm run dev      # http://localhost:4321
-npm run build    # 输出到 dist/
-npm run preview  # 预览构建结果
-```
+## 留言与许可
 
-## 写内容
+留言通过 Web3Forms 发送邮件。将自己的公开 access key 填入 `src/config.ts` 的 `guestbook.web3formsKey`；留空时提交按钮禁用。演示不接收邮件。
 
-在对应目录新建 `.md` 或 `.mdx` 文件，文件名即 URL slug。例如 `src/content/insight/hello.md` 会生成 `/insight/hello/`。
+主题采用 [MIT](LICENSE)。字体为 [霞鹜文楷 Screen](https://github.com/lxgw/LxgwWenKai-Screen)，使用其 OFL 许可；[Sveltia CMS](https://github.com/sveltia/sveltia-cms) 的 MIT 许可随后台资源一同分发。第三方依赖保留各自许可证。
 
-frontmatter 示例（Insight）：
-
-```yaml
----
-title: '标题'
-date: 2026-09-18
-description: '一句话摘要'
-tags: ['tag1', 'tag2']
-pinned: false
-draft: false     # true 时仅在本地 dev 可见
----
-```
-
-支持：Markdown / MDX、KaTeX 公式（`$...$` 与 `$$...$$`）、代码高亮、深浅色主题、RSS（`/rss.xml`）、站点地图、标签页。
-
-## 站点配置
-
-- 站点名、作者、导航：`src/consts.ts`
-- 研究方向卡片、工作台、页脚结束语：同样在 `src/consts.ts`（`RESEARCH_TOPICS` `WORKBENCH` `SIGNOFFS`）
-- 主题色：`src/styles/global.css` 顶部的 CSS 变量（`--paper` `--pencil` `--marker` `--pen` `--postit`）
-- 字体：全站使用 [霞鹜文楷 Screen](https://github.com/lxgw/LxgwWenKai-Screen)，通过 npm 包 `lxgw-wenkai-screen-webfont` 自托管。它被拆成 97 个按 unicode-range 划分的子集，浏览器只下载页面实际用到的块。
-- Now 卡片：`src/content/now/now.md`
-- 域名：`astro.config.mjs` 的 `site`
-
-## 原型试验场
-
-`src/pages/lab/` 是仅在 `npm run dev` 下可见的页面（http://localhost:4321/lab/），用于在并入主站前预览个性化设计。生产构建不会生成它。
-
-## 搜索
-
-全站搜索由 [Pagefind](https://pagefind.app) 在 `npm run build` 结束时生成静态索引到 `dist/pagefind/`。本地 dev 想试搜索，先跑一次：
-
-```bash
-npm run search:dev   # 构建并把索引复制到 public/pagefind（已 gitignore）
-```
-
-## 留言
-
-`/guestbook/` 是一张信纸表单，提交后通过 [Web3Forms](https://web3forms.com) 发到你的邮箱，不公开展示。启用步骤：
-
-1. 到 web3forms.com 用你的邮箱免费领取 access key（无需注册账号）。
-2. 填到 `src/consts.ts` 的 `WEB3FORMS_KEY`。
-3. 重新构建。key 留空时页面显示"尚未配置"，按钮禁用。
-
-表单带蜜罐字段防机器人；Web3Forms 后台可再开 hCaptcha。
-
-## 其他本地页面
-
-- `/drafts/`：所有 `draft: true` 的内容列表，仅 dev 可见。
-- `/<板块>/rss.xml`：分板块订阅，例如 `/insight/rss.xml`。
-
-## 部署到 GitHub Pages
-
-1. 在 GitHub 新建仓库，把本项目推上去（分支 `main`）。
-2. 仓库 Settings → Pages → Build and deployment → Source 选 **GitHub Actions**。
-3. 每次推送到 `main`，`.github/workflows/deploy.yml` 会自动构建并发布。
-
-### 自定义域名（latentk.com）
-
-1. 在 `public/` 下新建 `CNAME` 文件，内容一行：`latentk.com`。
-2. DNS 添加记录：
-   - `A` 记录指向 GitHub Pages IP：`185.199.108.153`、`185.199.109.153`、`185.199.110.153`、`185.199.111.153`
-   - 可选 `CNAME` 记录 `www` 指向 `<用户名>.github.io`
-3. 仓库 Settings → Pages → Custom domain 填 `latentk.com`，勾选 Enforce HTTPS。
-
-### 如果先用 `<用户名>.github.io/<仓库名>` 访问
-
-把 `astro.config.mjs` 改为：
-
-```js
-site: 'https://<用户名>.github.io',
-base: '/<仓库名>',
-```
-
-并把站内绝对链接（`/academic/` 等）改为带 base 的形式，或改回自定义域名后再去掉 `base`。
+修复清单、验收方式与已知边界见 [检查报告](docs/REVIEW.md)。

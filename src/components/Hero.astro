@@ -1,59 +1,65 @@
 ---
 /**
- * 首页 hero：站名 + 手绘三连杆机械臂（CCD 逆运动学跟随鼠标，离开后回到休息姿态）。
+ * 首页 hero。config.home.hero 决定右侧是机械臂（CCD 逆运动学跟随鼠标）还是一根涂鸦线条。
  */
-import { SITE } from '../consts';
+import { SITE, config } from '../config';
 
-interface Props {
-  /** 无鼠标时是否自己活动（伸个懒腰）。移动端没有 hover，开启后不会一直是静止姿态 */
-  idle?: boolean;
-}
-const { idle = false } = Astro.props;
+const { hero, badge, armIdle } = config.home;
 ---
 
-<section class="container section hero">
+<section class:list={['container section hero', { 'has-arm': hero === 'arm' }]}>
   <div class="hero-copy">
-    <span class="postit reveal" style="--i:0">🤖 具身 · embodied</span>
+    {badge && <span class="postit reveal" style="--i:0">{badge}</span>}
     <h1 class="hero-title reveal" style="--i:1">{SITE.title}<span class="hero-dot">.</span></h1>
     <p class="hero-sub reveal" style="--i:2">{SITE.tagline}</p>
     <p class="hero-desc reveal" style="--i:3">{SITE.description}</p>
   </div>
 
-  <svg class="arm reveal" id="arm-svg" viewBox="0 0 400 300" aria-hidden="true" style="--i:2" data-idle={idle ? '1' : undefined}>
-    <g class="base">
-      <path d="M40 270 h80" />
-      <path d="M50 270 l10 -18 h40 l10 18" />
-      <circle cx="80" cy="252" r="7" fill="var(--paper-2)" />
-    </g>
-    <g class="links">
-      <line id="arm-l1" x1="80" y1="252" x2="80" y2="170" />
-      <line id="arm-l2" x1="80" y1="170" x2="150" y2="120" />
-      <line id="arm-l3" x1="150" y1="120" x2="200" y2="120" />
-      <circle id="arm-j1" cx="80" cy="170" r="6" fill="var(--paper-2)" />
-      <circle id="arm-j2" cx="150" cy="120" r="6" fill="var(--paper-2)" />
-    </g>
-    <g id="arm-gripper" class="gripper" transform="translate(200 120) rotate(0)">
-      <path d="M0 -10 l14 -6 l4 6" />
-      <path d="M0 10 l14 6 l4 -6" />
-      <circle cx="0" cy="0" r="5" fill="var(--marker)" />
-    </g>
-    <g id="arm-target" class="target" transform="translate(-100 -100)">
-      <circle r="9" />
-      <path d="M-14 0 h28 M0 -14 v28" />
-    </g>
-    <text class="note" x="250" y="60">← end effector</text>
-    <text class="note" x="20" y="295">base</text>
-  </svg>
+  {
+    hero === 'arm' ? (
+      <svg class="arm reveal" id="arm-svg" viewBox="0 0 400 300" aria-hidden="true" style="--i:2" data-idle={armIdle ? '1' : undefined}>
+        <g class="base">
+          <path d="M40 270 h80" />
+          <path d="M50 270 l10 -18 h40 l10 18" />
+          <circle cx="80" cy="252" r="7" fill="var(--paper-2)" />
+        </g>
+        <g class="links">
+          <line id="arm-l1" x1="80" y1="252" x2="80" y2="170" />
+          <line id="arm-l2" x1="80" y1="170" x2="150" y2="120" />
+          <line id="arm-l3" x1="150" y1="120" x2="200" y2="120" />
+          <circle id="arm-j1" cx="80" cy="170" r="6" fill="var(--paper-2)" />
+          <circle id="arm-j2" cx="150" cy="120" r="6" fill="var(--paper-2)" />
+        </g>
+        <g id="arm-gripper" class="gripper" transform="translate(200 120) rotate(0)">
+          <path d="M0 -10 l14 -6 l4 6" />
+          <path d="M0 10 l14 6 l4 -6" />
+          <circle cx="0" cy="0" r="5" fill="var(--marker)" />
+        </g>
+        <g id="arm-target" class="target" transform="translate(-100 -100)">
+          <circle r="9" />
+          <path d="M-14 0 h28 M0 -14 v28" />
+        </g>
+        <text class="note" x="250" y="60">← end effector</text>
+        <text class="note" x="20" y="295">base</text>
+      </svg>
+    ) : (
+      <svg class="doodle" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+        <path class="doodle-path" d="M10 50 Q30 10 50 50 T90 50" stroke="currentColor" stroke-width="3" stroke-dasharray="6 4" pathLength="100" />
+        <circle class="doodle-dot" cx="85" cy="48" r="4" fill="currentColor" />
+      </svg>
+    )
+  }
 </section>
 
 <style>
   .hero {
+    position: relative;
     display: grid;
     gap: 1.5rem;
     padding-bottom: 1rem;
   }
   @media (min-width: 768px) {
-    .hero {
+    .hero.has-arm {
       grid-template-columns: 1.15fr 1fr;
       align-items: center;
     }
@@ -79,6 +85,7 @@ const { idle = false } = Astro.props;
     font-size: 1.15rem;
     margin: 0;
   }
+  /* 机械臂 */
   .arm {
     width: 100%;
     max-width: 26rem;
@@ -112,6 +119,32 @@ const { idle = false } = Astro.props;
     font-family: var(--font-body);
     font-size: 14px;
   }
+  /* 涂鸦 */
+  .doodle {
+    position: absolute;
+    right: 0;
+    top: 2rem;
+    width: 6rem;
+    height: 6rem;
+    color: var(--marker);
+    opacity: 0.35;
+    transform: rotate(-12deg);
+    display: none;
+  }
+  .doodle-path {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: draw 1.2s ease-out 0.3s forwards;
+  }
+  .doodle-dot {
+    transform-origin: 85px 48px;
+    animation: pop 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) 1.3s both;
+  }
+  @media (min-width: 768px) {
+    .doodle {
+      display: block;
+    }
+  }
 </style>
 
 <script>
@@ -134,7 +167,7 @@ const { idle = false } = Astro.props;
     let idlePhase: 'reach' | 'rest' = 'reach';
     function pickIdle() {
       const reach = (lens[0] + lens[1] + lens[2]) * (0.55 + Math.random() * 0.35);
-      const a = -Math.PI * (0.15 + Math.random() * 0.7); // 上半平面
+      const a = -Math.PI * (0.15 + Math.random() * 0.7);
       return { x: base.x + Math.cos(a) * reach, y: base.y + Math.sin(a) * reach };
     }
 
@@ -187,10 +220,10 @@ const { idle = false } = Astro.props;
 
     let raf = 0;
     function tick(now: number) {
-      if (!document.body.contains(svg)) return; // 切页后停止
+      if (!document.body.contains(svg)) return;
       if (target) {
         solve(target);
-        idleAt = now + 4000; // 鼠标离开后先歇 4 秒再自己活动
+        idleAt = now + 4000;
       } else if (idleOn && now >= idleAt) {
         if (idlePhase === 'reach') {
           idleTarget = pickIdle();

@@ -1,18 +1,20 @@
 ---
+import { withBase } from '../utils/url';
 /**
  * 归档列表：按年 / 月，一行一条。
  */
-import { SECTIONS, type SectionKey } from '../consts';
+import { SECTIONS, type SectionKey } from '../config';
+import { t } from '../i18n';
 import { getArchive, entryHref, formatDate } from '../utils/content';
 
 const years = await getArchive();
-const label = (c: string) => (c in SECTIONS ? SECTIONS[c as SectionKey] : { emoji: '🛠️', label: 'Project' });
+const label = (c: string) => SECTIONS[c as SectionKey] ?? { emoji: '📄', label: c };
 let total = 0;
 for (const months of years.values()) for (const list of months.values()) total += list.length;
 ---
 
 <div class="archive">
-  <p class="meta">共 {total} 条</p>
+  <p class="meta">{t.archive.total(total)}</p>
   {
     [...years.entries()].map(([y, months]) => (
       <section class="arch-year" id={`y${y}`}>
@@ -20,7 +22,7 @@ for (const months of years.values()) for (const list of months.values()) total +
         {[...months.entries()].map(([m, list]) => (
           <div class="arch-month" id={`m${y}-${String(m).padStart(2, '0')}`}>
             <h3 class="arch-month-label">
-              <span class="postit blue">{m} 月</span>
+              <span class="postit blue">{t.archive.month(m)}</span>
             </h3>
             <ul class="arch-list">
               {list.map((e) => (
@@ -29,7 +31,7 @@ for (const months of years.values()) for (const list of months.values()) total +
                   <span class="arch-sec" title={label(e.collection).label}>
                     {label(e.collection).emoji}
                   </span>
-                  <a href={entryHref(e)}>{'title' in e.data && e.data.title ? e.data.title : formatDate(e.data.date)}</a>
+                  <a href={withBase(entryHref(e))}>{'title' in e.data && e.data.title ? e.data.title : formatDate(e.data.date)}</a>
                 </li>
               ))}
             </ul>

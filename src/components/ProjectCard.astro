@@ -1,16 +1,11 @@
 ---
+import { withBase } from '../utils/url';
 /**
  * 项目卡片：封面 / 视频、状态、技术栈、链接。
  */
 import Tags from './Tags.astro';
+import { t } from '../i18n';
 import type { CollectionEntry } from 'astro:content';
-
-const STATUS: Record<string, { label: string; cls: string }> = {
-  active: { label: '进行中', cls: 'st-active' },
-  done: { label: '已完成', cls: 'st-done' },
-  archived: { label: '已归档', cls: 'st-archived' },
-  idea: { label: '想法', cls: 'st-idea' },
-};
 
 interface Props {
   project: CollectionEntry<'projects'>;
@@ -19,7 +14,6 @@ interface Props {
 }
 const { project: p, rotate = 0, index = 0 } = Astro.props;
 const d = p.data;
-const st = STATUS[d.status] ?? STATUS.active;
 const href = `/projects/${p.id}/`;
 const links = [
   ['GitHub', d.links?.github],
@@ -32,9 +26,9 @@ const links = [
 <article class:list={['hand-card proj reveal', { 'is-featured': d.featured }]} style={`--r:${rotate}deg; --i:${index}`}>
   {
     d.video ? (
-      <video class="proj-media" src={d.video} autoplay muted loop playsinline preload="metadata" />
+      <video class="proj-media" src={withBase(d.video)} autoplay muted loop playsinline preload="metadata" />
     ) : d.cover ? (
-      <img class="proj-media" src={d.cover} alt="" loading="lazy" decoding="async" />
+      <img class="proj-media" src={withBase(d.cover)} alt="" loading="lazy" decoding="async" />
     ) : (
       <div class="proj-media proj-placeholder" aria-hidden="true">
         <svg viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -48,10 +42,10 @@ const links = [
   }
   <div class="proj-body">
     <div class="proj-top">
-      <span class:list={['proj-status', st.cls]}>{st.label}</span>
-      {d.featured && <span class="proj-star" title="精选">★</span>}
+      <span class:list={['proj-status', `st-${d.status}`]}>{t.projects.status[d.status] ?? d.status}</span>
+      {d.featured && <span class="proj-star" title={t.projects.featured}>★</span>}
     </div>
-    <h3 class="proj-title"><a href={href}>{d.title}</a></h3>
+    <h3 class="proj-title"><a href={withBase(href)}>{d.title}</a></h3>
     {d.description && <p class="proj-desc">{d.description}</p>}
     {
       d.stack.length > 0 && (
@@ -68,7 +62,7 @@ const links = [
         links.length > 0 && (
           <span class="proj-links">
             {links.map(([label, u]) => (
-              <a href={u} target="_blank" rel="noopener">
+              <a href={withBase(u)} target="_blank" rel="noopener">
                 {label}
               </a>
             ))}

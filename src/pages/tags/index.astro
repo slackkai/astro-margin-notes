@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../../utils/url';
+import { tagSlug } from '../../utils/base-path.mjs';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getAllTagged, collectTags } from '../../utils/content';
 
@@ -18,7 +20,7 @@ const max = Math.max(1, ...tags.values());
         [...tags.entries()].map(([tag, count], i) => (
           <li>
             <a
-              href={`/tags/${encodeURIComponent(tag)}/`}
+              href={withBase(`/tags/${tagSlug(tag)}/`)}
               class="cloud-tag reveal"
               style={`--s:${0.9 + (count / max) * 0.8}; --r:${(i % 5) - 2}deg; --i:${3 + i}`}
             >

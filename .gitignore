@@ -30,3 +30,9 @@ public/pagefind/
 
 # claude local settings
 .claude/settings.local.json
+
+# generated CMS bundle and deployment-specific configuration
+public/admin/vendor/
+public/admin/config.yml
+.env.*
+!.env.example

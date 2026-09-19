@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../utils/url';
 /**
  * 日常条目：时间线形式，短内容直接渲染在列表里
  */
@@ -23,11 +24,11 @@ const { href, title, date, mood, location, tags = [], images = [], index = 0, tr
   <div class="daily-dot" aria-hidden="true"></div>
   <div class="daily-body">
     <p class="meta daily-meta">
-      <a href={href}><time datetime={date.toISOString()}>{formatDate(date)}</time></a>
+      <a href={withBase(href)}><time datetime={date.toISOString()}>{formatDate(date)}</time></a>
       {mood && <span> · {mood}</span>}
       {location && <span> · 📍{location}</span>}
     </p>
-    {title && <h3 class="daily-title" transition:name={transitionName}><a href={href}>{title}</a></h3>}
+    {title && <h3 class="daily-title" transition:name={transitionName}><a href={withBase(href)}>{title}</a></h3>}
     <div class="daily-content">
       <slot />
     </div>
@@ -35,7 +36,7 @@ const { href, title, date, mood, location, tags = [], images = [], index = 0, tr
       images.length > 0 && (
         <div class="daily-images">
           {images.map((src) => (
-            <img src={src} alt="" loading="lazy" decoding="async" />
+            <img src={withBase(src)} alt="" loading="lazy" decoding="async" />
           ))}
         </div>
       )

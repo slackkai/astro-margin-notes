@@ -1,20 +1,10 @@
 ---
+import { withBase } from '../utils/url';
 /**
  * 资料库卡片：书 / 论文 / 工具 / 链接
  */
 import Tags from './Tags.astro';
-
-const TYPE_LABEL: Record<string, string> = {
-  book: '📖 书',
-  paper: '📄 论文',
-  tool: '🔧 工具',
-  course: '🎓 课程',
-  article: '📰 文章',
-  video: '🎬 视频',
-  dataset: '🗃️ 数据集',
-  other: '🔗 其他',
-};
-const STATUS_LABEL: Record<string, string> = { todo: '待读', reading: '在读', done: '已读' };
+import { t } from '../i18n';
 
 interface Props {
   href: string;
@@ -33,23 +23,24 @@ interface Props {
 }
 const { href, title, type, url, author, rating, status, summary, cover, tags = [], rotate = 0, index = 0, transitionName } =
   Astro.props;
+const typeLabel = `${t.library.typeEmoji[type] ?? t.library.typeEmoji.other} ${t.library.types[type] ?? t.library.types.other}`;
 ---
 
 <article class="hand-card lib-card reveal" style={`--r:${rotate}deg; --i:${index}`}>
   <svg class="clip" viewBox="0 0 24 48" aria-hidden="true">
     <path d="M8 44 V10 a4 4 0 0 1 8 0 V38 a2 2 0 0 1 -4 0 V14" />
   </svg>
-  {cover && <img class="lib-cover" src={cover} alt="" loading="lazy" decoding="async" />}
+  {cover && <img class="lib-cover" src={withBase(cover)} alt="" loading="lazy" decoding="async" />}
   <div class="lib-body">
     <div class="lib-top">
-      <span class="lib-type">{TYPE_LABEL[type] ?? TYPE_LABEL.other}</span>
-      {status && <span class="lib-status">{STATUS_LABEL[status] ?? status}</span>}
+      <span class="lib-type">{typeLabel}</span>
+      {status && <span class="lib-status">{t.library.status[status] ?? status}</span>}
     </div>
-    <h3 class="lib-title" transition:name={transitionName}><a href={href}>{title}</a></h3>
+    <h3 class="lib-title" transition:name={transitionName}><a href={withBase(href)}>{title}</a></h3>
     {author && <p class="meta lib-author">{author}</p>}
     {
       rating && (
-        <p class="lib-rating" aria-label={`评分 ${rating} / 5`}>
+        <p class="lib-rating" aria-label={t.library.rating(rating)}>
           {'★'.repeat(rating)}
           <span class="dim">{'★'.repeat(5 - rating)}</span>
         </p>
@@ -60,8 +51,8 @@ const { href, title, type, url, author, rating, status, summary, cover, tags = [
       {tags.length > 0 && <Tags tags={tags} small />}
       {
         url && (
-          <a href={url} target="_blank" rel="noopener" class="hand-btn small">
-            打开 →
+          <a href={withBase(url)} target="_blank" rel="noopener" class="hand-btn small">
+            {t.common.open}
           </a>
         )
       }
@@ -111,7 +102,7 @@ const { href, title, type, url, author, rating, status, summary, cover, tags = [
     border-radius: var(--radius-wobble-sm);
     background: var(--postit-2);
     color: var(--pencil);
-    font-family: var(--font-heading);
+    font-weight: 700;
   }
   .lib-title {
     font-size: 1.3rem;

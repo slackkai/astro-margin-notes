@@ -1,7 +1,7 @@
 {
-  "name": "latentk-blog",
+  "name": "astro-margin-notes",
   "type": "module",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "astro dev",
@@ -9,13 +9,20 @@
     "preview": "astro preview",
     "check": "astro check",
     "search:dev": "astro build && pagefind --site dist && node -e \"require('fs').cpSync('dist/pagefind','public/pagefind',{recursive:true})\"",
-    "astro": "astro"
+    "astro": "astro",
+    "predev": "node scripts/prepare-cms.mjs",
+    "prebuild": "node scripts/prepare-cms.mjs",
+    "new": "node scripts/new-post.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "verify": "node scripts/verify-build.mjs",
+    "test:production": "node scripts/test-production.mjs"
   },
   "dependencies": {
-    "@astrojs/mdx": "^4.0.0",
-    "@astrojs/rss": "^4.0.0",
-    "@astrojs/sitemap": "^3.0.0",
-    "astro": "^5.0.0",
+    "@astrojs/markdown-remark": "^7.3.1",
+    "@astrojs/mdx": "^8.0.1",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.3.3",
     "katex": "^0.16.0",
     "lxgw-wenkai-screen-webfont": "^1.7.0",
     "rehype-katex": "^7.0.0",
@@ -23,7 +30,14 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.0",
+    "@sveltia/cms": "0.216.0",
     "pagefind": "^1.5.2",
+    "parse5": "^8.0.1",
     "typescript": "^5.0.0"
+  },
+  "description": "A hand-drawn notebook Astro theme with a Git-based visual CMS and GitHub Pages deployment.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

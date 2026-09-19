@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../../utils/url';
 import { render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
 import { getPosts, readingStats, gitLastModified } from '../../utils/content';
@@ -55,7 +56,7 @@ const modified = await gitLastModified(post.filePath);
       links.length > 0 && (
         <div class="links">
           {links.map(([label, u]) => (
-            <a href={u} target="_blank" rel="noopener" class="hand-btn small">
+            <a href={withBase(u)} target="_blank" rel="noopener" class="hand-btn small">
               {label}
             </a>
           ))}
@@ -64,7 +65,7 @@ const modified = await gitLastModified(post.filePath);
     }
   </div>
 
-  {d.video ? <video class="media" src={d.video} autoplay muted loop playsinline controls /> : d.cover && <img class="media" src={d.cover} alt="" />}
+  {d.video ? <video class="media" src={withBase(d.video)} autoplay muted loop playsinline controls /> : d.cover && <img class="media" src={withBase(d.cover)} alt="" />}
   <Content />
 </PostLayout>
 

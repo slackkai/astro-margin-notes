@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../utils/url';
 /**
  * 通用文章卡片（academic / insight 列表用）。
  * 根元素是 article 而非 a：卡片内还有标签链接，链接不能嵌套。
@@ -26,7 +27,7 @@ const { href, title, date, description, tags = [], badge, rotate = 0, index = 0,
     <time class="meta" datetime={date.toISOString()}>{formatDate(date)}</time>
     {badge && <span class="badge">{badge}</span>}
   </div>
-  <h3 class="post-card-title" transition:name={transitionName}><a href={href}>{title}</a></h3>
+  <h3 class="post-card-title" transition:name={transitionName}><a href={withBase(href)}>{title}</a></h3>
   {description && <p class="post-card-desc">{description}</p>}
   {
     tags.length > 0 && (

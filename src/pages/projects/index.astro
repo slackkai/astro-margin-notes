@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
-import { SECTIONS } from '../../consts';
+import { SECTIONS } from '../../config';
 import { getPosts } from '../../utils/content';
 
 const projects = await getPosts('projects');
@@ -14,7 +14,7 @@ const statuses = [...new Set(projects.map((p) => p.data.status))];
 
 <BaseLayout title={sec.label} description={sec.desc}>
   <section class="container section">
-    <span class="postit reveal" style="--i:0">{sec.emoji} {sec.zh}</span>
+    <span class="postit reveal" style="--i:0">{sec.emoji} {sec.subtitle}</span>
     <h1 class="page-title reveal" style="--i:1">{sec.label}</h1>
     <p class="page-desc reveal" style="--i:2">{sec.desc}</p>
 

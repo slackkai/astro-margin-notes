@@ -2,10 +2,11 @@
 /**
  * 关于页"工作台"：工具 / 硬件 / 正在追的问题。数据在 consts.WORKBENCH。
  */
-import { WORKBENCH } from '../consts';
+import { config } from '../config';
+const WORKBENCH = config.about.workbench;
 ---
 
-<div class="bench">
+{WORKBENCH && <div class="bench">
   <div class="hand-card bench-card taped single reveal" style="--r:-0.6deg; --i:4">
     <h3>🔧 工具</h3>
     <ul>
@@ -39,7 +40,7 @@ import { WORKBENCH } from '../consts';
       ))}
     </ol>
   </div>
-</div>
+</div>}
 
 <style>
   .bench {

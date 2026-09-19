@@ -1,11 +1,12 @@
 ---
+import { withBase } from '../utils/url';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ArmHero from '../components/ArmHero.astro';
+import Hero from '../components/Hero.astro';
 import NowCard from '../components/NowCard.astro';
 import SectionCard from '../components/SectionCard.astro';
 import PostCard from '../components/PostCard.astro';
 import LibraryCard from '../components/LibraryCard.astro';
-import { SECTIONS } from '../consts';
+import { SECTIONS, ENABLED_SECTIONS, config } from '../config';
 import { getPosts, formatDate } from '../utils/content';
 
 const [academic, insight, dailies, library, projects] = await Promise.all([
@@ -32,30 +33,26 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
 ---
 
 <BaseLayout>
-  <ArmHero idle />
+  <Hero />
 
   <!-- 五个板块入口 -->
   <section class="container sections-grid">
-    <SectionCard {...SECTIONS.academic} count={counts.academic} index={4} />
-    <SectionCard {...SECTIONS.insight} count={counts.insight} index={5} />
-    <SectionCard {...SECTIONS.dailies} count={counts.dailies} unit="条" index={6} />
-    <SectionCard {...SECTIONS.library} count={counts.library} unit="项" index={7} />
-    <SectionCard {...SECTIONS.projects} count={counts.projects} unit="个" index={8} />
+    {ENABLED_SECTIONS.map((section, i) => <SectionCard {...section} count={counts[section.key]} unit={section.key === "dailies" ? "条" : section.key === "library" ? "项" : section.key === "projects" ? "个" : "篇"} index={4 + i} />)}
   </section>
 
   <!-- Now 卡片 + 最新洞见 -->
   <section class="container section">
     <div class="two-col now-row">
       <div class="now-col">
-        <NowCard index={8} />
+        {config.features.nowCard && <NowCard index={8} />}
       </div>
 
-      <div class="panel reveal" style="--r:0.4deg; --i:9">
+      {config.sections.insight.enabled && <div class="panel reveal" style="--r:0.4deg; --i:9">
         <span class="panel-label">最新洞见</span>
         <div class="stack">
           {latestInsight.map((p, i) => (
             <PostCard
-              href={`/insight/${p.id}/`}
+              href={withBase(`/insight/${p.id}/`)}
               title={p.data.title}
               date={p.data.date}
               description={p.data.description}
@@ -66,20 +63,20 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
           ))}
           {latestInsight.length === 0 && <p class="muted">还没有内容，去 src/content/insight 写第一篇吧。</p>}
         </div>
-        <a href={SECTIONS.insight.href} class="hand-btn more">全部洞见 →</a>
-      </div>
+        <a href={withBase(SECTIONS.insight.href)} class="hand-btn more">全部洞见 →</a>
+      </div>}
     </div>
   </section>
 
   <!-- 最新学术 + 日常快照 -->
   <section class="container section">
     <div class="two-col">
-      <div class="panel reveal" style="--r:-0.4deg; --i:12">
+      {config.sections.academic.enabled && <div class="panel reveal" style="--r:-0.4deg; --i:12">
         <span class="panel-label">最新学术</span>
         <div class="stack">
           {latestAcademic.map((p, i) => (
             <PostCard
-              href={`/academic/${p.id}/`}
+              href={withBase(`/academic/${p.id}/`)}
               title={p.data.title}
               date={p.data.date}
               description={p.data.description ?? p.data.venue}
@@ -91,15 +88,15 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
           ))}
           {latestAcademic.length === 0 && <p class="muted">还没有内容，去 src/content/academic 写第一篇吧。</p>}
         </div>
-        <a href={SECTIONS.academic.href} class="hand-btn more">全部学术 →</a>
-      </div>
+        <a href={withBase(SECTIONS.academic.href)} class="hand-btn more">全部学术 →</a>
+      </div>}
 
-      <div class="panel reveal" style="--r:0.3deg; --i:13">
+      {config.sections.dailies.enabled && <div class="panel reveal" style="--r:0.3deg; --i:13">
         <span class="panel-label">日常快照</span>
         <ul class="daily-list">
           {latestDailies.map((d) => (
             <li>
-              <a href={`/dailies/${d.id}/`} class="daily-row">
+              <a href={withBase(`/dailies/${d.id}/`)} class="daily-row">
                 <time class="meta">{formatDate(d.data.date, 'short')}</time>
                 <span class="daily-row-title" transition:name={d.data.title ? `dailies-${d.id}` : undefined}>
                   {d.data.title ?? d.data.description ?? '（无题）'}
@@ -110,19 +107,19 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
           ))}
           {latestDailies.length === 0 && <li class="muted">还没有日常记录。</li>}
         </ul>
-        <a href={SECTIONS.dailies.href} class="hand-btn more">全部日常 →</a>
-      </div>
+        <a href={withBase(SECTIONS.dailies.href)} class="hand-btn more">全部日常 →</a>
+      </div>}
     </div>
   </section>
 
   <!-- 资料库上新 -->
   <section class="container section">
-    <div class="panel reveal" style="--r:-0.25deg; --i:15">
+    {config.sections.library.enabled && <div class="panel reveal" style="--r:-0.25deg; --i:15">
       <span class="panel-label">资料库上新</span>
       <div class="lib-grid">
         {latestLibrary.map((l, i) => (
           <LibraryCard
-            href={`/library/${l.id}/`}
+            href={withBase(`/library/${l.id}/`)}
             title={l.data.title}
             type={l.data.type}
             url={l.data.url}
@@ -137,8 +134,8 @@ const rot = (i: number) => (i % 2 === 0 ? -0.5 : 0.5);
         ))}
         {latestLibrary.length === 0 && <p class="muted">资料库还是空的。</p>}
       </div>
-      <a href={SECTIONS.library.href} class="hand-btn more">进入资料库 →</a>
-    </div>
+      <a href={withBase(SECTIONS.library.href)} class="hand-btn more">进入资料库 →</a>
+    </div>}
   </section>
 </BaseLayout>
 

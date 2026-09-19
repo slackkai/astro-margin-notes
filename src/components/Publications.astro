@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../utils/url';
 /**
  * Publications：kind: paper 的条目按年份分组，带 venue 徽章与链接。
  */
@@ -12,7 +13,7 @@ const { papers, index = 0 } = Astro.props;
 
 const byYear = new Map<number, typeof papers>();
 for (const p of papers) {
-  const y = p.data.year ?? p.data.date.getFullYear();
+  const y = p.data.year ?? p.data.date.getUTCFullYear();
   if (!byYear.has(y)) byYear.set(y, []);
   byYear.get(y)!.push(p);
 }
@@ -29,7 +30,7 @@ const years = [...byYear.keys()].sort((a, b) => b - a);
           {byYear.get(y)!.map((p) => (
             <li class="pub">
               <div class="pub-main">
-                <a href={`/academic/${p.id}/`} class="pub-title" transition:name={`academic-${p.id}`}>
+                <a href={withBase(`/academic/${p.id}/`)} class="pub-title" transition:name={`academic-${p.id}`}>
                   {p.data.title}
                 </a>
                 {p.data.authors && <p class="pub-authors meta">{p.data.authors.join(', ')}</p>}
@@ -37,9 +38,9 @@ const years = [...byYear.keys()].sort((a, b) => b - a);
               <div class="pub-side">
                 {p.data.venue && <span class="venue">{p.data.venue}</span>}
                 <span class="links">
-                  {p.data.links?.pdf && <a href={p.data.links.pdf} target="_blank" rel="noopener">PDF</a>}
-                  {p.data.links?.arxiv && <a href={p.data.links.arxiv} target="_blank" rel="noopener">arXiv</a>}
-                  {p.data.links?.code && <a href={p.data.links.code} target="_blank" rel="noopener">Code</a>}
+                  {p.data.links?.pdf && <a href={withBase(p.data.links.pdf)} target="_blank" rel="noopener">PDF</a>}
+                  {p.data.links?.arxiv && <a href={withBase(p.data.links.arxiv)} target="_blank" rel="noopener">arXiv</a>}
+                  {p.data.links?.code && <a href={withBase(p.data.links.code)} target="_blank" rel="noopener">Code</a>}
                 </span>
               </div>
             </li>

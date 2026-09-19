@@ -4,6 +4,7 @@
  * 索引在 `npm run build` 后由 postbuild 生成到 dist/pagefind；
  * 本地 dev 预览需先 build 一次并把 dist/pagefind 复制到 public/pagefind（见 README）。
  */
+import { t } from '../i18n';
 ---
 
 <button class="search-btn" id="search-btn" aria-label="搜索" title="搜索 ( / )">
@@ -13,7 +14,7 @@
   </svg>
 </button>
 
-<div class="search-modal" id="search-modal" hidden role="dialog" aria-modal="true" aria-label="全站搜索">
+<dialog class="search-modal" id="search-modal" aria-label={t.search.dialog}>
   <div class="search-backdrop" id="search-backdrop"></div>
   <div class="search-panel hand-card">
     <div class="search-row">
@@ -22,12 +23,12 @@
         <path d="m20 20-3.5-3.5" />
       </svg>
       <input id="search-input" type="search" placeholder="搜全站…" autocomplete="off" spellcheck="false" />
-      <kbd>Esc</kbd>
+      <button id="search-close" type="button" aria-label="Close search">Esc</button>
     </div>
-    <ul class="search-results" id="search-results" role="listbox"></ul>
+    <ul class="search-results" id="search-results" aria-live="polite"></ul>
     <p class="search-hint meta" id="search-hint">输入关键词，↑↓ 选择，Enter 打开</p>
   </div>
-</div>
+</dialog>
 
 <style>
   .search-btn {
@@ -46,6 +47,14 @@
     transform: rotate(-6deg);
   }
   .search-modal {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    color: var(--pencil);
     position: fixed;
     inset: 0;
     z-index: 100;
@@ -53,7 +62,7 @@
     place-items: start center;
     padding: 8vh 1rem 1rem;
   }
-  .search-modal[hidden] {
+  .search-modal:not([open]) {
     display: none;
   }
   .search-backdrop {
@@ -80,6 +89,7 @@
     border-bottom: 2px dashed var(--pencil-25);
   }
   .search-row input {
+    min-width: 0;
     flex: 1;
     font: inherit;
     font-size: 1.15rem;
@@ -88,7 +98,7 @@
     color: var(--pencil);
     outline: none;
   }
-  .search-row kbd {
+  .search-row button {
     font-family: var(--font-mono);
     font-size: 0.7rem;
     padding: 0.1rem 0.4rem;
@@ -149,6 +159,9 @@
 </style>
 
 <script>
+  import { withBase } from '../utils/url';
+  import { t } from '../i18n';
+  let lifecycle: AbortController | undefined;
   type PF = {
     init: () => Promise<void>;
     debouncedSearch: (q: string) => Promise<{ results: { data: () => Promise<PFResult> }[] } | null>;
@@ -157,52 +170,65 @@
 
   function initSearch() {
     const btn = document.getElementById('search-btn');
-    const modal = document.getElementById('search-modal');
+    const modal = document.getElementById('search-modal') as HTMLDialogElement | null;
     const input = document.getElementById('search-input') as HTMLInputElement | null;
     const list = document.getElementById('search-results');
     const hint = document.getElementById('search-hint');
     const backdrop = document.getElementById('search-backdrop');
     if (!btn || !modal || !input || !list || !hint || !backdrop || btn.dataset.bound) return;
     btn.dataset.bound = '1';
+    lifecycle?.abort();
+    lifecycle = new AbortController();
+    const { signal } = lifecycle;
+    document.addEventListener("astro:before-swap", () => lifecycle?.abort(), { once: true, signal });
     const modalEl = modal, inputEl = input, listEl = list, hintEl = hint;
 
     let pf: PF | null = null;
     let loadFailed = false;
     let active = -1;
+    let loading: Promise<void> | null = null;
 
     async function loadPagefind() {
       if (pf || loadFailed) return;
-      try {
+      if (loading) return loading;
+      loading = (async () => { try {
         // 路径拼接成变量，避免 Vite 在构建期尝试解析这个运行时才存在的文件
-        const url = '/pagefind/' + 'pagefind.js';
-        pf = (await import(/* @vite-ignore */ url)) as PF;
-        await pf.init();
+        const url = withBase('/pagefind/' + 'pagefind.js');
+        const loaded = (await import(/* @vite-ignore */ url)) as PF;
+        await loaded.init();
+        pf = loaded;
       } catch {
         loadFailed = true;
-        hintEl.textContent = '搜索索引尚未生成：先 npm run build，再把 dist/pagefind 复制到 public/pagefind。';
+        pf = null;
+        hintEl.textContent = t.search.notBuilt;
       }
+      })();
+      return loading;
     }
 
     const open = () => {
-      modalEl.hidden = false;
+      if (!modalEl.open) modalEl.showModal();
+      ++seq;
       inputEl.value = '';
       listEl.innerHTML = '';
       active = -1;
+      hintEl.textContent = loadFailed ? t.search.notBuilt : t.search.hint;
       inputEl.focus();
       loadPagefind();
     };
     const close = () => {
-      modalEl.hidden = true;
+      ++seq;
+      modalEl.close();
     };
 
     function render(results: PFResult[]) {
       listEl.innerHTML = '';
       active = -1;
       if (results.length === 0) {
-        hintEl.textContent = inputEl.value ? '没有结果。' : '输入关键词，↑↓ 选择，Enter 打开';
+        hintEl.textContent = inputEl.value ? t.search.noResults : t.search.hint;
         return;
       }
-      hintEl.textContent = `${results.length} 条结果`;
+      hintEl.textContent = t.search.results(results.length);
       for (const r of results) {
         const li = document.createElement('li');
         const a = document.createElement('a');
@@ -232,10 +258,14 @@
       if (!q) return render([]);
       await loadPagefind();
       if (!pf) return;
-      const res = await pf.debouncedSearch(q);
-      if (!res || mySeq !== seq) return;
-      const data = await Promise.all(res.results.slice(0, 10).map((r) => r.data()));
-      if (mySeq === seq) render(data);
+      try {
+        const res = await pf.debouncedSearch(q);
+        if (!res || mySeq !== seq) return;
+        const data = await Promise.all(res.results.slice(0, 10).map((r) => r.data()));
+        if (mySeq === seq) render(data);
+      } catch {
+        if (mySeq === seq) hintEl.textContent = t.search.notBuilt;
+      }
     });
 
     const setActive = (i: number) => {
@@ -255,16 +285,18 @@
     });
 
     btn.addEventListener('click', open);
+    document.getElementById('search-close')?.addEventListener('click', close);
+    modalEl.addEventListener('cancel', () => { ++seq; });
     backdrop.addEventListener('click', close);
     document.addEventListener('keydown', (e) => {
       const typing = (e.target as HTMLElement)?.matches?.('input, textarea, [contenteditable]');
-      if (e.key === 'Escape' && !modalEl.hidden) close();
+      if (e.key === 'Escape' && modalEl.open) close();
       else if ((e.key === '/' && !typing) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
         e.preventDefault();
         open();
       }
-    });
-    document.addEventListener('astro:before-swap', close);
+    }, { signal });
+    document.addEventListener('astro:before-swap', close, { once: true });
   }
   initSearch();
   document.addEventListener('astro:page-load', initSearch);

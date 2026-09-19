@@ -1,28 +1,28 @@
 ---
-import { SITE } from '../consts';
+import { withBase } from '../utils/url';
+import { SITE, config } from '../config';
+import { t } from '../i18n';
 import SignOff from './SignOff.astro';
 
-interface Props {
-  signoff?: boolean;
-}
-const { signoff = true } = Astro.props;
 const year = new Date().getFullYear();
+interface Props { signoff?: boolean }
+const showSignoff = Astro.props.signoff !== false && config.footer.signoffs.length > 0;
 ---
 
 <footer class="site-footer" data-pagefind-ignore>
   <div class="container">
-    {signoff && <SignOff />}
+    {showSignoff && <SignOff />}
     <div class="footer-inner">
       <p>
-        © {year} <a href="/" class="wavy">{SITE.title}</a> · {SITE.tagline}
+        © {year} <a href={withBase('/')} class="wavy">{SITE.title}</a> · {SITE.tagline}
       </p>
       <ul class="footer-links">
-        <li><a href="/guestbook/">留言</a></li>
-        <li><a href="/archive/">Archive</a></li>
-        <li><a href="/rss.xml">RSS</a></li>
-        <li><a href="/sitemap-index.xml">Sitemap</a></li>
-        {SITE.github && <li><a href={SITE.github} target="_blank" rel="noopener">GitHub</a></li>}
-        <li><a href="https://astro.build" target="_blank" rel="noopener">Built with Astro</a></li>
+        {config.features.guestbook && <li><a href={withBase('/guestbook/')}>{t.footer.guestbook}</a></li>}
+        <li><a href={withBase('/archive/')}>{t.footer.archive}</a></li>
+        <li><a href={withBase('/rss.xml')}>{t.footer.rss}</a></li>
+        <li><a href={withBase('/sitemap-index.xml')}>{t.footer.sitemap}</a></li>
+        {SITE.github && <li><a href={withBase(SITE.github)} target="_blank" rel="noopener">{t.footer.github}</a></li>}
+        <li><a href="https://astro.build" target="_blank" rel="noopener">{t.footer.builtWith}</a></li>
       </ul>
     </div>
   </div>

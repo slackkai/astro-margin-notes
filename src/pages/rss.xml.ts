@@ -1,6 +1,6 @@
 import rss from '@astrojs/rss';
 import type { APIContext } from 'astro';
-import { SITE } from '../consts';
+import { SITE, config } from '../config';
 import { getAllTagged, entryHref, formatDate } from '../utils/content';
 
 export async function GET(context: APIContext) {
@@ -16,6 +16,6 @@ export async function GET(context: APIContext) {
       link: entryHref(e),
       categories: [e.collection, ...e.data.tags],
     })),
-    customData: '<language>zh-CN</language>',
+    customData: `<language>${config.lang}</language>`,
   });
 }

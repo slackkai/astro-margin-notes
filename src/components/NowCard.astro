@@ -1,9 +1,13 @@
 ---
+import { withBase } from '../utils/url';
 /**
  * Now 卡片：横线索引卡 + 回形针。
  * 数据来自 src/content/now/now.md，"在读"自动合并资料库中 status: reading 的条目。
+ * 没有 now.md 时不渲染。
  */
 import { getEntry } from 'astro:content';
+import { config } from '../config';
+import { t } from '../i18n';
 import { getPosts, formatDate } from '../utils/content';
 
 interface Props {
@@ -17,59 +21,54 @@ const doing = now?.data.doing ?? [];
 const listening = now?.data.listening ?? [];
 const manualReading = now?.data.reading ?? [];
 const updated = now?.data.updated;
+const sep = config.lang === 'en' ? ', ' : '；';
 ---
 
-<article class="index-card reveal" style={`--i:${index}`}>
-  <svg class="clip left" viewBox="0 0 24 48" aria-hidden="true">
-    <path d="M8 44 V10 a4 4 0 0 1 8 0 V38 a2 2 0 0 1 -4 0 V14" />
-  </svg>
-  <header>
-    <span class="stamp">NOW</span>
-    {updated && <span class="meta">更新于 {formatDate(updated)}</span>}
-  </header>
-  <dl>
-    {
-      !now && (
-        <>
-          <dt>提示</dt>
-          <dd class="muted">在 src/content/now/now.md 填写在做 / 在读 / 在听。</dd>
-        </>
-      )
-    }
-    {
-      doing.length > 0 && (
-        <>
-          <dt>在做</dt>
-          <dd>{doing.join('；')}</dd>
-        </>
-      )
-    }
-    {
-      (libReading.length > 0 || manualReading.length > 0) && (
-        <>
-          <dt>在读</dt>
-          <dd>
-            {libReading.map((r, i) => (
-              <>
-                <a href={`/library/${r.id}/`}>{r.data.title}</a>
-                {(i < libReading.length - 1 || manualReading.length > 0) && '、'}
-              </>
-            ))}
-            {manualReading.join('、')}
-          </dd>
-        </>
-      )
-    }
-    {
-      listening.length > 0 && (
-        <>
-          <dt>在听</dt>
-          <dd>{listening.join('；')}</dd>
-        </>
-      )
-    }
-  </dl>
-</article>
+{
+  now && (
+    <article class="index-card reveal" style={`--i:${index}`}>
+      <svg class="clip left" viewBox="0 0 24 48" aria-hidden="true">
+        <path d="M8 44 V10 a4 4 0 0 1 8 0 V38 a2 2 0 0 1 -4 0 V14" />
+      </svg>
+      <header>
+        <span class="stamp">{t.now.stamp}</span>
+        {updated && (
+          <span class="meta">
+            {t.common.updated} {formatDate(updated)}
+          </span>
+        )}
+      </header>
+      <dl>
+        {doing.length > 0 && (
+          <>
+            <dt>{t.now.doing}</dt>
+            <dd>{doing.join(sep)}</dd>
+          </>
+        )}
+        {(libReading.length > 0 || manualReading.length > 0) && (
+          <>
+            <dt>{t.now.reading}</dt>
+            <dd>
+              {libReading.map((r, i) => (
+                <>
+                  <a href={withBase(`/library/${r.id}/`)}>{r.data.title}</a>
+                  {(i < libReading.length - 1 || manualReading.length > 0) && '、'}
+                </>
+              ))}
+              {manualReading.join('、')}
+            </dd>
+          </>
+        )}
+        {listening.length > 0 && (
+          <>
+            <dt>{t.now.listening}</dt>
+            <dd>{listening.join(sep)}</dd>
+          </>
+        )}
+      </dl>
+    </article>
+  )
+}
 
 <style>
   .index-card {
@@ -122,7 +121,8 @@ const updated = now?.data.updated;
   dl {
     margin: 0;
     display: grid;
-    grid-template-columns: 3.2rem 1fr;
+    grid-template-columns: max-content 1fr;
+    column-gap: 0.75rem;
     row-gap: 0.25rem;
     line-height: 1.9rem;
   }

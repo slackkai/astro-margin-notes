@@ -1,4 +1,5 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 
 const common = {
@@ -6,7 +7,7 @@ const common = {
   date: z.coerce.date(),
   updated: z.coerce.date().optional(),
   description: z.string().optional(),
-  tags: z.array(z.string()).default([]),
+  tags: z.array(z.string().trim().min(1)).default([]).transform(tags => [...new Set(tags)]),
   draft: z.boolean().default(false),
 };
 
@@ -30,12 +31,12 @@ const academic = defineCollection({
     year: z.number().optional(),
     links: z
       .object({
-        pdf: z.string().url().optional(),
-        arxiv: z.string().url().optional(),
-        doi: z.string().url().optional(),
-        code: z.string().url().optional(),
-        slides: z.string().url().optional(),
-        site: z.string().url().optional(),
+        pdf: z.url().optional(),
+        arxiv: z.url().optional(),
+        doi: z.url().optional(),
+        code: z.url().optional(),
+        slides: z.url().optional(),
+        site: z.url().optional(),
       })
       .optional(),
     bibtex: z.string().optional(),
@@ -73,9 +74,9 @@ const library = defineCollection({
     type: z
       .enum(['book', 'paper', 'tool', 'course', 'article', 'video', 'dataset', 'other'])
       .default('other'),
-    url: z.string().url().optional(),
+    url: z.url().optional(),
     author: z.string().optional(),
-    rating: z.number().min(1).max(5).optional(),
+    rating: z.number().int().min(1).max(5).optional(),
     status: z.enum(['todo', 'reading', 'done']).optional(),
     summary: z.string().optional(), // 一句话评价
     cover: z.string().optional(),
@@ -104,10 +105,10 @@ const projects = defineCollection({
     stack: z.array(z.string()).default([]), // 技术栈
     links: z
       .object({
-        github: z.string().url().optional(),
-        demo: z.string().url().optional(),
-        paper: z.string().url().optional(),
-        docs: z.string().url().optional(),
+        github: z.url().optional(),
+        demo: z.url().optional(),
+        paper: z.url().optional(),
+        docs: z.url().optional(),
       })
       .optional(),
     featured: z.boolean().default(false),

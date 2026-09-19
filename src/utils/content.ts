@@ -1,4 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { isEnabled } from '../config';
+import { withBase } from './url';
+import { t } from '../i18n';
 
 type PostCollection = 'academic' | 'insight' | 'dailies' | 'library' | 'projects';
 
@@ -11,9 +14,11 @@ export function byDateDesc<T extends { data: { date: Date } }>(a: T, b: T): numb
   return b.data.date.valueOf() - a.data.date.valueOf();
 }
 
+/** 已发布条目，按日期倒序。板块在 config 里关闭时返回空数组，从而在全站消失 */
 export async function getPosts<C extends PostCollection>(
   collection: C,
 ): Promise<CollectionEntry<C>[]> {
+  if (!isEnabled(collection)) return [];
   const entries = await getCollection(collection, isPublished);
   return entries.sort(byDateDesc);
 }
@@ -21,35 +26,39 @@ export async function getPosts<C extends PostCollection>(
 export type TaggedEntry =
   | CollectionEntry<'academic'>
   | CollectionEntry<'insight'>
-  | CollectionEntry<'dailies'>;
+  | CollectionEntry<'dailies'>
+  | CollectionEntry<'library'>
+  | CollectionEntry<'projects'>;
 
-/** 汇总带标签的三个板块，用于标签页与 RSS */
+/** 汇总五个板块，用于标签页、归档与 RSS。 */
 export async function getAllTagged(): Promise<TaggedEntry[]> {
-  const [academic, insight, dailies] = await Promise.all([
+  const [academic, insight, dailies, library, projects] = await Promise.all([
     getPosts('academic'),
     getPosts('insight'),
     getPosts('dailies'),
+    getPosts('library'),
+    getPosts('projects'),
   ]);
-  return [...academic, ...insight, ...dailies].sort(byDateDesc);
+  return [...academic, ...insight, ...dailies, ...library, ...projects].sort(byDateDesc);
 }
 
 export function collectTags(entries: { data: { tags: string[] } }[]): Map<string, number> {
   const map = new Map<string, number>();
   for (const e of entries) {
-    for (const t of e.data.tags) map.set(t, (map.get(t) ?? 0) + 1);
+    for (const t of new Set(e.data.tags)) map.set(t, (map.get(t) ?? 0) + 1);
   }
   return new Map([...map.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])));
 }
 
 export function entryHref(entry: { collection: string; id: string }): string {
-  return `/${entry.collection}/${entry.id}/`;
+  return withBase(`/${entry.collection}/${entry.id}/`);
 }
 
 export function formatDate(date: Date, style: 'long' | 'short' | 'month' = 'long'): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  if (style === 'month') return `${y}年${date.getMonth() + 1}月`;
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
+  if (style === 'month') return t.date.month(y, date.getUTCMonth() + 1);
   if (style === 'short') return `${m}-${d}`;
   return `${y}-${m}-${d}`;
 }
@@ -76,8 +85,8 @@ export function readingStats(body: string | undefined): { words: number; minutes
 export async function gitLastModified(filePath: string | undefined): Promise<Date | null> {
   if (!filePath) return null;
   try {
-    const { execSync } = await import('node:child_process');
-    const out = execSync(`git log -1 --format=%cI -- "${filePath}"`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    const { execFileSync } = await import('node:child_process');
+    const out = execFileSync('git', ['log', '-1', '--format=%cI', '--', filePath], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
     return out ? new Date(out) : null;
   } catch {
     return null;
@@ -137,11 +146,10 @@ export async function getAllSeries(): Promise<Map<string, SeriesEntry[]>> {
 export type ArchiveEntry = TaggedEntry | CollectionEntry<'library'> | CollectionEntry<'projects'>;
 
 export async function getArchive(): Promise<Map<number, Map<number, ArchiveEntry[]>>> {
-  const [tagged, library, projects] = await Promise.all([getAllTagged(), getPosts('library'), getPosts('projects')]);
-  const all: ArchiveEntry[] = [...tagged, ...library, ...projects].sort(byDateDesc);
+  const all = await getAllTagged();
   const years = new Map<number, Map<number, ArchiveEntry[]>>();
   for (const e of all) {
-    const y = e.data.date.getFullYear(), m = e.data.date.getMonth() + 1;
+    const y = e.data.date.getUTCFullYear(), m = e.data.date.getUTCMonth() + 1;
     if (!years.has(y)) years.set(y, new Map());
     const months = years.get(y)!;
     if (!months.has(m)) months.set(m, []);

@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../../utils/url';
 import { render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
 import { getPosts, getAllTagged, getSeries, readingStats, gitLastModified, relatedTo } from '../../utils/content';
@@ -59,7 +60,7 @@ const series = d.series ? { name: d.series.name, entries: await getSeries(d.seri
       linkList.length > 0 && (
         <div class="links">
           {linkList.map(([label, url]) => (
-            <a href={url} target="_blank" rel="noopener" class="hand-btn small">
+            <a href={withBase(url)} target="_blank" rel="noopener" class="hand-btn small">
               {label}
             </a>
           ))}

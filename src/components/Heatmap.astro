@@ -1,7 +1,9 @@
 ---
+import { withBase } from '../utils/url';
 /**
- * 日常热力图：最近 N 周，每格一天，GitHub 风格五级色阶。
+ * 日常热力图：最近 N 周，每格一天，GitHub 风格五级色阶。有内容的格子链接到归档对应月份。
  */
+import { t } from '../i18n';
 import { getPosts } from '../utils/content';
 
 interface Props {
@@ -11,22 +13,22 @@ const { weeks: WEEKS = 20 } = Astro.props;
 
 const posts = await getPosts('dailies');
 const counts = new Map<string, number>();
-const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const dayKey = (d: Date) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
 for (const p of posts) counts.set(dayKey(p.data.date), (counts.get(dayKey(p.data.date)) ?? 0) + 1);
 
 const today = new Date();
-today.setHours(0, 0, 0, 0);
+today.setUTCHours(0, 0, 0, 0);
 const end = new Date(today);
-end.setDate(end.getDate() + (6 - end.getDay()));
+end.setUTCDate(end.getUTCDate() + (6 - end.getUTCDay()));
 const start = new Date(end);
-start.setDate(start.getDate() - WEEKS * 7 + 1);
+start.setUTCDate(start.getUTCDate() - WEEKS * 7 + 1);
 
 const weeks: { date: Date; key: string; n: number; future: boolean }[][] = [];
 for (let w = 0; w < WEEKS; w++) {
   const col = [];
   for (let d = 0; d < 7; d++) {
     const date = new Date(start);
-    date.setDate(start.getDate() + w * 7 + d);
+    date.setUTCDate(start.getUTCDate() + w * 7 + d);
     const key = dayKey(date);
     col.push({ date, key, n: counts.get(key) ?? 0, future: date > today });
   }
@@ -35,16 +37,16 @@ for (let w = 0; w < WEEKS; w++) {
 const monthLabels = weeks.map((col, i) => {
   const d = col[0].date;
   const prev = i > 0 ? weeks[i - 1][0].date : null;
-  return !prev || prev.getMonth() !== d.getMonth() ? `${d.getMonth() + 1}月` : '';
+  return !prev || prev.getUTCMonth() !== d.getUTCMonth() ? t.date.monthShort(d.getUTCMonth() + 1) : '';
 });
-const total = posts.filter((p) => p.data.date >= start).length;
+const total = posts.filter((p) => p.data.date >= start && dayKey(p.data.date) <= dayKey(today)).length;
 const level = (n: number) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n === 3 ? 3 : 4);
 ---
 
 <div class="heat hand-card">
   <div class="heat-head">
-    <strong>最近 {WEEKS} 周</strong>
-    <span class="meta">写了 {total} 条日常</span>
+    <strong>{t.dailies.recentWeeks(WEEKS)}</strong>
+    <span class="meta">{t.dailies.wrote(total)}</span>
   </div>
   <div class="heat-scroll">
     <div class="months" style={`--cols:${WEEKS}`}>
@@ -57,16 +59,16 @@ const level = (n: number) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n === 3 
             {col.map((c) =>
               c.n > 0 ? (
                 <a
-                  href={`/archive/#m${c.key.slice(0, 7)}`}
+                  href={withBase(`/archive/#m${c.key.slice(0, 7)}`)}
                   class:list={['cell', `l${level(c.n)}`]}
-                  title={`${c.key} · ${c.n} 条，查看归档`}
-                  style={`--jit:${((c.date.getDate() * 7) % 5) - 2}deg`}
+                  title={`${c.key} · ${t.dailies.entries(c.n)} · ${t.dailies.viewArchive}`}
+                  style={`--jit:${((c.date.getUTCDate() * 7) % 5) - 2}deg`}
                 />
               ) : (
                 <span
                   class:list={['cell', 'l0', { future: c.future }]}
                   title={c.key}
-                  style={`--jit:${((c.date.getDate() * 7) % 5) - 2}deg`}
+                  style={`--jit:${((c.date.getUTCDate() * 7) % 5) - 2}deg`}
                 />
               ),
             )}
@@ -76,7 +78,7 @@ const level = (n: number) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n === 3 
     </div>
   </div>
   <div class="legend meta">
-    少 <span class="cell l0" /><span class="cell l1" /><span class="cell l2" /><span class="cell l3" /><span class="cell l4" /> 多
+    {t.dailies.less} <span class="cell l0" /><span class="cell l1" /><span class="cell l2" /><span class="cell l3" /><span class="cell l4" /> {t.dailies.more}
   </div>
 </div>
 
@@ -107,7 +109,6 @@ const level = (n: number) => (n === 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n === 3 
   .heat-scroll {
     overflow: visible;
   }
-  /* 流式网格：列宽随容器伸缩，永远不出横向滚动条 */
   .months,
   .cells {
     display: grid;

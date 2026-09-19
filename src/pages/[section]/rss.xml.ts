@@ -1,10 +1,10 @@
 import rss from '@astrojs/rss';
 import type { APIContext } from 'astro';
-import { SITE, SECTIONS, type SectionKey } from '../../consts';
+import { SITE, SECTIONS, ENABLED_SECTIONS, config, type SectionKey } from '../../config';
 import { getPosts, entryHref, formatDate } from '../../utils/content';
 
 export function getStaticPaths() {
-  return (Object.keys(SECTIONS) as SectionKey[]).map((section) => ({ params: { section } }));
+  return ENABLED_SECTIONS.map(({ key: section }) => ({ params: { section } }));
 }
 
 export async function GET({ params, site }: APIContext) {
@@ -22,6 +22,6 @@ export async function GET({ params, site }: APIContext) {
       link: entryHref(e),
       categories: [section, ...e.data.tags],
     })),
-    customData: '<language>zh-CN</language>',
+    customData: `<language>${config.lang}</language>`,
   });
 }

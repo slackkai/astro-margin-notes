@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../utils/url';
 /**
  * 首页板块入口卡片
  */
@@ -6,19 +7,19 @@ interface Props {
   href: string;
   emoji: string;
   label: string;
-  zh: string;
+  subtitle: string;
   desc: string;
   count: number;
   unit?: string;
   rotate?: string;
   index?: number;
 }
-const { href, emoji, label, zh, desc, count, unit = '篇', rotate = '0deg', index = 0 } = Astro.props;
+const { href, emoji, label, subtitle, desc, count, unit = '篇', rotate = '0deg', index = 0 } = Astro.props;
 ---
 
-<a href={href} class="hand-card is-link sec-card reveal taped single" style={`--r:${rotate}; --i:${index}`}>
+<a href={withBase(href)} class="hand-card is-link sec-card reveal taped single" style={`--r:${rotate}; --i:${index}`}>
   <div class="sec-emoji" aria-hidden="true">{emoji}</div>
-  <h2 class="sec-title">{label} <span class="sec-zh">{zh}</span></h2>
+  <h2 class="sec-title">{label} <span class="sec-zh">{subtitle}</span></h2>
   <p class="sec-desc">{desc}</p>
   <span class="sec-go">去看看 <span class="arrow">→</span></span>
   <p class="meta sec-count">{count} {unit}</p>
@@ -45,6 +46,8 @@ const { href, emoji, label, zh, desc, count, unit = '篇', rotate = '0deg', inde
     transition: color 0.15s ease;
   }
   .sec-zh {
+    display: inline-block;
+    white-space: nowrap;
     font-size: 1rem;
     font-weight: 400;
     color: var(--pencil-45);

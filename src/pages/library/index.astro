@@ -1,7 +1,8 @@
 ---
+import { withBase } from '../../utils/url';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import LibraryCard from '../../components/LibraryCard.astro';
-import { SECTIONS } from '../../consts';
+import { SECTIONS } from '../../config';
 import { getPosts } from '../../utils/content';
 
 const items = await getPosts('library');
@@ -23,7 +24,7 @@ const types = [...new Set(items.map((i) => i.data.type))];
 
 <BaseLayout title={sec.label} description={sec.desc}>
   <section class="container section">
-    <span class="postit reveal" style="--i:0">{sec.emoji} {sec.zh}</span>
+    <span class="postit reveal" style="--i:0">{sec.emoji} {sec.subtitle}</span>
     <h1 class="page-title reveal" style="--i:1">{sec.label}</h1>
     <p class="page-desc reveal" style="--i:2">{sec.desc}</p>
 
@@ -65,7 +66,7 @@ const types = [...new Set(items.map((i) => i.data.type))];
             data-search={[it.data.title, it.data.author, it.data.summary, ...it.data.tags].filter(Boolean).join(' ').toLowerCase()}
           >
             <LibraryCard
-              href={`/library/${it.id}/`}
+              href={withBase(`/library/${it.id}/`)}
               title={it.data.title}
               type={it.data.type}
               url={it.data.url}

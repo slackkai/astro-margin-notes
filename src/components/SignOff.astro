@@ -1,14 +1,19 @@
 ---
 /**
- * 页脚结束语：从 consts.SIGNOFFS 里随机抽一句，每次加载不同。
+ * 页脚结束语：从 config.footer.signoffs 里随机抽一句，每次加载不同。
  */
-import { SIGNOFFS } from '../consts';
+import { config } from '../config';
+const lines = config.footer.signoffs;
 ---
 
-<p class="signoff" id="site-signoff" data-lines={JSON.stringify(SIGNOFFS)}>
-  <span class="signoff-dash" aria-hidden="true">—</span>
-  <span class="signoff-text">{SIGNOFFS[0]}</span>
-</p>
+{
+  lines.length > 0 && (
+    <p class="signoff" id="site-signoff" data-lines={JSON.stringify(lines)}>
+      <span class="signoff-dash" aria-hidden="true">—</span>
+      <span class="signoff-text">{lines[0]}</span>
+    </p>
+  )
+}
 
 <style>
   .signoff {

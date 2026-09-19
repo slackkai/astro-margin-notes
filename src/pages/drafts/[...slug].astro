@@ -1,11 +1,12 @@
 ---
+import { withBase } from '../../utils/url';
 /**
  * /drafts/ —— 草稿列表。只在 dev 下生成，方便找 draft: true 的内容。
  */
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
-import { SECTIONS, type SectionKey } from '../../consts';
+import { SECTIONS, type SectionKey } from '../../config';
 import { entryHref, formatDate, byDateDesc } from '../../utils/content';
 
 export function getStaticPaths() {
@@ -30,7 +31,7 @@ const label = (c: string) => (c in SECTIONS ? SECTIONS[c as SectionKey] : { emoj
       {
         drafts.map((e, i) => (
           <PostCard
-            href={entryHref(e)}
+            href={withBase(entryHref(e))}
             title={('title' in e.data && e.data.title) || formatDate(e.data.date)}
             date={e.data.date}
             description={'description' in e.data ? e.data.description : undefined}

@@ -1,5 +1,6 @@
 ---
-import { SITE } from '../consts';
+import { withBase } from '../utils/url';
+import { SITE } from '../config';
 
 interface Props {
   title?: string;
@@ -12,8 +13,8 @@ interface Props {
 const { title, description = SITE.description, image, type = 'website', publishedTime } = Astro.props;
 
 const fullTitle = title ? `${title} · ${SITE.title}` : `${SITE.title} — ${SITE.tagline}`;
-const canonical = new URL(Astro.url.pathname, Astro.site);
-const ogImage = image ? new URL(image, Astro.site) : undefined;
+const canonical = new URL(Astro.url.pathname.replace(/\/404\/$/, '/404.html'), Astro.site);
+const ogImage = image ? new URL(withBase(image), Astro.site) : undefined;
 
 // 文楷 Screen 中包含基本拉丁字母与常用标点的子集块，预加载它让首屏英文/数字尽早就位
 import latinChunk from 'lxgw-wenkai-screen-webfont/files/lxgwwenkaiscreen-subset-119.woff2?url';
@@ -27,11 +28,11 @@ const FONTS = [latinChunk];
 <meta name="description" content={description} />
 <meta name="author" content={SITE.author} />
 <link rel="canonical" href={canonical} />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<link rel="sitemap" href="/sitemap-index.xml" />
-<link rel="alternate" type="application/rss+xml" title={SITE.title} href={new URL('rss.xml', Astro.site)} />
+<link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+<link rel="sitemap" href={withBase('/sitemap-index.xml')} />
+<link rel="alternate" type="application/rss+xml" title={SITE.title} href={new URL(withBase('/rss.xml'), Astro.site)} />
 
-{FONTS.map((href) => <link rel="preload" as="font" type="font/woff2" href={href} crossorigin />)}
+{FONTS.map((href) => <link rel="preload" as="font" type="font/woff2" href={withBase(href)} crossorigin />)}
 
 <meta property="og:type" content={type} />
 <meta property="og:title" content={fullTitle} />
@@ -49,11 +50,14 @@ const FONTS = [latinChunk];
   // 首屏前设置主题与配色，避免闪烁；切页时把两者带到新文档上
   (function () {
     const PALETTES = ['blue', 'classic', 'green', 'mono'];
-    const getTheme = () =>
-      localStorage.getItem('theme') ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const read = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
+    const getTheme = () => {
+      const saved = read('theme');
+      return ['dark', 'light'].includes(saved) ? saved : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    };
     const getPalette = () => {
-      const p = localStorage.getItem('palette');
-      return p && PALETTES.includes(p) ? p : 'blue';
+      const p = read('palette');
+      return p && PALETTES.includes(p) ? p : (document.documentElement.dataset.defaultPalette || 'blue');
     };
     const apply = (root) => {
       root.setAttribute('data-theme', getTheme());

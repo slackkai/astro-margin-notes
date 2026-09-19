@@ -1,8 +1,9 @@
 ---
+import { withBase } from '../../utils/url';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import Publications from '../../components/Publications.astro';
-import { SECTIONS, RESEARCH_TOPICS } from '../../consts';
+import { SECTIONS, config } from '../../config';
 import { getPosts } from '../../utils/content';
 
 const all = await getPosts('academic');
@@ -21,14 +22,14 @@ const kinds = [...new Set(posts.map((p) => p.data.kind))];
 
 <BaseLayout title={sec.label} description={sec.desc}>
   <section class="container section">
-    <span class="postit reveal" style="--i:0">{sec.emoji} {sec.zh}</span>
+    <span class="postit reveal" style="--i:0">{sec.emoji} {sec.subtitle}</span>
     <h1 class="page-title reveal" style="--i:1">{sec.label}</h1>
     <p class="page-desc reveal" style="--i:2">{sec.desc}</p>
 
     <!-- 研究方向 -->
     <div class="topics">
       {
-        RESEARCH_TOPICS.map((t, i) => (
+        config.academic.topics.map((t, i) => (
           <div class="hand-card topic reveal" style={`--r:${i % 2 ? 0.6 : -0.6}deg; --i:${3 + i}`}>
             <span class="topic-emoji" aria-hidden="true">{t.emoji}</span>
             <strong>{t.title}</strong>
@@ -65,7 +66,7 @@ const kinds = [...new Set(posts.map((p) => p.data.kind))];
         posts.map((p, i) => (
           <div data-kind={p.data.kind}>
             <PostCard
-              href={`/academic/${p.id}/`}
+              href={withBase(`/academic/${p.id}/`)}
               title={p.data.title}
               date={p.data.date}
               description={p.data.description ?? p.data.venue}

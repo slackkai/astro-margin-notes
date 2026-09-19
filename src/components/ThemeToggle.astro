@@ -54,7 +54,7 @@
       const root = document.documentElement;
       const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       root.setAttribute('data-theme', next);
-      localStorage.setItem('theme', next);
+      try { localStorage.setItem('theme', next); } catch { /* Storage may be disabled. */ }
       btn.classList.remove('is-switching');
       void btn.offsetWidth; // 重启动画
       btn.classList.add('is-switching');

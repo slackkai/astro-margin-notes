@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../utils/url';
 /**
  * 合集导航：显示"本系列第 n / N 篇"、全部篇目和上下篇。
  */
@@ -25,7 +26,7 @@ const next = idx >= 0 && idx < entries.length - 1 ? entries[idx + 1] : undefined
     {
       entries.map((e, i) => (
         <li class:list={{ 'is-current': i === idx }}>
-          {i === idx ? <span>{e.data.title}</span> : <a href={entryHref(e)}>{e.data.title}</a>}
+          {i === idx ? <span>{e.data.title}</span> : <a href={withBase(entryHref(e))}>{e.data.title}</a>}
         </li>
       ))
     }
@@ -33,8 +34,8 @@ const next = idx >= 0 && idx < entries.length - 1 ? entries[idx + 1] : undefined
   {
     (prev || next) && (
       <div class="series-nav">
-        {prev ? <a href={entryHref(prev)} class="hand-btn small">← {prev.data.title}</a> : <span />}
-        {next ? <a href={entryHref(next)} class="hand-btn small">{next.data.title} →</a> : <span />}
+        {prev ? <a href={withBase(entryHref(prev))} class="hand-btn small">← {prev.data.title}</a> : <span />}
+        {next ? <a href={withBase(entryHref(next))} class="hand-btn small">{next.data.title} →</a> : <span />}
       </div>
     )
   }

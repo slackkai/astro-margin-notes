@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../utils/url';
 /**
  * 文章详情布局：目录 + 标题区 + 元信息 + 合集导航 + 正文 + 标签 + 相关文章 + 上一篇/下一篇
  */
@@ -10,7 +11,7 @@ import PostMeta from '../components/PostMeta.astro';
 import SeriesNav from '../components/SeriesNav.astro';
 import Related from '../components/Related.astro';
 import { formatDate, type SeriesEntry, type TaggedEntry } from '../utils/content';
-import { SECTIONS, type SectionKey } from '../consts';
+import { SECTIONS, config, type SectionKey } from '../config';
 
 interface Heading {
   depth: number;
@@ -54,24 +55,24 @@ const {
 const sec = SECTIONS[section];
 ---
 
-<BaseLayout title={title} description={description} image={image} type="article" publishedTime={date}>
-  <ReadingProgress />
+<BaseLayout title={title} description={description} image={image} type="article" publishedTime={date} searchIndex>
+  {config.features.readingProgress && <ReadingProgress />}
   <article class="container section" data-pagefind-meta={`section:${sec.label}`}>
     <header class="post-header reveal">
-      <a href={sec.href} class="postit">{sec.emoji} {sec.label}</a>
-      <h1 class="post-title" transition:name={transitionName}>{title}</h1>
+      <a href={withBase(sec.href)} class="postit">{sec.emoji} {sec.label}</a>
+      <h1 class="post-title" transition:name={transitionName} data-pagefind-meta="title">{title}</h1>
       {description && <p class="post-desc">{description}</p>}
       <p class="meta">
         <time datetime={date.toISOString()}>{formatDate(date)}</time>
         {updated && <span> · 更新于 {formatDate(updated)}</span>}
       </p>
-      {meta && <PostMeta words={meta.words} minutes={meta.minutes} modified={meta.modified} />}
+      {config.features.postMeta && meta && <PostMeta words={meta.words} minutes={meta.minutes} modified={meta.modified} />}
       <slot name="extra" />
     </header>
 
     {series && <SeriesNav name={series.name} entries={series.entries} current={series.current} />}
 
-    <Toc headings={headings} />
+    {config.features.toc && <Toc headings={headings} />}
 
     <div class="prose reveal" style="--i: 2">
       <slot />
@@ -79,11 +80,11 @@ const sec = SECTIONS[section];
 
     <footer class="post-footer reveal" style="--i: 4" data-pagefind-ignore>
       {tags.length > 0 && <Tags tags={tags} />}
-      <Related entries={related} />
+      {config.features.relatedPosts && <Related entries={related} />}
       <nav class="post-nav" aria-label="上一篇 / 下一篇">
         {
           prev ? (
-            <a href={prev.href} class="hand-card is-link post-nav-item">
+            <a href={withBase(prev.href)} class="hand-card is-link post-nav-item">
               <span class="meta">← 上一篇</span>
               <span>{prev.title}</span>
             </a>
@@ -93,7 +94,7 @@ const sec = SECTIONS[section];
         }
         {
           next ? (
-            <a href={next.href} class="hand-card is-link post-nav-item next">
+            <a href={withBase(next.href)} class="hand-card is-link post-nav-item next">
               <span class="meta">下一篇 →</span>
               <span>{next.title}</span>
             </a>

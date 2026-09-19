@@ -1,9 +1,10 @@
 ---
+import { withBase } from '../utils/url';
 /**
  * 相关文章：按标签重合度推荐，放在文章底部。
  */
 import PostCard from './PostCard.astro';
-import { SECTIONS, type SectionKey } from '../consts';
+import { SECTIONS, type SectionKey } from '../config';
 import { entryHref, formatDate, type TaggedEntry } from '../utils/content';
 
 interface Props {
@@ -21,7 +22,7 @@ const { entries } = Astro.props;
       <div class="related-grid">
         {entries.map((e, i) => (
           <PostCard
-            href={entryHref(e)}
+            href={withBase(entryHref(e))}
             title={e.data.title ?? formatDate(e.data.date)}
             date={e.data.date}
             description={e.data.description}

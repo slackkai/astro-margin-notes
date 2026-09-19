@@ -3,16 +3,18 @@
  * 配色切换：右上角按钮 + 下拉面板，选择保存在 localStorage('palette')，
  * 首屏由 BaseHead 的内联脚本应用，避免闪烁。
  */
+import { t } from '../i18n';
+
 const PALETTES = [
-  { id: 'blue', name: '靛蓝 × 赭石', swatches: ['#f6f7f4', '#1f2433', '#c4562f', '#3b4f9e', '#e6ebfa'] },
-  { id: 'classic', name: '纸黄 × 红笔', swatches: ['#fdfbf7', '#2d2d2d', '#ff4d4d', '#2d5da1', '#fff9c4'] },
-  { id: 'green', name: '墨绿 × 橙', swatches: ['#f7f4ec', '#23302a', '#e8962e', '#2f6b4f', '#fbe9c7'] },
-  { id: 'mono', name: '炭黑 × 紫红', swatches: ['#f3f1ed', '#1c1b19', '#b8336a', '#1c1b19', '#f6dde7'] },
+  { id: 'blue', swatches: ['#f6f7f4', '#1f2433', '#c4562f', '#3b4f9e', '#e6ebfa'] },
+  { id: 'classic', swatches: ['#fdfbf7', '#2d2d2d', '#ff4d4d', '#2d5da1', '#fff9c4'] },
+  { id: 'green', swatches: ['#f7f4ec', '#23302a', '#e8962e', '#2f6b4f', '#fbe9c7'] },
+  { id: 'mono', swatches: ['#f3f1ed', '#1c1b19', '#b8336a', '#1c1b19', '#f6dde7'] },
 ];
 ---
 
 <div class="pal-wrap" id="pal-wrap">
-  <button class="pal-btn" id="pal-btn" aria-label="切换配色" title="配色" aria-haspopup="true" aria-expanded="false">
+  <button class="pal-btn" id="pal-btn" aria-label={t.common.palette} title={t.common.palette} aria-haspopup="true" aria-expanded="false">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 3a9 9 0 1 0 0 18c1.5 0 2-1 1.5-2s0-2 1.5-2h2a4 4 0 0 0 4-4 10 10 0 0 0-9-10z" />
       <circle cx="7.5" cy="11" r="1.3" fill="currentColor" stroke="none" />
@@ -29,7 +31,7 @@ const PALETTES = [
               <i style={`background:${c}`} />
             ))}
           </span>
-          <span>{p.name}</span>
+          <span>{t.palettes[p.id]}</span>
         </button>
       ))
     }
@@ -106,11 +108,16 @@ const PALETTES = [
 </style>
 
 <script>
+  let lifecycle: AbortController | undefined;
   function initPalette() {
     const btn = document.getElementById('pal-btn');
     const menu = document.getElementById('pal-menu');
     if (!btn || !menu || btn.dataset.bound) return;
     btn.dataset.bound = '1';
+    lifecycle?.abort();
+    lifecycle = new AbortController();
+    const { signal } = lifecycle;
+    document.addEventListener("astro:before-swap", () => lifecycle?.abort(), { once: true, signal });
     const btnEl = btn, menuEl = menu;
     const items = menuEl.querySelectorAll<HTMLButtonElement>('[data-palette]');
 
@@ -133,17 +140,17 @@ const PALETTES = [
       it.addEventListener('click', () => {
         const id = it.dataset.palette!;
         document.documentElement.setAttribute('data-palette', id);
-        localStorage.setItem('palette', id);
+        try { localStorage.setItem('palette', id); } catch { /* Storage may be disabled. */ }
         sync();
         close();
       }),
     );
     document.addEventListener('click', (e) => {
       if (!menuEl.hidden && !menuEl.contains(e.target as Node)) close();
-    });
+    }, { signal });
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') close();
-    });
+    }, { signal });
   }
   initPalette();
   document.addEventListener('astro:page-load', initPalette);

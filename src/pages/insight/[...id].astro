@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../../utils/url';
 import { render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
 import { getPosts, getAllTagged, getSeries, readingStats, gitLastModified, relatedTo } from '../../utils/content';
@@ -37,7 +38,7 @@ const series = d.series ? { name: d.series.name, entries: await getSeries(d.seri
   prev={prev && { href: `/insight/${prev.id}/`, title: prev.data.title }}
   next={next && { href: `/insight/${next.id}/`, title: next.data.title }}
 >
-  {d.cover && <img src={d.cover} alt="" class="cover" />}
+  {d.cover && <img src={withBase(d.cover)} alt="" class="cover" />}
   <Content />
 </PostLayout>
 

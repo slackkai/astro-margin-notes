@@ -3,7 +3,8 @@
  * 留言：一张手绘信纸，提交后通过 Web3Forms 发到站长邮箱，不公开展示。
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE, WEB3FORMS_KEY } from '../consts';
+import { SITE, config } from '../config';
+const WEB3FORMS_KEY = config.features.guestbook ? config.guestbook.web3formsKey : "";
 const ready = WEB3FORMS_KEY.length > 0;
 ---
 
@@ -14,7 +15,7 @@ const ready = WEB3FORMS_KEY.length > 0;
     <p class="page-desc reveal" style="--i:2">写在信纸上的话会直接寄到我的邮箱，不会公开展示。想说什么都行。</p>
 
     <div class="letter-wrap reveal" style="--i:3">
-      <form class="letter" id="letter" data-key={WEB3FORMS_KEY} novalidate>
+      <form class="letter" id="letter" data-key={WEB3FORMS_KEY} data-site={SITE.title} novalidate>
         <div class="stamp" aria-hidden="true">
           <svg viewBox="0 0 60 60">
             <rect x="4" y="4" width="52" height="52" rx="3" stroke-dasharray="3 3" />
@@ -41,7 +42,7 @@ const ready = WEB3FORMS_KEY.length > 0;
 
         <div class="letter-foot">
           <p class="meta" id="letter-status" aria-live="polite">
-            {ready ? '寄出后我会收到邮件。' : '留言尚未配置：站长需要在 src/consts.ts 填入 Web3Forms key。'}
+            {ready ? '寄出后我会收到邮件。' : '留言尚未配置：站长需要在 src/config.ts 填入 Web3Forms key。'}
           </p>
           <button class="hand-btn" type="submit" id="letter-send" disabled={!ready}>寄出 →</button>
         </div>
@@ -218,16 +219,16 @@ const ready = WEB3FORMS_KEY.length > 0;
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!key) return;
+      if (!key || btnEl.disabled) return;
       if (!form.reportValidity()) return;
       const fd = new FormData(form);
       if (fd.get('botcheck')) return; // 蜜罐命中，静默丢弃
       const payload = {
         access_key: key,
-        subject: `[latentk 留言] 来自 ${fd.get('name')}`,
-        from_name: 'latentk.com 留言板',
+        subject: `[${form.dataset.site}] 来自 ${fd.get('name')}`,
+        from_name: form.dataset.site,
         name: fd.get('name'),
-        email: fd.get('email') || '未留邮箱',
+        ...(fd.get('email') ? { email: fd.get('email') } : {}),
         message: fd.get('message'),
       };
       form.classList.add('is-sending');

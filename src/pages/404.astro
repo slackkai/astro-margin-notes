@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../utils/url';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
@@ -28,7 +29,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <span class="postit">🙈 定位失败</span>
       <h1 class="big">404</h1>
       <p class="page-desc">这台机器人把地图弄丢了，正在原地打转。</p>
-      <a href="/" class="hand-btn">带它回首页 →</a>
+      <a href={withBase('/')} class="hand-btn">带它回首页 →</a>
     </div>
   </section>
 </BaseLayout>
