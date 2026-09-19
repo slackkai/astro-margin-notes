@@ -99,3 +99,10 @@ export const SIGNOFFS = [
   '仿真里成立的，去真实世界试试。',
   '写下来，才知道自己没想清楚。',
 ];
+
+/**
+ * 留言：Web3Forms 的 access key（设计上就是公开的，放前端没问题）。
+ * 到 https://web3forms.com 用你的邮箱免费领取，填到这里后 /guestbook/ 即可用。
+ * 留空时页面显示"尚未配置"。
+ */
+export const WEB3FORMS_KEY = '';

@@ -35,7 +35,8 @@
       "Bash(git mv *)",
       "Bash(mv src/pages/drafts.astro \"src/pages/drafts/[...slug].astro\")",
       "Bash(git commit -q -m 'Lab batch 4: search, post meta, related, series, projects, archive; per-section RSS; drafts page *)",
-      "Bash(git commit -q -m 'Exclude pagefind dev copy from astro check *)"
+      "Bash(git commit -q -m 'Exclude pagefind dev copy from astro check *)",
+      "Bash(git commit -q -m 'Add /guestbook/: letter-style form sent to email via Web3Forms *)"
     ]
   }
 }

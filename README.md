@@ -92,6 +92,16 @@ draft: false     # true 时仅在本地 dev 可见
 npm run search:dev   # 构建并把索引复制到 public/pagefind（已 gitignore）
 ```
 
+## 留言
+
+`/guestbook/` 是一张信纸表单，提交后通过 [Web3Forms](https://web3forms.com) 发到你的邮箱，不公开展示。启用步骤：
+
+1. 到 web3forms.com 用你的邮箱免费领取 access key（无需注册账号）。
+2. 填到 `src/consts.ts` 的 `WEB3FORMS_KEY`。
+3. 重新构建。key 留空时页面显示"尚未配置"，按钮禁用。
+
+表单带蜜罐字段防机器人；Web3Forms 后台可再开 hCaptcha。
+
 ## 其他本地页面
 
 - `/drafts/`：所有 `draft: true` 的内容列表，仅 dev 可见。

@@ -1,0 +1,257 @@
+---
+/**
+ * 留言：一张手绘信纸，提交后通过 Web3Forms 发到站长邮箱，不公开展示。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, WEB3FORMS_KEY } from '../consts';
+const ready = WEB3FORMS_KEY.length > 0;
+---
+
+<BaseLayout title="留言" description={`给 ${SITE.author} 写一封信`}>
+  <section class="container section">
+    <span class="postit reveal" style="--i:0">✉️ 留言</span>
+    <h1 class="page-title reveal" style="--i:1">Guestbook</h1>
+    <p class="page-desc reveal" style="--i:2">写在信纸上的话会直接寄到我的邮箱，不会公开展示。想说什么都行。</p>
+
+    <div class="letter-wrap reveal" style="--i:3">
+      <form class="letter" id="letter" data-key={WEB3FORMS_KEY} novalidate>
+        <div class="stamp" aria-hidden="true">
+          <svg viewBox="0 0 60 60">
+            <rect x="4" y="4" width="52" height="52" rx="3" stroke-dasharray="3 3" />
+            <path d="M14 40 q16 -28 32 0" />
+            <circle cx="30" cy="24" r="4" />
+          </svg>
+        </div>
+        <p class="letter-to">To: <strong>{SITE.author}</strong></p>
+
+        <label class="field">
+          <span>你的名字</span>
+          <input name="name" type="text" required maxlength="60" autocomplete="name" placeholder="怎么称呼你" />
+        </label>
+        <label class="field">
+          <span>邮箱 <em class="meta">（可选，方便我回信）</em></span>
+          <input name="email" type="email" maxlength="120" autocomplete="email" placeholder="you@example.com" />
+        </label>
+        <label class="field">
+          <span>想说的话</span>
+          <textarea name="message" required minlength="2" maxlength="3000" rows="8" placeholder="……"></textarea>
+        </label>
+        <!-- 蜜罐：机器人会填，人看不见 -->
+        <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" />
+
+        <div class="letter-foot">
+          <p class="meta" id="letter-status" aria-live="polite">
+            {ready ? '寄出后我会收到邮件。' : '留言尚未配置：站长需要在 src/consts.ts 填入 Web3Forms key。'}
+          </p>
+          <button class="hand-btn" type="submit" id="letter-send" disabled={!ready}>寄出 →</button>
+        </div>
+
+        <div class="sent" id="letter-sent" hidden aria-hidden="true">
+          <span class="sent-stamp">已寄出</span>
+        </div>
+      </form>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .letter-wrap {
+    max-width: 40rem;
+    margin-top: 2rem;
+  }
+  /* 信纸：横线 + 左侧红边线 */
+  .letter {
+    position: relative;
+    padding: 2rem 1.75rem 1.5rem 2.75rem;
+    background-color: var(--paper-2);
+    background-image:
+      linear-gradient(transparent 0, transparent calc(100% - 1px), var(--pencil-12) calc(100% - 1px)),
+      linear-gradient(90deg, transparent 2rem, color-mix(in srgb, var(--marker) 45%, transparent) 2rem, color-mix(in srgb, var(--marker) 45%, transparent) calc(2rem + 2px), transparent calc(2rem + 2px));
+    background-size: 100% 2rem, 100% 100%;
+    border: 2px solid var(--pencil);
+    border-radius: 8px 14px 10px 12px / 12px 10px 14px 8px;
+    box-shadow: var(--shadow-soft);
+    transform: rotate(-0.6deg);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .letter:focus-within {
+    transform: rotate(0deg);
+    box-shadow: var(--shadow-hand);
+  }
+  .stamp {
+    position: absolute;
+    top: 0.9rem;
+    right: 1rem;
+    width: 3.6rem;
+    height: 3.6rem;
+    color: var(--pen);
+    opacity: 0.7;
+    transform: rotate(6deg);
+  }
+  .stamp svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .letter-to {
+    margin: 0 0 1rem;
+    color: var(--pencil-60);
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-bottom: 1rem;
+  }
+  .field > span {
+    font-weight: 700;
+    line-height: 2rem;
+  }
+  .field em {
+    font-style: normal;
+    font-weight: 400;
+  }
+  .field input,
+  .field textarea {
+    font: inherit;
+    font-size: 1.05rem;
+    line-height: 2rem;
+    padding: 0 0.6rem;
+    border: 0;
+    border-bottom: 2px dashed var(--pencil-25);
+    background: transparent;
+    color: var(--pencil);
+    outline: none;
+    transition: border-color 0.12s ease;
+  }
+  .field textarea {
+    resize: vertical;
+    line-height: 2rem;
+    min-height: 8rem;
+  }
+  .field input:focus,
+  .field textarea:focus {
+    border-bottom-color: var(--pen);
+    border-bottom-style: solid;
+  }
+  .field input:user-invalid,
+  .field textarea:user-invalid {
+    border-bottom-color: var(--marker);
+  }
+  .hp {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+  }
+  .letter-foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .letter-foot p {
+    margin: 0;
+  }
+  .hand-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: var(--shadow-hand);
+  }
+  .letter.is-sending {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  /* 寄出后盖章 */
+  .sent {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+  .sent[hidden] {
+    display: none;
+  }
+  .sent-stamp {
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--marker);
+    border: 5px solid var(--marker);
+    border-radius: 12px 20px 16px 14px / 14px 16px 20px 12px;
+    padding: 0.2em 0.6em;
+    transform: rotate(-14deg);
+    opacity: 0.85;
+    mix-blend-mode: multiply;
+    animation: stamp-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+  }
+  :global(html[data-theme='dark']) .sent-stamp {
+    mix-blend-mode: screen;
+  }
+  @keyframes stamp-in {
+    from {
+      transform: rotate(-14deg) scale(2.2);
+      opacity: 0;
+    }
+    to {
+      transform: rotate(-14deg) scale(1);
+      opacity: 0.85;
+    }
+  }
+</style>
+
+<script>
+  function initLetter() {
+    const form = document.getElementById('letter') as HTMLFormElement | null;
+    if (!form || form.dataset.bound) return;
+    form.dataset.bound = '1';
+    const key = form.dataset.key ?? '';
+    const status = document.getElementById('letter-status');
+    const sent = document.getElementById('letter-sent');
+    const btn = document.getElementById('letter-send') as HTMLButtonElement | null;
+    if (!status || !sent || !btn) return;
+    const statusEl = status, sentEl = sent, btnEl = btn;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!key) return;
+      if (!form.reportValidity()) return;
+      const fd = new FormData(form);
+      if (fd.get('botcheck')) return; // 蜜罐命中，静默丢弃
+      const payload = {
+        access_key: key,
+        subject: `[latentk 留言] 来自 ${fd.get('name')}`,
+        from_name: 'latentk.com 留言板',
+        name: fd.get('name'),
+        email: fd.get('email') || '未留邮箱',
+        message: fd.get('message'),
+      };
+      form.classList.add('is-sending');
+      btnEl.disabled = true;
+      statusEl.textContent = '正在寄出…';
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) throw new Error(data.message || `HTTP ${res.status}`);
+        form.classList.remove('is-sending');
+        sentEl.hidden = false;
+        statusEl.textContent = '收到了，谢谢。';
+        form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea').forEach((el) => (el.disabled = true));
+      } catch (err) {
+        form.classList.remove('is-sending');
+        btnEl.disabled = false;
+        statusEl.textContent = `没寄出去：${err instanceof Error ? err.message : '网络错误'}。稍后再试，或直接发邮件。`;
+      }
+    });
+  }
+  initLetter();
+  document.addEventListener('astro:page-load', initLetter);
+</script>
