@@ -23,6 +23,7 @@ const collection = (name, label, extra, fields = common) => ({
 export function makeCmsConfig({ repo, siteUrl, base = '/' }) {
   return {
     backend: { name: 'github', repo, branch: 'main', auth_methods: ['token'] },
+    output: { omit_empty_optional_fields: true },
     site_url: new URL(base.replace(/\/$/, '') + '/', siteUrl).href,
     display_url: new URL(base.replace(/\/$/, '') + '/', siteUrl).href,
     media_folder: 'public/uploads',
