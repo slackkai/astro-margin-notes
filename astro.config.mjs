@@ -3,9 +3,12 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import remarkMath from 'remark-math';
+import remarkDirective from 'remark-directive';
+import remarkNotes from './src/utils/remark-notes.mjs';
 import rehypeKatex from 'rehype-katex';
 import rehypeBase from './src/utils/rehype-base.mjs';
 import { config, isEnabled } from './src/config';
+import { t } from './src/i18n';
 import { unified } from '@astrojs/markdown-remark';
 
 const base = process.env.BASE_PATH || '/';
@@ -25,7 +28,8 @@ export default defineConfig({
   } })],
   markdown: {
     processor: unified({
-      remarkPlugins: [remarkMath],
+      // remarkNotes turns :note[] / :mark[] into the same markup as the MDX components.
+      remarkPlugins: [remarkMath, remarkDirective, [remarkNotes, { expandLabel: t.post.expandNote }]],
       rehypePlugins: [rehypeKatex, [rehypeBase, { base }]],
     }),
     shikiConfig: {

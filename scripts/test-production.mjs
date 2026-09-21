@@ -54,7 +54,10 @@ try {
   assert.ok(home.includes('data-default-palette="green"'), 'default palette ignored');
   const article = await readFile('dist/academic/attention-is-all-you-need/index.html', 'utf8');
   for (const id of ['read-progress', 'toc']) assert.ok(!article.includes(`id="${id}"`), `${id} toggle ignored`);
-  console.log('Production regression passed: CMS empty fields, draft/published projects, covers, RSS, tags, Markdown assets, disabled sections and feature switches.');
+  assert.equal((article.match(/class="note-wrap"/g) ?? []).length, 3, 'Markdown margin notes missing');
+  assert.equal((article.match(/class="mark"/g) ?? []).length, 2, 'Markdown highlights missing');
+  assert.ok(!article.includes(':note[') && !article.includes(':mark['), 'directive syntax leaked into the page');
+  console.log('Production regression passed: Markdown margin notes, CMS empty fields, draft/published projects, covers, RSS, tags, Markdown assets, disabled sections and feature switches.');
 } catch (error) {
   if (error.stdout) console.error(error.stdout.toString().slice(-5000));
   if (error.stderr) console.error(error.stderr.toString().slice(-5000));

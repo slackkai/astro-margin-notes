@@ -17,6 +17,9 @@ await cp('node_modules/@sveltia/cms/dist', 'public/admin/vendor', {
   recursive: true, filter: source => !source.endsWith('.map'),
 });
 await cp('node_modules/@sveltia/cms/LICENSE.txt', 'public/admin/vendor/LICENSE.txt');
+// KaTeX renders the display-math component preview inside the editor.
+await cp('node_modules/katex/dist/katex.min.js', 'public/admin/vendor/katex.min.js');
+await cp('node_modules/katex/LICENSE', 'public/admin/vendor/KATEX-LICENSE.txt');
 // JSON is also valid YAML; no template interpolation of user-controlled values.
 await writeFile('public/admin/config.yml', JSON.stringify(config, null, 2) + '\n');
 console.log(`CMS configured for ${repo} (${config.site_url})`);

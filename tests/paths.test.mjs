@@ -24,10 +24,16 @@ test('CMS targets the generated repository and defaults new content to drafts', 
   assert.equal(cms.backend.repo, 'owner/notes');
   assert.equal(cms.site_url, 'https://owner.github.io/notes/');
   assert.equal(cms.media_folder, 'public/uploads');
+  assert.equal(cms.logo.src, '/notes/favicon.svg');
+  assert.equal(cms.media_libraries.default.config.transformations.raster_image.format, 'webp');
   for (const collection of cms.collections.filter(c => c.folder)) {
     assert.equal(collection.fields.find(f => f.name === 'draft').default, true);
     assert.ok(collection.fields.find(f => f.name === 'body'));
+    assert.deepEqual(collection.sortable_fields.default, { field: 'date', direction: 'descending' });
+    assert.ok(collection.icon);
   }
+  assert.equal(cms.collections.find(c => c.name === 'dailies').slug, "{{fields.date | date('YYYY-MM-DD')}}-{{slug}}");
+  assert.equal(makeCmsConfig({ repo: 'o/n', siteUrl: 'https://example.com' }).logo.src, '/favicon.svg');
 });
 
 test('tag URLs handle reserved characters and cannot collide with encoded slugs', () => {

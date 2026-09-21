@@ -30,10 +30,10 @@ npm run dev
 - **Dailies**：时间线、图片、日常热力图。
 - **Library**：书 / 课程 / 工具等收藏，可筛选、搜索、排序。
 - **Projects**：项目状态、技术栈、链接、图片或视频封面。
-- Markdown / MDX、KaTeX 数学公式、代码高亮、页边批注、荧光笔。
+- Markdown / MDX、KaTeX 数学公式、代码高亮、页边批注、荧光笔，后台工具栏可直接插入批注、高亮与公式。
 - 深浅色与四套配色、响应式菜单、目录、阅读进度、相关文章。
 - Pagefind 静态全文搜索、五个板块的标签 / 归档 / RSS、sitemap。
-- Sveltia 可视化后台：文章、图片、站点信息和 Now 卡片。
+- Sveltia 可视化后台：文章、图片、站点信息和 Now 卡片；列表按日期排序、草稿筛选，上传图片自动压缩为 WebP。
 - GitHub Actions 自动检查并部署到 GitHub Pages，兼容根域名与仓库子路径。
 
 ## 日常更新：打开后台即可
@@ -56,7 +56,9 @@ npm run dev
 | 最近在做 / 在读 / 在听 | 后台“最近在做”，或 `src/content/now/now.md` |
 | 自定义关于页正文 | `src/pages/about.astro` |
 | 字体、颜色和样式 | `src/styles/global.css` |
-| 后台字段 | `cms.config.mjs` |
+| 后台字段、列表排序与筛选、上传压缩 | `cms.config.mjs` |
+| 后台编辑器组件（批注 / 高亮 / 公式）与预览样式 | `public/admin/components.js`、`public/admin/preview.css` |
+| `:note[]` / `:mark[]` 的渲染 | `src/utils/remark-notes.mjs` |
 | 内容校验规则 | `src/content.config.ts` |
 
 默认站点文案为中文。`src/i18n/` 提供部分界面的中英文字典，完整页面语言定制还需要编辑页面文案与板块描述。
@@ -113,14 +115,13 @@ series:
   order: 1
 ```
 
-MDX 页边批注与高亮（MDX 使用代码编辑器维护，不经过 CMS 富文本转换）：
+页边批注与高亮是普通 Markdown，后台工具栏有对应按钮，富文本与 Markdown 模式可无损切换：
 
-```mdx
-import Note from '../../components/mdx/Note.astro';
-import Mark from '../../components/mdx/Mark.astro';
-
-正文中的 <Mark>一个重点</Mark>。<Note>这里是一条页边批注。</Note>
+```md
+正文中的 :mark[一个重点]。:note[这里是一条页边批注，支持 **加粗**、链接和 $d_k$ 公式。]
 ```
+
+MDX 文件里也可以继续使用 `<Mark>` / `<Note>` 组件，渲染结果相同。
 
 `/drafts/` 和 `/lab/` 仅本地开发可见。公开搜索只索引已发布内容详情页，避免列表与标签页重复命中。
 

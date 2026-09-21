@@ -1,0 +1,46 @@
+/* Preview pane styles for the theme's Markdown extensions (loaded by components.js). */
+[data-rich-text-preview] {
+  counter-reset: note;
+}
+.mark {
+  background: linear-gradient(104deg, transparent 0.6%, #fdf0a6 1.2%, #f7dd72 98%, transparent 98.6%);
+  padding: 0.05em 0.25em;
+  margin: 0 -0.15em;
+  border-radius: 0.2em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.note-wrap {
+  display: inline;
+}
+.note-ref {
+  display: inline-block;
+  font-size: 0.72em;
+  font-weight: 700;
+  color: #c0392b;
+  vertical-align: super;
+  padding: 0 0.3em;
+  margin-left: 0.15em;
+  line-height: 1.2;
+  border: 1.5px solid #c0392b;
+  border-radius: 50% 40% 55% 45% / 50% 55% 45% 50%;
+  counter-increment: note;
+}
+.note-ref::after {
+  content: counter(note);
+}
+.note {
+  display: block;
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.95em;
+  line-height: 1.6;
+  background: #fff8dc;
+  border: 2px dashed #bbb;
+  border-radius: 0.6rem;
+}
+.math-display {
+  margin: 1em 0;
+  text-align: center;
+  font-size: 1.15em;
+}

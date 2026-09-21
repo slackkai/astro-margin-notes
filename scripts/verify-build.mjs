@@ -54,6 +54,10 @@ for (const { pathname, links } of pages.values()) {
 }
 const cms = JSON.parse(await readFile(join(root, 'admin/config.yml'), 'utf8'));
 if (!cms.backend.repo || cms.collections.length !== 6) errors.push('CMS configuration missing collections/repository');
+if (!cms.media_libraries?.default?.config?.transformations?.raster_image) errors.push('CMS upload optimization missing');
+for (const name of ['admin/index.html', 'admin/components.js', 'admin/preview.css', 'admin/vendor/sveltia-cms.js', 'admin/vendor/katex.min.js']) {
+  await stat(join(root, name)).catch(() => errors.push(`CMS asset missing: ${name}`));
+}
 await stat(join(root, 'pagefind/pagefind.js'));
 for (const name of ['rss.xml', 'sitemap-0.xml']) {
   const xml = await readFile(join(root, name), 'utf8');
