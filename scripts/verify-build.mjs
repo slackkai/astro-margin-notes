@@ -63,6 +63,11 @@ for (const name of ['rss.xml', 'sitemap-0.xml']) {
   const xml = await readFile(join(root, name), 'utf8');
   if (base && xml.includes(`${site.origin}/insight/`)) errors.push(`${name}: missing deployment base`);
 }
+const feed = await readFile(join(root, 'rss.xml'), 'utf8');
+if (!feed.includes('<content:encoded>')) errors.push('rss.xml: full-text content missing');
+// Full-text bodies are entity-escaped; every internal href/src must already be absolute.
+if (/(?:href|src)=&quot;\/(?!\/)/.test(feed)) errors.push('rss.xml: relative URL inside full-text content');
+if (!(await readFile(join(root, 'about/index.html'), 'utf8')).includes('about-text')) errors.push('about page missing intro');
 if (errors.length) {
   console.error(errors.join('\n')); process.exitCode = 1;
 } else console.log(`Verified ${pages.size} HTML pages, ${count} local links/assets, RSS, sitemap and CMS configuration (base: ${base || '/'}).`);

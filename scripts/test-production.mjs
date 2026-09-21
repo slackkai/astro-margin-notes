@@ -1,4 +1,4 @@
-import { readFile, writeFile, unlink, access } from 'node:fs/promises';
+import { readFile, writeFile, unlink, access, mkdir } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { tagSlug } from '../src/utils/base-path.mjs';
@@ -8,7 +8,9 @@ const marker = `regression-${process.pid}`;
 const file = `src/content/insight/${marker}.md`;
 const published = `src/content/library/${marker}.md`;
 const project = `src/content/projects/${marker}.md`;
+const aboutFile = 'src/content/about/about.md';
 const created = [];
+const originalAbout = await readFile(aboutFile, 'utf8').catch(() => undefined);
 const original = await readFile('src/config.ts', 'utf8');
 const env = { ...process.env, BASE_PATH: '/test-site', SITE_URL: 'https://example.org' };
 const build = () => execFileSync(process.execPath, ['node_modules/astro/bin/astro.mjs', 'build'], { env, stdio: 'pipe' });
@@ -21,6 +23,8 @@ try {
   const cmsProject = (await readFile('tests/fixtures/cms-project.md', 'utf8')).replace('/uploads/cover.png', '/favicon.svg');
   await writeFile(project, cmsProject, { flag: 'wx' });
   created.push(project);
+  await mkdir('src/content/about', { recursive: true });
+  await writeFile(aboutFile, ['自我介绍来自 Markdown，:mark[可在后台编辑]。', ''].join(String.fromCharCode(10)));
   build();
   assert.ok(await missing(`dist/insight/${marker}/index.html`), 'draft page leaked');
   assert.ok(await missing(`dist/tags/${marker}/index.html`), 'draft tag leaked');
@@ -29,6 +33,8 @@ try {
   const rss = await readFile('dist/rss.xml', 'utf8');
   assert.ok(!rss.includes(`<title>${marker}</title>`), 'draft leaked to RSS');
   assert.ok(rss.includes(`/test-site/library/${marker}/`), 'library missing from RSS or base lost');
+  assert.ok(rss.includes('note-wrap'), 'RSS full text missing rendered margin notes'); // attribute quotes are XML-escaped
+  assert.ok(rss.includes('https://example.org/test-site/favicon.svg'), 'RSS full text lost site origin or base');
   const page = await readFile(`dist/library/${marker}/index.html`, 'utf8');
   assert.ok(page.includes('href="/test-site/"'), 'Markdown link base lost');
   assert.ok(page.includes('src="/test-site/favicon.svg"'), 'Markdown image base lost');
@@ -57,6 +63,8 @@ try {
   assert.equal((article.match(/class="note-wrap"/g) ?? []).length, 3, 'Markdown margin notes missing');
   assert.equal((article.match(/class="mark"/g) ?? []).length, 2, 'Markdown highlights missing');
   assert.ok(!article.includes(':note[') && !article.includes(':mark['), 'directive syntax leaked into the page');
+  const about = await readFile('dist/about/index.html', 'utf8');
+  assert.ok(about.includes('自我介绍来自 Markdown'), 'About intro from src/content/about not rendered');
   console.log('Production regression passed: Markdown margin notes, CMS empty fields, draft/published projects, covers, RSS, tags, Markdown assets, disabled sections and feature switches.');
 } catch (error) {
   if (error.stdout) console.error(error.stdout.toString().slice(-5000));
@@ -64,5 +72,6 @@ try {
   throw error;
 } finally {
   await writeFile('src/config.ts', original);
+  if (originalAbout === undefined) await unlink(aboutFile).catch(() => {}); else await writeFile(aboutFile, originalAbout);
   for (const path of created) await unlink(path);
 }

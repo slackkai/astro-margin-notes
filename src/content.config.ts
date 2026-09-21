@@ -24,9 +24,13 @@ const projects = defineCollection({
   loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: './src/content/projects' }),
   schema: contentSchemas.projects,
 });
+const about = defineCollection({
+  loader: glob({ pattern: 'about.md', base: './src/content/about' }),
+  schema: contentSchemas.about,
+});
 const now = defineCollection({
   loader: glob({ pattern: 'now.md', base: './src/content/now' }),
   schema: contentSchemas.now,
 });
 
-export const collections = { academic, insight, dailies, library, now, projects };
+export const collections = { academic, insight, dailies, library, now, projects, about };

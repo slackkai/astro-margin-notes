@@ -73,4 +73,6 @@ export const contentSchemas = {
     featured: z.boolean().default(false),
   }),
   now: z.object({ updated: date, doing: stringList, reading: stringList, listening: stringList }),
+  // The About page intro is body-only; Sveltia may write it with or without a front matter block.
+  about: z.object({}),
 };

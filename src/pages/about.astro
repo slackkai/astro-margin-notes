@@ -3,6 +3,12 @@ import { withBase } from '../utils/url';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Workbench from '../components/Workbench.astro';
 import { SITE, config, ENABLED_SECTIONS } from '../config';
+import { t } from '../i18n';
+import { getEntry, render } from 'astro:content';
+
+// 关于页正文来自 src/content/about/about.md（后台“站点设置 → 关于页”可编辑），没有时用默认介绍。
+const about = await getEntry('about', 'about');
+const Intro = about?.body?.trim() ? (await render(about)).Content : null;
 ---
 
 <BaseLayout title="关于" description={`关于 ${SITE.title} 和它的作者`}>
@@ -12,9 +18,7 @@ import { SITE, config, ENABLED_SECTIONS } from '../config';
 
     <div class="about-grid">
       <div class="prose about-text reveal" style="--i:2">
-        <p>
-          这里是 <strong>{SITE.author}</strong> 的个人站点。我用它记录研究、想法、日常，以及那些值得反复翻看的资料。
-        </p>
+        {Intro ? <Intro /> : <p>{t.about.defaultIntro(SITE.author)}</p>}
         <h2>这个站点有什么</h2>
         <ul>
           {ENABLED_SECTIONS.map(s => <li><strong>{s.label}</strong>：{s.desc}</li>)}

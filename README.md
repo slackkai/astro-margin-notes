@@ -32,8 +32,8 @@ npm run dev
 - **Projects**：项目状态、技术栈、链接、图片或视频封面。
 - Markdown / MDX、KaTeX 数学公式、代码高亮、页边批注、荧光笔，后台工具栏可直接插入批注、高亮与公式。
 - 深浅色与四套配色、响应式菜单、目录、阅读进度、相关文章。
-- Pagefind 静态全文搜索、五个板块的标签 / 归档 / RSS、sitemap。
-- Sveltia 可视化后台：文章、图片、站点信息和 Now 卡片；列表按日期排序、草稿筛选，上传图片自动压缩为 WebP。
+- Pagefind 静态全文搜索、五个板块的标签 / 归档 / 全文 RSS、sitemap。
+- Sveltia 可视化后台：文章、图片、站点信息、Now 卡片和关于页自我介绍；列表按日期排序、草稿筛选，上传图片自动压缩为 WebP。
 - GitHub Actions 自动检查并部署到 GitHub Pages，兼容根域名与仓库子路径。
 
 ## 日常更新：打开后台即可
@@ -54,7 +54,8 @@ npm run dev
 | 板块开关、功能、默认配色、机械臂、研究方向与工作台 | `src/config.ts` |
 | 日常文章 | 后台五个板块，或 `src/content/<板块>/` |
 | 最近在做 / 在读 / 在听 | 后台“最近在做”，或 `src/content/now/now.md` |
-| 自定义关于页正文 | `src/pages/about.astro` |
+| 关于页自我介绍 | 后台“站点设置 → 关于页”，或 `src/content/about/about.md` |
+| 关于页其余结构 | `src/pages/about.astro` |
 | 字体、颜色和样式 | `src/styles/global.css` |
 | 后台字段、列表排序与筛选、上传压缩 | `cms.config.mjs` |
 | 后台编辑器组件（批注 / 高亮 / 公式）与预览样式 | `public/admin/components.js`、`public/admin/preview.css` |

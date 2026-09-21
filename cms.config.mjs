@@ -66,6 +66,7 @@ export function makeCmsConfig({ repo, siteUrl, base = '/' }) {
           optional('github', 'GitHub 链接'), optional('email', '联系邮箱'),
         ] },
         { name: 'now', label: '最近在做', file: 'src/content/now/now.md', fields: [date('updated', '更新日期'), list('doing', '在做'), list('reading', '在读'), list('listening', '在听')] },
+        { name: 'about', label: '关于页', icon: 'person', file: 'src/content/about/about.md', fields: [{ ...body, label: '自我介绍', hint: '显示在关于页左侧；板块列表、联系方式和工作台由配置自动生成。' }] },
       ] },
     ],
   };
