@@ -24,7 +24,7 @@ try {
   await writeFile(project, cmsProject, { flag: 'wx' });
   created.push(project);
   await mkdir('src/content/about', { recursive: true });
-  await writeFile(aboutFile, ['自我介绍来自 Markdown，:mark[可在后台编辑]。', ''].join(String.fromCharCode(10)));
+  await writeFile(aboutFile, ['---', 'highlights:', '  - title: 自定义板块', '    desc: 来自 about.md', 'workbench:', '  tools:', '    - name: 测试工具', '  hardware: []', '  questions: []', '---', '', '自我介绍来自 Markdown，:mark[可在后台编辑]。', ''].join(String.fromCharCode(10)));
   build();
   assert.ok(await missing(`dist/insight/${marker}/index.html`), 'draft page leaked');
   assert.ok(await missing(`dist/tags/${marker}/index.html`), 'draft tag leaked');
@@ -65,6 +65,8 @@ try {
   assert.ok(!article.includes(':note[') && !article.includes(':mark['), 'directive syntax leaked into the page');
   const about = await readFile('dist/about/index.html', 'utf8');
   assert.ok(about.includes('自我介绍来自 Markdown'), 'About intro from src/content/about not rendered');
+  assert.ok(about.includes('自定义板块') && about.includes('来自 about.md'), 'About highlights from about.md not rendered');
+  assert.ok(about.includes('测试工具') && about.includes('bench-title'), 'About workbench from about.md not rendered');
   console.log('Production regression passed: Markdown margin notes, CMS empty fields, draft/published projects, covers, RSS, tags, Markdown assets, disabled sections and feature switches.');
 } catch (error) {
   if (error.stdout) console.error(error.stdout.toString().slice(-5000));

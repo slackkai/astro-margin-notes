@@ -1,14 +1,19 @@
 ---
 /**
- * 关于页"工作台"：工具 / 硬件 / 正在追的问题。数据在 consts.WORKBENCH。
+ * 关于页"工作台"：工具 / 硬件 / 正在追的问题。
+ * 数据来自 src/content/about/about.md 的 workbench 字段（后台“站点设置 → 关于页”）。
  */
-import { config } from '../config';
-const WORKBENCH = config.about.workbench;
+import { t } from '../i18n';
+
+interface Props {
+  workbench: { tools: { name: string; note?: string }[]; hardware: { name: string; note?: string }[]; questions: string[] };
+}
+const WORKBENCH = Astro.props.workbench;
 ---
 
-{WORKBENCH && <div class="bench">
+<div class="bench">
   <div class="hand-card bench-card taped single reveal" style="--r:-0.6deg; --i:4">
-    <h3>🔧 工具</h3>
+    <h3>{t.about.tools}</h3>
     <ul>
       {WORKBENCH.tools.map((t) => (
         <li>
@@ -19,7 +24,7 @@ const WORKBENCH = config.about.workbench;
     </ul>
   </div>
   <div class="hand-card bench-card taped single reveal" style="--r:0.5deg; --i:5">
-    <h3>🤖 硬件</h3>
+    <h3>{t.about.hardware}</h3>
     <ul>
       {WORKBENCH.hardware.map((t) => (
         <li>
@@ -33,14 +38,14 @@ const WORKBENCH = config.about.workbench;
     <svg class="clip" viewBox="0 0 24 48" aria-hidden="true">
       <path d="M8 44 V10 a4 4 0 0 1 8 0 V38 a2 2 0 0 1 -4 0 V14" />
     </svg>
-    <h3>❓ 正在追的问题</h3>
+    <h3>{t.about.questions}</h3>
     <ol>
       {WORKBENCH.questions.map((q) => (
         <li>{q}</li>
       ))}
     </ol>
   </div>
-</div>}
+</div>
 
 <style>
   .bench {

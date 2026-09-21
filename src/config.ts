@@ -77,21 +77,6 @@ export const config = {
     ],
   },
 
-  about: {
-    /** 关于页底部的工作台，设为 null 则不显示 */
-    workbench: {
-      tools: [
-        { name: 'VS Code', note: '写代码' },
-        { name: 'Zotero', note: '文献' },
-        { name: 'Obsidian', note: '笔记' },
-      ],
-      hardware: [
-        { name: '一台笔记本', note: '主力机' },
-        { name: '一副耳机', note: '专注' },
-      ],
-      questions: ['最近在追的第一个问题？', '第二个问题？', '第三个问题？'],
-    } as null | { tools: { name: string; note: string }[]; hardware: { name: string; note: string }[]; questions: string[] },
-  },
 
   footer: {
     /** 页脚随机结束语，空数组则不显示 */

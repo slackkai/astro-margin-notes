@@ -6,9 +6,14 @@ import { SITE, config, ENABLED_SECTIONS } from '../config';
 import { t } from '../i18n';
 import { getEntry, render } from 'astro:content';
 
-// 关于页正文来自 src/content/about/about.md（后台“站点设置 → 关于页”可编辑），没有时用默认介绍。
+// 关于页内容来自 src/content/about/about.md（后台“站点设置 → 关于页”可编辑）：
+// 正文是自我介绍；highlights 为空时自动列出已启用板块；workbench 留空则不显示工作台。
 const about = await getEntry('about', 'about');
 const Intro = about?.body?.trim() ? (await render(about)).Content : null;
+const highlights = about?.data.highlights.length
+  ? about.data.highlights
+  : ENABLED_SECTIONS.map((s) => ({ title: s.label, desc: s.desc }));
+const workbench = about?.data.workbench;
 ---
 
 <BaseLayout title="关于" description={`关于 ${SITE.title} 和它的作者`}>
@@ -19,9 +24,9 @@ const Intro = about?.body?.trim() ? (await render(about)).Content : null;
     <div class="about-grid">
       <div class="prose about-text reveal" style="--i:2">
         {Intro ? <Intro /> : <p>{t.about.defaultIntro(SITE.author)}</p>}
-        <h2>这个站点有什么</h2>
+        <h2>{t.about.whatsHere}</h2>
         <ul>
-          {ENABLED_SECTIONS.map(s => <li><strong>{s.label}</strong>：{s.desc}</li>)}
+          {highlights.map((h) => <li><strong>{h.title}</strong>{h.desc && `：${h.desc}`}</li>)}
         </ul>
         <h2>联系</h2>
         <p>
@@ -39,8 +44,8 @@ const Intro = about?.body?.trim() ? (await render(about)).Content : null;
       </aside>
     </div>
 
-    {config.about.workbench && <h2 class="bench-title reveal" style="--i:4">工作台 <span class="muted-zh">Workbench</span></h2>}
-    {config.about.workbench && <Workbench />}
+    {workbench && <h2 class="bench-title reveal" style="--i:4">{t.about.workbench} {t.about.workbenchEn && <span class="muted-zh">{t.about.workbenchEn}</span>}</h2>}
+    {workbench && <Workbench workbench={workbench} />}
   </section>
 </BaseLayout>
 

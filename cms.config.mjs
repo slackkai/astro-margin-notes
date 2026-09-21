@@ -66,7 +66,15 @@ export function makeCmsConfig({ repo, siteUrl, base = '/' }) {
           optional('github', 'GitHub 链接'), optional('email', '联系邮箱'),
         ] },
         { name: 'now', label: '最近在做', file: 'src/content/now/now.md', fields: [date('updated', '更新日期'), list('doing', '在做'), list('reading', '在读'), list('listening', '在听')] },
-        { name: 'about', label: '关于页', icon: 'person', file: 'src/content/about/about.md', fields: [{ ...body, label: '自我介绍', hint: '显示在关于页左侧；板块列表、联系方式和工作台由配置自动生成。' }] },
+        { name: 'about', label: '关于页', icon: 'person', file: 'src/content/about/about.md', fields: [
+          { ...body, label: '自我介绍', hint: '关于页左侧的正文。联系方式来自“基本信息”。' },
+          optional('highlights', '这个站点有什么', 'list', { default: [], hint: '留空则自动列出已启用的板块及其简介。', fields: [field('title', '名称'), optional('desc', '一句话说明')] }),
+          optional('workbench', '工作台', 'object', { hint: '全部留空则关于页不显示工作台。', fields: [
+            optional('tools', '工具', 'list', { default: [], fields: [field('name', '名称'), optional('note', '备注')] }),
+            optional('hardware', '硬件', 'list', { default: [], fields: [field('name', '名称'), optional('note', '备注')] }),
+            list('questions', '正在追的问题'),
+          ] }),
+        ] },
       ] },
     ],
   };

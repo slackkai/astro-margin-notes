@@ -95,3 +95,18 @@ test('CMS omits cleared optional fields and retains the draft default', () => {
   assert.equal(config.output.omit_empty_optional_fields, true);
   for (const collection of config.collections.filter(c => c.folder)) assert.equal(collection.fields.find(f => f.name === 'draft').default, true);
 });
+
+test('About page fields: empty highlights fall back, cleared workbench hides, partial workbench keeps valid lists', () => {
+  const about = contentSchemas.about;
+  for (const value of blankValues) {
+    const data = about.parse({ highlights: value, workbench: value });
+    assert.deepEqual(data.highlights, []); assert.equal(data.workbench, undefined);
+  }
+  assert.deepEqual(about.parse({ highlights: [] }).highlights, []);
+  assert.equal(about.parse({ workbench: { tools: [], hardware: '', questions: null } }).workbench, undefined);
+  const data = about.parse({ highlights: [{ title: '学术', desc: '' }], workbench: { tools: [{ name: 'MuJoCo', note: null }], hardware: [], questions: ['为什么？'] } });
+  assert.deepEqual(data.highlights, [{ title: '学术', desc: undefined }]);
+  assert.deepEqual(data.workbench, { tools: [{ name: 'MuJoCo', note: undefined }], hardware: [], questions: ['为什么？'] });
+  assert.equal(about.safeParse({ highlights: [{ title: '' }] }).success, false);
+  assert.equal(about.safeParse({ workbench: { tools: [{ note: 'x' }], hardware: [], questions: [] } }).success, false);
+});

@@ -73,6 +73,14 @@ export const contentSchemas = {
     featured: z.boolean().default(false),
   }),
   now: z.object({ updated: date, doing: stringList, reading: stringList, listening: stringList }),
-  // The About page intro is body-only; Sveltia may write it with or without a front matter block.
-  about: z.object({}),
+  about: z.object({
+    // Empty list → the enabled sections and their descriptions are listed automatically.
+    highlights: z.preprocess(emptyToUndefined, z.array(z.object({ title: z.string().trim().min(1), desc: optionalText })).default([])),
+    // Cleared group → the workbench block is not rendered.
+    workbench: optionalObject(z.object({
+      tools: z.preprocess(emptyToUndefined, z.array(z.object({ name: z.string().trim().min(1), note: optionalText })).default([])),
+      hardware: z.preprocess(emptyToUndefined, z.array(z.object({ name: z.string().trim().min(1), note: optionalText })).default([])),
+      questions: stringList,
+    }).transform(w => (w.tools.length || w.hardware.length || w.questions.length ? w : undefined))),
+  }),
 };
