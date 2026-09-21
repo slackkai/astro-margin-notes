@@ -5,5 +5,10 @@
   "author": "Your Name",
   "url": "https://example.com",
   "github": "https://github.com/slackkai/astro-margin-notes",
-  "email": ""
+  "email": "",
+  "signoffs": [
+    "今天也把想法留在纸上了。",
+    "写下来，才知道自己没想清楚。",
+    "读到这里，起来动一动。"
+  ]
 }

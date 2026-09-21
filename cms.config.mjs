@@ -64,6 +64,7 @@ export function makeCmsConfig({ repo, siteUrl, base = '/' }) {
           field('title', '站点名称'), field('tagline', '副标题'), field('description', '站点简介', 'text'),
           field('author', '作者'), field('url', '域名', 'string', { hint: '自定义域名在此设置；GitHub Pages 地址由部署自动识别。', pattern: ['^https?://.+', '请输入完整 URL'] }),
           optional('github', 'GitHub 链接'), optional('email', '联系邮箱'),
+          { ...list('signoffs', '页脚结束语'), hint: '每次打开页面随机显示一句；留空则页脚不显示结束语。' },
         ] },
         { name: 'now', label: '最近在做', file: 'src/content/now/now.md', fields: [date('updated', '更新日期'), list('doing', '在做'), list('reading', '在读'), list('listening', '在听')] },
         { name: 'about', label: '关于页', icon: 'person', file: 'src/content/about/about.md', fields: [

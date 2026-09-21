@@ -1,9 +1,9 @@
 ---
 /**
- * 页脚结束语：从 config.footer.signoffs 里随机抽一句，每次加载不同。
+ * 页脚结束语：从 site.json 的 signoffs（后台“站点设置 → 基本信息”）里随机抽一句，每次加载不同。
  */
-import { config } from '../config';
-const lines = config.footer.signoffs;
+import { SITE } from '../config';
+const lines = SITE.signoffs;
 ---
 
 {

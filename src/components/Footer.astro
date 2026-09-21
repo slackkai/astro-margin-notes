@@ -6,7 +6,7 @@ import SignOff from './SignOff.astro';
 
 const year = new Date().getFullYear();
 interface Props { signoff?: boolean }
-const showSignoff = Astro.props.signoff !== false && config.footer.signoffs.length > 0;
+const showSignoff = Astro.props.signoff !== false && config.site.signoffs.length > 0;
 ---
 
 <footer class="site-footer" data-pagefind-ignore>
