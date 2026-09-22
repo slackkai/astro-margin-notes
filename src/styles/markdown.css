@@ -491,11 +491,21 @@ html[data-theme='dark'] .stamp {
 }
 
 /* ---------- 版式 :::layout{wide|cols=2} ---------- */
-.layout-wide {
-  position: relative;
-  width: min(var(--max-w, 64rem), calc(100vw - 4rem));
-  left: 50%;
-  transform: translateX(-50%);
+/* 加宽：中等屏幕向两侧溢出正文栏；宽屏左侧有目录，只向右侧（页边批注那一侧）溢出。 */
+@media (min-width: 768px) {
+  .layout-wide {
+    position: relative;
+    width: min(var(--max-w, 64rem), calc(100vw - 4rem));
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+@media (min-width: 1200px) {
+  .layout-wide {
+    width: calc(100% + 15rem);
+    left: 0;
+    transform: none;
+  }
 }
 .layout-cols {
   display: grid;
@@ -638,33 +648,7 @@ html[data-theme='dark'] .stamp {
 }
 
 /* ---------- 原生 Markdown 重绘 ---------- */
-/* 二级标题：一笔马克笔划痕代替虚线 */
-.prose h2 {
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-.prose h2::after {
-  content: '';
-  display: block;
-  width: min(100%, 14rem);
-  height: 0.5rem;
-  margin-top: 0.3rem;
-  background-color: var(--marker);
-  opacity: 0.55;
-  -webkit-mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'><path d='M2 5 C 40 2, 80 7, 120 4 S 180 3, 198 5' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/></svg>") no-repeat left center / 100% 100%;
-  mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'><path d='M2 5 C 40 2, 80 7, 120 4 S 180 3, 198 5' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/></svg>") no-repeat left center / 100% 100%;
-}
-
-/* 分割线：手绘波浪 */
-.prose hr {
-  border: 0;
-  width: 60%;
-  height: 0.9rem;
-  margin: 2.5rem auto;
-  background-color: var(--pencil-45);
-  -webkit-mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='14' viewBox='0 0 40 14'><path d='M0 7 Q 10 0 20 7 T 40 7' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>") repeat-x center / auto 100%;
-  mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='14' viewBox='0 0 40 14'><path d='M0 7 Q 10 0 20 7 T 40 7' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>") repeat-x center / auto 100%;
-}
+/* 二级标题与分割线沿用 global.css 的虚线；下面只改列表、引用、任务清单、代码块和表格。 */
 
 /* 引用：手写引号，最后一行以 —— 开头即为出处 */
 .prose blockquote {

@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 }
 
 const { post, prev, next } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
 const d = post.data;
 const STATUS_LABEL: Record<string, string> = { todo: '待读', reading: '在读', done: '已读' };
 ---
@@ -27,6 +27,7 @@ const STATUS_LABEL: Record<string, string> = { todo: '待读', reading: '在读'
   updated={d.updated}
   tags={d.tags}
   image={d.cover}
+  headings={headings}
   prev={prev && { href: `/library/${prev.id}/`, title: prev.data.title }}
   next={next && { href: `/library/${next.id}/`, title: next.data.title }}
 >
