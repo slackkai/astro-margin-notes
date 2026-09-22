@@ -2,6 +2,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import { isEnabled } from '../config';
 import { withBase } from './url';
 import { t } from '../i18n';
+import { contentDir, resolveContentUrl } from './content-urls.mjs';
 
 type PostCollection = 'academic' | 'insight' | 'dailies' | 'library' | 'projects';
 
@@ -14,13 +15,53 @@ export function byDateDesc<T extends { data: { date: Date } }>(a: T, b: T): numb
   return b.data.date.valueOf() - a.data.date.valueOf();
 }
 
+/* ------------------------------------------------------------------
+   附件：每篇内容的 attachments/ 文件夹与 Markdown 文件同目录，发布到同名路径。
+   frontmatter 里的相对路径（./attachments/cover.webp）在这里解析成站内绝对路径。
+   ------------------------------------------------------------------ */
+/** 内容文件所在目录（相对 src/content），例如 "projects/arm-grasp" 或 "dailies" */
+export function entryDir(entry: { filePath?: string }): string {
+  return contentDir(entry.filePath) ?? '';
+}
+
+/** 把条目 frontmatter 中的相对路径（封面、视频、图片列表）解析为站内绝对路径 */
+export function resolveEntryAssets<T extends { filePath?: string; data: object }>(entry: T): T {
+  const dir = contentDir(entry.filePath);
+  if (dir === undefined) return entry;
+  const data: Record<string, unknown> = { ...entry.data };
+  for (const key of ['cover', 'video']) {
+    if (typeof data[key] === 'string') data[key] = resolveContentUrl(data[key], dir);
+  }
+  if (Array.isArray(data.images)) data.images = data.images.map((url) => (typeof url === 'string' ? resolveContentUrl(url, dir) : url));
+  return { ...entry, data };
+}
+
+/* ------------------------------------------------------------------
+   项目文档：projects/<项目>/<文档>/index.md 是项目内的一篇文档，id 形如 "arm-grasp/log"。
+   ------------------------------------------------------------------ */
+export function isProjectDoc(entry: { id: string }): boolean {
+  return entry.id.includes('/');
+}
+
+export function projectIdOf(entry: { id: string }): string {
+  return entry.id.split('/')[0];
+}
+
+/** 某个项目下的全部文档（输入已按日期倒序时保持顺序） */
+export function projectDocs<T extends { id: string }>(entries: T[], projectId: string): T[] {
+  return entries.filter((e) => e.id.startsWith(projectId + '/'));
+}
+
 /** 已发布条目，按日期倒序。板块在 config 里关闭时返回空数组，从而在全站消失 */
 export async function getPosts<C extends PostCollection>(
   collection: C,
 ): Promise<CollectionEntry<C>[]> {
   if (!isEnabled(collection)) return [];
-  const entries = await getCollection(collection, isPublished);
-  return entries.sort(byDateDesc);
+  const entries = (await getCollection(collection, isPublished)).map(resolveEntryAssets).sort(byDateDesc);
+  if (collection !== 'projects') return entries;
+  // A document is only public while its project is.
+  const projects = new Set(entries.filter((e) => !isProjectDoc(e)).map((e) => e.id));
+  return entries.filter((e) => !isProjectDoc(e) || projects.has(projectIdOf(e)));
 }
 
 export type TaggedEntry =

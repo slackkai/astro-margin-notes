@@ -13,14 +13,19 @@ const common = [
   field('draft', '草稿（开启时不出现在网站上）', 'boolean', { default: true }),
 ];
 const series = optional('series', '合集', 'object', { fields: [field('name', '合集名称'), field('order', '篇目顺序', 'number', { value_type: 'int', min: 1 })] });
-const body = field('body', '正文', 'markdown', { required: false, hint: '工具栏可插入页边批注、荧光笔和独立公式；Markdown 写法为 :note[批注]、:mark[高亮]、$ 公式 $。' });
+const body = field('body', '正文', 'markdown', { required: false, hint: '工具栏可插入批注、便利贴、相片、折页、视频和嵌入页面；Markdown 写法见 docs/SYNTAX.md。上传的文件放进这篇文章旁边的 attachments 文件夹。' });
 const listing = {
   sortable_fields: { fields: ['date', 'title', 'updated'], default: { field: 'date', direction: 'descending' } },
   view_filters: { filters: [{ name: 'drafts', label: '草稿', field: 'draft', eq: true }, { name: 'published', label: '已发布', field: 'draft', ne: true }] },
 };
-const collection = (name, label, icon, extra, { fields = common, slug = '{{slug}}' } = {}) => ({
+// Uploads sit next to the entry that uses them, in an attachments/ folder, and are referenced
+// relatively (./attachments/photo.webp). A bundled collection gives every entry a folder of its
+// own (insight/<slug>/index.md); a shared collection keeps one attachments/ folder per section.
+const shared = { media_folder: 'attachments', public_folder: './attachments' };
+const bundle = { ...shared, path: '{{slug}}/index' };
+const collection = (name, label, icon, extra, { fields = common, slug = '{{slug}}', ...options } = {}) => ({
   name, label, icon, folder: `src/content/${name}`, create: true, extension: 'md', format: 'yaml-frontmatter',
-  slug, preview_path: `${name}/{{slug}}/`, ...listing,
+  slug, preview_path: `${name}/{{slug}}/`, ...listing, ...options,
   fields: [...fields, ...extra, body],
 });
 
@@ -41,24 +46,26 @@ export function makeCmsConfig({ repo, siteUrl, base = '/' }) {
         select('kind', '类型', ['note', 'paper', 'talk', 'course', 'project'], { default: 'note' }),
         series, optional('venue', '会议 / 期刊 / 课程'), list('authors', '作者'), optional('year', '年份', 'number', { value_type: 'int' }),
         links(['pdf', 'arxiv', 'doi', 'code', 'slides', 'site']), optional('bibtex', 'BibTeX', 'text'),
-      ]),
-      collection('insight', '洞见', 'edit_note', [optional('cover', '封面', 'image'), field('pinned', '置顶', 'boolean', { default: false }), series]),
+      ], bundle),
+      collection('insight', '洞见', 'edit_note', [optional('cover', '封面', 'image'), field('pinned', '置顶', 'boolean', { default: false }), series], bundle),
       collection('dailies', '日常', 'photo_camera', [
         optional('mood', '心情'), optional('location', '地点'),
         optional('images', '图片', 'list', { field: field('image', '图片', 'image'), default: [] }),
-      ], { fields: common.map(f => f.name === 'title' ? { ...f, required: false } : f), slug: "{{fields.date | date('YYYY-MM-DD')}}-{{slug}}" }),
+      ], { ...shared, fields: common.map(f => f.name === 'title' ? { ...f, required: false } : f), slug: "{{fields.date | date('YYYY-MM-DD')}}-{{slug}}" }),
       collection('library', '资料库', 'library_books', [
         select('type', '类型', ['book', 'paper', 'tool', 'course', 'article', 'video', 'dataset', 'other'], { default: 'other' }),
         optional('url', '原文链接', 'string', { pattern: ['^https?://.+', '请输入完整的 http(s) 链接'] }), optional('author', '作者'),
         optional('rating', '评分', 'number', { value_type: 'int', min: 1, max: 5 }),
         select('status', '阅读状态', ['todo', 'reading', 'done'], { required: false }),
         optional('summary', '一句话评价', 'text'), optional('cover', '封面', 'image'),
-      ]),
+      ], shared),
+      // A project is a folder: index.md is the project page, further folders inside it are its
+      // documents (projects/arm/log/index.md → /projects/arm/log/), each with its own attachments.
       collection('projects', '项目', 'construction', [
         select('status', '状态', ['active', 'done', 'archived', 'idea'], { default: 'active' }),
         optional('cover', '封面', 'image'), optional('video', '短视频', 'file'), list('stack', '技术栈'),
         links(['github', 'demo', 'paper', 'docs']), field('featured', '精选', 'boolean', { default: false }),
-      ]),
+      ], { ...bundle, nested: { depth: 3 }, meta: { path: { index_file: 'index' } } }),
       { name: 'settings', label: '站点设置', icon: 'settings', files: [
         { name: 'site', label: '基本信息', file: 'src/data/site.json', format: 'json', fields: [
           field('title', '站点名称'), field('tagline', '副标题'), field('description', '站点简介', 'text'),

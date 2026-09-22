@@ -2,9 +2,10 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
 import { SECTIONS } from '../../config';
-import { getPosts } from '../../utils/content';
+import { getPosts, isProjectDoc } from '../../utils/content';
 
-const projects = await getPosts('projects');
+// 项目文档（projects/<项目>/<文档>）只在各自的项目页里列出。
+const projects = (await getPosts('projects')).filter((p) => !isProjectDoc(p));
 const sec = SECTIONS.projects;
 const featured = projects.filter((p) => p.data.featured);
 const rest = projects.filter((p) => !p.data.featured);

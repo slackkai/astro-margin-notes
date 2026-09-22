@@ -7,14 +7,14 @@ import SectionCard from '../components/SectionCard.astro';
 import PostCard from '../components/PostCard.astro';
 import LibraryCard from '../components/LibraryCard.astro';
 import { SECTIONS, ENABLED_SECTIONS, config } from '../config';
-import { getPosts, formatDate } from '../utils/content';
+import { getPosts, formatDate, isProjectDoc } from '../utils/content';
 
 const [academic, insight, dailies, library, projects] = await Promise.all([
   getPosts('academic'),
   getPosts('insight'),
   getPosts('dailies'),
   getPosts('library'),
-  getPosts('projects'),
+  getPosts('projects').then((all) => all.filter((p) => !isProjectDoc(p))),
 ]);
 
 const latestInsight = insight.slice(0, 3);

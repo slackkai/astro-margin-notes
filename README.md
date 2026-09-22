@@ -2,7 +2,7 @@
 
 一个手绘笔记本风格的 Astro 个人网站主题。用纸张、便利贴、页边批注和一条会跟随鼠标的机械臂，收纳研究、想法与日常。
 
-**[在线演示](https://slackkai.github.io/astro-margin-notes/) · [内容管理后台](https://slackkai.github.io/astro-margin-notes/admin/) · [更新网站指南](docs/CONTENT-EDITING.md)**
+**[在线演示](https://slackkai.github.io/astro-margin-notes/) · [内容管理后台](https://slackkai.github.io/astro-margin-notes/admin/) · [更新网站指南](docs/CONTENT-EDITING.md) · [笔记本语法](docs/SYNTAX.md)**
 
 ![Margin Notes 主题预览](docs/preview.png)
 
@@ -30,7 +30,8 @@ npm run dev
 - **Dailies**：时间线、图片、日常热力图。
 - **Library**：书 / 课程 / 工具等收藏，可筛选、搜索、排序。
 - **Projects**：项目状态、技术栈、链接、图片或视频封面。
-- Markdown / MDX、KaTeX 数学公式、代码高亮、页边批注、荧光笔，后台工具栏可直接插入批注、高亮与公式。
+- Markdown / MDX、KaTeX 数学公式、代码高亮，加一组手绘风格的笔记本语法：页边批注、荧光笔、红笔、印章、便利贴、相片、折页、步骤、版式、视频、嵌入 HTML 页面、链接卡，后台工具栏有同名按钮（[语法速查](docs/SYNTAX.md)）。原生 Markdown 也重绘成手绘样式：马克笔标题划痕、波浪分割线、圈号列表、铅笔任务框、带出处的引用。
+- 附件跟着文章走：学术、洞见、项目每篇一个文件夹加 `attachments/`，项目里还能放文档；图片、视频、PDF 和嵌入页面按源码路径发布，草稿的附件不发布。
 - 深浅色与四套配色、响应式菜单、目录、阅读进度、相关文章。
 - Pagefind 静态全文搜索、五个板块的标签 / 归档 / 全文 RSS、sitemap。
 - Sveltia 可视化后台：文章、图片、站点信息、Now 卡片和整个关于页；列表按日期排序、草稿筛选，上传图片自动压缩为 WebP。
@@ -52,14 +53,15 @@ npm run dev
 | --- | --- |
 | 站名、作者、简介、联系链接、页脚结束语 | 后台“站点设置”，或 `src/data/site.json` |
 | 板块开关、功能、默认配色、机械臂、研究方向 | `src/config.ts` |
-| 日常文章 | 后台五个板块，或 `src/content/<板块>/` |
+| 五个板块正文与附件 | 后台五个板块，或 `src/content/<板块>/`（每篇一个文件夹，附件在旁边的 `attachments/`） |
 | 最近在做 / 在读 / 在听 | 后台“最近在做”，或 `src/content/now/now.md` |
 | 关于页：自我介绍、“这个站点有什么”、工作台 | 后台“站点设置 → 关于页”，或 `src/content/about/about.md` |
 | 关于页版式 | `src/pages/about.astro` |
 | 字体、颜色和样式 | `src/styles/global.css` |
 | 后台字段、列表排序与筛选、上传压缩 | `cms.config.mjs` |
-| 后台编辑器组件（批注 / 高亮 / 公式）与预览样式 | `public/admin/components.js`、`public/admin/preview.css` |
-| `:note[]` / `:mark[]` 的渲染 | `src/utils/remark-notes.mjs` |
+| 后台编辑器组件（批注 / 便利贴 / 相片 / 视频 / 嵌入 …） | `public/admin/components.js`（预览样式由 `scripts/prepare-cms.mjs` 从站点样式生成） |
+| Markdown 指令的渲染与样式 | `src/markdown/directives.mjs`、`src/styles/markdown.css`，说明见 `docs/SYNTAX.md` |
+| 附件的开发时访问与发布 | `src/integrations/attachments.mjs` |
 | 内容校验规则 | `src/content.config.ts` |
 
 默认站点文案为中文。`src/i18n/` 提供部分界面的中英文字典，完整页面语言定制还需要编辑页面文案与板块描述。
@@ -96,7 +98,7 @@ npm run preview
 npm run new -- insight my-first-post "我的第一篇文章"
 ```
 
-在 `src/content/insight/my-first-post.md` 中写正文，frontmatter 示例：
+在 `src/content/insight/my-first-post/index.md` 中写正文，图片等附件放进旁边的 `attachments/`，正文里写 `./attachments/文件名`。frontmatter 示例：
 
 ```yaml
 ---
@@ -116,13 +118,25 @@ series:
   order: 1
 ```
 
-页边批注与高亮是普通 Markdown，后台工具栏有对应按钮，富文本与 Markdown 模式可无损切换：
+页边批注、便利贴、相片等都是普通 Markdown 指令，后台工具栏有对应按钮，富文本与 Markdown 模式可无损切换：
 
 ```md
-正文中的 :mark[一个重点]。:note[这里是一条页边批注，支持 **加粗**、链接和 $d_k$ 公式。]
+正文中的 :mark[一个重点]{green}，:pen[圈出来的词]，:stamp[待验证]。:note[这里是一条页边批注，支持 **加粗**、链接和 $d_k$ 公式。]
+
+:::postit[标题]{tip}
+便利贴里的内容。
+:::
+
+:::photos{cols=2}
+![图注](./attachments/a.webp)
+![图注](./attachments/b.webp)
+:::
+
+::video[说明]{src=./attachments/demo.mp4 loop}
+::embed[说明]{page=./attachments/demo}
 ```
 
-MDX 文件里也可以继续使用 `<Mark>` / `<Note>` 组件，渲染结果相同。
+全部家族、参数和原生 Markdown 的手绘样式见 [笔记本语法](docs/SYNTAX.md)；示例站的《笔记本语法演示》项目把它们全部用了一遍。MDX 文件里也可以继续使用 `<Mark>` / `<Note>` 组件，渲染结果相同。从旧的平铺布局（`insight/<slug>.md` 加 `public/uploads/`）迁移时运行 `node scripts/migrate-bundles.mjs`，先加 `--dry-run` 看计划。
 
 `/drafts/` 和 `/lab/` 仅本地开发可见。公开搜索只索引已发布内容详情页，避免列表与标签页重复命中。
 
@@ -136,7 +150,7 @@ MDX 文件里也可以继续使用 `<Mark>` / `<Note>` 组件，渲染结果相�
 | `npm run preview -- stop` | 停止 Astro 的后台预览服务 |
 | `npm run check` | 类型和 Astro 检查 |
 | `npm test` | 轻量回归测试 |
-| `npm run test:production` | 真实构建回归，验证草稿和配置开关；结束后重新构建 |
+| `npm run test:production` | 真实构建回归，验证草稿、附件、项目文档、Markdown 指令和配置开关；结束后重新构建 |
 | `npm run verify` | 检查构建后的站内链接、资源、锚点和部署产物 |
 
 开发时搜索索引不会实时更新。需要验证搜索时运行 `npm run build` 后使用 `npm run preview`；`npm run search:dev` 可以把一次构建的搜索索引复制到开发服务器，但它会随内容编辑过期。

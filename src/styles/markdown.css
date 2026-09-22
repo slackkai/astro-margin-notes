@@ -1,0 +1,809 @@
+/* ------------------------------------------------------------------
+   笔记本 Markdown 扩展（docs/SYNTAX.md）与原生 Markdown 的手绘重绘
+   由 src/markdown/directives.mjs 生成标记；本文件也会拼进后台预览样式
+   （scripts/prepare-cms.mjs 把 .prose 替换为预览容器）。
+   ------------------------------------------------------------------ */
+
+.prose {
+  counter-reset: note;
+  --ink-green: #2f7d4f;
+}
+html[data-theme='dark'] .prose {
+  --ink-green: #7fbf9a;
+}
+
+/* ---------- 荧光笔 :mark[]{green|pink|yellow} ---------- */
+.mark {
+  --mark-ink: var(--postit);
+  background: linear-gradient(
+    104deg,
+    transparent 0.6%,
+    color-mix(in srgb, var(--mark-ink) 85%, var(--marker) 15%) 1.2%,
+    color-mix(in srgb, var(--mark-ink) 70%, var(--marker) 30%) 98%,
+    transparent 98.6%
+  );
+  padding: 0.05em 0.25em;
+  margin: 0 -0.15em;
+  border-radius: 0.2em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.mark-green {
+  --mark-ink: var(--postit-2);
+}
+.mark-pink {
+  --mark-ink: var(--postit-3);
+}
+.mark-yellow {
+  --mark-ink: #fde68a;
+}
+html[data-theme='dark'] .mark-yellow {
+  --mark-ink: #6b5a1e;
+}
+
+/* ---------- 红笔 :pen[]{circle|wavy|box|strike|hide} ---------- */
+.pen {
+  --ink: var(--marker);
+}
+.pen-circle {
+  padding: 0 0.35em;
+  margin: 0 -0.05em;
+  border: 2px solid var(--ink);
+  border-radius: 50% 45% 55% 40% / 55% 40% 50% 45%;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.pen-wavy {
+  text-decoration: underline wavy var(--ink);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+.pen-box {
+  padding: 0 0.3em;
+  border: 2px solid var(--ink);
+  border-radius: 6px 12px 8px 10px / 10px 8px 12px 6px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.pen-strike {
+  color: var(--pencil-60);
+  background-image: linear-gradient(to top right, transparent 46%, var(--ink) 47.5%, var(--ink) 52.5%, transparent 54%);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.pen-hide {
+  position: relative;
+  cursor: pointer;
+}
+.pen-toggle {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.pen-hidden,
+.pen-hidden * {
+  color: transparent;
+}
+.pen-hidden {
+  padding: 0 0.15em;
+  border-radius: 0.25em;
+  background: repeating-linear-gradient(-40deg, var(--pencil) 0 2px, transparent 2px 4px), var(--erased);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+.pen-toggle:checked ~ .pen-hidden,
+.pen-toggle:checked ~ .pen-hidden * {
+  color: inherit;
+}
+.pen-toggle:checked ~ .pen-hidden {
+  background: var(--postit);
+  user-select: auto;
+}
+.pen-toggle:focus-visible ~ .pen-hidden {
+  outline: 2px dashed var(--marker);
+  outline-offset: 2px;
+}
+
+/* ---------- 印章 :stamp[]{red|blue|green} ---------- */
+.stamp {
+  --ink: var(--marker);
+  display: inline-block;
+  padding: 0 0.45em;
+  margin: 0 0.2em;
+  border: 2px solid var(--ink);
+  border-radius: 4px 6px 5px 7px / 6px 4px 7px 5px;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.8em;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  vertical-align: middle;
+  transform: rotate(var(--tilt, -4deg));
+  mix-blend-mode: multiply;
+  opacity: 0.85;
+  -webkit-mask-image: radial-gradient(circle at 30% 40%, #000 55%, rgba(0, 0, 0, 0.55) 100%);
+  mask-image: radial-gradient(circle at 30% 40%, #000 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+.stamp-blue {
+  --ink: var(--pen);
+}
+.stamp-green {
+  --ink: var(--ink-green);
+}
+html[data-theme='dark'] .stamp {
+  mix-blend-mode: screen;
+}
+
+/* ---------- 页边批注 :note[] 与块级 :::note ---------- */
+.note-toggle {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.note-ref {
+  display: inline-block;
+  font-size: 0.72em;
+  font-weight: 700;
+  color: var(--marker);
+  vertical-align: super;
+  padding: 0 0.3em;
+  margin-left: 0.15em;
+  line-height: 1.2;
+  cursor: pointer;
+  border: 1.5px solid var(--marker);
+  border-radius: 50% 40% 55% 45% / 50% 55% 45% 50%;
+  counter-increment: note;
+}
+.note-ref::after {
+  content: counter(note);
+}
+/* 窄屏：行内批注折叠，点击上标展开；块级批注直接显示为虚线卡片 */
+.note,
+.note-block {
+  display: none;
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--pencil-60);
+  background: var(--paper-2);
+  border: 2px dashed var(--pencil-25);
+  border-radius: var(--radius-wobble-sm);
+}
+.note-block {
+  display: block;
+  margin: 1rem 0;
+}
+.note-toggle:checked ~ .note {
+  display: block;
+}
+.note-block-title {
+  font-weight: 700;
+  color: var(--pencil);
+}
+.note-block > * {
+  margin: 0;
+}
+.note-block > * + * {
+  margin-top: 0.5em;
+}
+.prose .note-block img {
+  border-width: 2px;
+  box-shadow: none;
+}
+/* 宽屏：浮到右侧页边；行内批注带红色虚线引线 */
+@media (min-width: 1200px) {
+  .note,
+  .note-block {
+    display: block;
+    float: right;
+    clear: right;
+    position: relative;
+    width: 13rem;
+    margin: 0.15rem calc(-13rem - 2rem) 0.75rem 1rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--postit);
+    border: 2px solid var(--pencil);
+    border-radius: var(--radius-wobble-sm);
+    box-shadow: var(--shadow-soft);
+    color: var(--pencil);
+    transform: rotate(var(--tilt, 1deg));
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .note-block {
+    --tilt: -1deg;
+  }
+  .note::before {
+    content: '';
+    position: absolute;
+    left: -2rem;
+    top: 0.9rem;
+    width: 1.8rem;
+    border-top: 2px dashed var(--marker);
+  }
+  .note:hover,
+  .note-block:hover {
+    transform: rotate(0deg) translate(-2px, -2px);
+    box-shadow: var(--shadow-hand);
+  }
+}
+
+/* ---------- 便利贴 :::postit[标题]{tip|warn|info|question} ---------- */
+.sticky {
+  --sticky-color: var(--postit);
+  position: relative;
+  margin: 2rem 0.5rem 1.8rem;
+  padding: 1.1rem 1.25rem 1rem;
+  background: var(--sticky-color);
+  border: 2px solid var(--pencil);
+  border-radius: var(--radius-wobble-sm);
+  box-shadow: var(--shadow-soft);
+  transform: rotate(var(--tilt, -0.6deg));
+}
+.sticky::before {
+  content: '';
+  position: absolute;
+  top: -0.7rem;
+  left: 50%;
+  width: 5.5rem;
+  height: 1.4rem;
+  background: var(--tape);
+  border: 1px solid var(--pencil-12);
+  transform: translateX(-50%) rotate(-3deg);
+  pointer-events: none;
+}
+.sticky-tip {
+  --sticky-color: var(--postit-2);
+}
+.sticky-warn {
+  --sticky-color: var(--postit-3);
+}
+.sticky-question {
+  --sticky-color: var(--paper-2);
+  border-style: dashed;
+}
+.sticky-kind {
+  position: absolute;
+  top: -0.95rem;
+  left: 1rem;
+  padding: 0 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--marker);
+  background: var(--paper-2);
+  border: 2px solid var(--marker);
+  border-radius: var(--radius-wobble-sm);
+  transform: rotate(-2deg);
+}
+.sticky-title {
+  font-weight: 700;
+  font-size: 1.05em;
+}
+.sticky > * {
+  margin: 0;
+}
+.sticky > * + * {
+  margin-top: 0.6em;
+}
+.sticky p {
+  margin: 0;
+}
+
+/* ---------- 相片 :::photos{cols=3 scatter} ---------- */
+.photos {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+  gap: 1.8rem 1.4rem;
+  margin: 2.2rem 0.4rem;
+}
+.photos-single {
+  grid-template-columns: minmax(0, 28rem);
+  justify-content: center;
+}
+@media (max-width: 640px) {
+  .photos {
+    grid-template-columns: 1fr;
+  }
+}
+.photo {
+  position: relative;
+  margin: 0;
+  padding: 0.6rem 0.6rem 0.5rem;
+  background: var(--paper-2);
+  border: 2px solid var(--pencil);
+  box-shadow: var(--shadow-soft);
+  transform: rotate(var(--tilt, -1.2deg));
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.photo:nth-child(even) {
+  --tilt: 1.1deg;
+}
+.photo:nth-child(3n) {
+  --tilt: -0.6deg;
+}
+.photos-scatter .photo:nth-child(odd) {
+  --tilt: -2.6deg;
+}
+.photos-scatter .photo:nth-child(even) {
+  --tilt: 2.2deg;
+  margin-top: 0.9rem;
+}
+.photos-scatter .photo:nth-child(3n) {
+  --tilt: -1.4deg;
+}
+.photo:hover {
+  transform: rotate(0deg) translate(-2px, -2px);
+  box-shadow: var(--shadow-hand);
+  z-index: 1;
+}
+.photo::before {
+  content: '';
+  position: absolute;
+  top: -0.65rem;
+  left: 50%;
+  width: 4.5rem;
+  height: 1.2rem;
+  background: var(--tape);
+  border: 1px solid var(--pencil-12);
+  transform: translateX(-50%) rotate(-2deg);
+  pointer-events: none;
+}
+.prose .photo img {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 2px;
+  box-shadow: none;
+  background: var(--erased);
+}
+.photo figcaption {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--pencil-60);
+}
+
+/* ---------- 折页 :::fold[标题]{open} ---------- */
+.fold {
+  position: relative;
+  margin: 1.6rem 0;
+  background: var(--paper-2);
+  border: 2px solid var(--pencil);
+  border-radius: var(--radius-wobble-sm);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+.fold-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.7rem 2.6rem 0.7rem 1rem;
+  font-weight: 700;
+  user-select: none;
+}
+.fold-summary::-webkit-details-marker {
+  display: none;
+}
+.fold-summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 0.5rem;
+  color: var(--marker);
+  transition: transform 0.15s ease;
+}
+.fold[open] > .fold-summary::before {
+  transform: rotate(90deg);
+}
+.fold::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  background: linear-gradient(225deg, var(--paper) 0 50%, var(--erased) 50% 100%);
+  border-left: 2px solid var(--pencil-25);
+  border-bottom: 2px solid var(--pencil-25);
+  pointer-events: none;
+}
+.fold-body {
+  padding: 0.6rem 1rem 1rem;
+  border-top: 2px dashed var(--pencil-25);
+}
+.fold-body > * {
+  margin: 0;
+}
+.fold-body > * + * {
+  margin-top: 0.8em;
+}
+
+/* ---------- 步骤 :::steps{timeline} ---------- */
+.steps {
+  margin: 1.6rem 0;
+}
+.prose .steps-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 2.8rem;
+  position: relative;
+  counter-reset: step;
+}
+.prose .steps-list::before {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  top: 0.8rem;
+  bottom: 0.8rem;
+  border-left: 2px dashed var(--pencil-25);
+}
+.prose .steps-list > li {
+  position: relative;
+  margin: 0 0 1rem;
+  padding: 0.15rem 0;
+}
+.prose .steps-list > li::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: -2.8rem;
+  top: 0;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--marker);
+  background: var(--paper-2);
+  border: 2px solid var(--marker);
+  border-radius: 50% 45% 55% 50% / 55% 50% 50% 45%;
+  transform: none;
+}
+.prose .steps-timeline .steps-list > li::before {
+  content: '';
+  width: 0.9rem;
+  height: 0.9rem;
+  left: -2.25rem;
+  top: 0.55rem;
+  background: var(--marker);
+  border-color: var(--pencil);
+}
+.prose .steps-list > li > p {
+  margin: 0;
+}
+.prose .steps-list > li > * + * {
+  margin-top: 0.4em;
+}
+.prose .steps-timeline .steps-list > li > p:first-child > strong:first-child,
+.prose .steps-timeline .steps-list > li > strong:first-child {
+  display: inline-block;
+  margin-right: 0.4em;
+  padding: 0 0.5em;
+  font-size: 0.85em;
+  background: var(--postit);
+  border: 1.5px solid var(--pencil);
+  border-radius: var(--radius-wobble-sm);
+  transform: rotate(-1.5deg);
+}
+
+/* ---------- 版式 :::layout{wide|cols=2} ---------- */
+.layout-wide {
+  position: relative;
+  width: min(var(--max-w, 64rem), calc(100vw - 4rem));
+  left: 50%;
+  transform: translateX(-50%);
+}
+.layout-cols {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+  gap: 1.2rem;
+  align-items: start;
+}
+@media (max-width: 640px) {
+  .layout-cols {
+    grid-template-columns: 1fr;
+  }
+}
+.layout-cols > * {
+  margin: 0;
+}
+
+/* ---------- 视频 ::video 与嵌入 ::embed：贴在纸上的相框 ---------- */
+.media {
+  position: relative;
+  margin: 2.2rem 0.4rem;
+  padding: 0.6rem;
+  background: var(--paper-2);
+  border: 2px solid var(--pencil);
+  border-radius: 6px;
+  box-shadow: var(--shadow-soft);
+}
+.media video,
+.media iframe,
+.media .media-facade {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 2px;
+  background: var(--erased);
+}
+.media video {
+  height: auto;
+}
+.media-embed .media-facade,
+.media-embed iframe {
+  aspect-ratio: 16 / 9;
+}
+.media-facade {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--pencil);
+  text-decoration: none;
+  cursor: pointer;
+}
+.prose .media-facade {
+  text-decoration: none;
+}
+.prose .media-facade img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  object-fit: cover;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.media-play {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.2rem;
+  font-weight: 700;
+  color: var(--pencil);
+  background: var(--paper-2);
+  border: 3px solid var(--pencil);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-hand);
+  transition: all 0.1s ease;
+}
+.media-facade:hover .media-play {
+  background: var(--marker);
+  color: #fff;
+  box-shadow: var(--shadow-hand-sm);
+  transform: translate(2px, 2px);
+}
+.media figcaption,
+.embed-caption {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--pencil-60);
+}
+.embed-page {
+  min-height: 12rem;
+}
+.embed-snippet {
+  margin: 1.6rem 0;
+}
+
+/* ---------- 链接卡 ::bookmark ---------- */
+.prose .bookmark {
+  display: block;
+  position: relative;
+  margin: 1.8rem 0.4rem;
+  padding: 0.9rem 1.2rem;
+  color: inherit;
+  text-decoration: none;
+}
+.bookmark-title {
+  display: block;
+  font-weight: 700;
+  font-size: 1.1em;
+}
+.bookmark-desc {
+  display: block;
+  margin-top: 0.2em;
+  font-size: 0.95em;
+  color: var(--pencil-60);
+}
+.bookmark-host {
+  display: inline-block;
+  margin-top: 0.5em;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--pen);
+  text-decoration: underline wavy;
+  text-underline-offset: 3px;
+}
+.prose .bookmark-image {
+  float: right;
+  width: 6rem;
+  margin: 0 0 0.5rem 1rem;
+  border-width: 2px;
+}
+.bookmark::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+/* ---------- 原生 Markdown 重绘 ---------- */
+/* 二级标题：一笔马克笔划痕代替虚线 */
+.prose h2 {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.prose h2::after {
+  content: '';
+  display: block;
+  width: min(100%, 14rem);
+  height: 0.5rem;
+  margin-top: 0.3rem;
+  background-color: var(--marker);
+  opacity: 0.55;
+  -webkit-mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'><path d='M2 5 C 40 2, 80 7, 120 4 S 180 3, 198 5' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/></svg>") no-repeat left center / 100% 100%;
+  mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'><path d='M2 5 C 40 2, 80 7, 120 4 S 180 3, 198 5' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/></svg>") no-repeat left center / 100% 100%;
+}
+
+/* 分割线：手绘波浪 */
+.prose hr {
+  border: 0;
+  width: 60%;
+  height: 0.9rem;
+  margin: 2.5rem auto;
+  background-color: var(--pencil-45);
+  -webkit-mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='14' viewBox='0 0 40 14'><path d='M0 7 Q 10 0 20 7 T 40 7' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>") repeat-x center / auto 100%;
+  mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='14' viewBox='0 0 40 14'><path d='M0 7 Q 10 0 20 7 T 40 7' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>") repeat-x center / auto 100%;
+}
+
+/* 引用：手写引号，最后一行以 —— 开头即为出处 */
+.prose blockquote {
+  position: relative;
+  padding: 0.4rem 1rem 0.4rem 2.4rem;
+  border-left: 4px dashed var(--pencil);
+  font-style: italic;
+  opacity: 0.9;
+}
+.prose blockquote::before {
+  content: '“';
+  position: absolute;
+  left: 0.55rem;
+  top: -0.35rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--marker);
+  opacity: 0.7;
+}
+.prose blockquote > * {
+  margin: 0;
+}
+.prose blockquote > * + * {
+  margin-top: 0.6em;
+}
+.prose .quote-source {
+  text-align: right;
+  font-style: normal;
+  font-size: 0.9em;
+  color: var(--pencil-60);
+}
+.prose .quote-source::before {
+  content: '—— ';
+}
+
+/* 列表：铅笔点与手绘圈号 */
+.prose ul:not(.contains-task-list) {
+  list-style: none;
+  padding-left: 1.4rem;
+}
+.prose ul:not(.contains-task-list) > li {
+  position: relative;
+}
+.prose ul:not(.contains-task-list) > li::before {
+  content: '';
+  position: absolute;
+  left: -1rem;
+  top: 0.75em;
+  width: 0.42em;
+  height: 0.42em;
+  background: var(--marker);
+  border-radius: 55% 45% 50% 50% / 50% 55% 45% 50%;
+  transform: rotate(-15deg);
+}
+.prose ol {
+  list-style: none;
+  padding-left: 2rem;
+  counter-reset: item;
+}
+.prose ol > li {
+  position: relative;
+  counter-increment: item;
+}
+.prose ol > li::before {
+  content: counter(item);
+  position: absolute;
+  left: -2rem;
+  top: 0.22em;
+  width: 1.35em;
+  height: 1.35em;
+  display: grid;
+  place-items: center;
+  font-size: 0.78em;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--marker);
+  border: 1.5px solid var(--marker);
+  border-radius: 50% 40% 55% 45% / 50% 55% 45% 50%;
+  transform: rotate(-6deg);
+}
+
+/* 任务清单：铅笔方框，马克笔打勾 */
+.prose .contains-task-list {
+  list-style: none;
+  padding-left: 0.4rem;
+}
+.prose .task-list-item input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  width: 1.1em;
+  height: 1.1em;
+  margin: 0 0.5em 0 0;
+  vertical-align: -0.15em;
+  border: 2px solid var(--pencil);
+  border-radius: 30% 60% 40% 55% / 55% 35% 60% 40%;
+  background: var(--paper-2);
+  cursor: default;
+}
+.prose .task-list-item input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 0.22em;
+  top: -0.3em;
+  width: 0.45em;
+  height: 0.85em;
+  border-right: 3px solid var(--marker);
+  border-bottom: 3px solid var(--marker);
+  transform: rotate(38deg);
+}
+.prose .task-list-item:has(input:checked) {
+  color: var(--pencil-60);
+}
+
+/* 代码块：右上角胶带贴出语言名 */
+.prose pre {
+  position: relative;
+}
+.prose pre[data-language]:not([data-language='plaintext']):not([data-language='text'])::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0.35rem;
+  right: 0.7rem;
+  padding: 0 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--pencil-60);
+  background: var(--tape);
+  border: 1px solid var(--pencil-12);
+  transform: rotate(2deg);
+  pointer-events: none;
+}
+
+/* 表格：表头便利贴色 */
+.prose table {
+  border: 2px solid var(--pencil);
+}
+.prose th {
+  background: var(--postit);
+}

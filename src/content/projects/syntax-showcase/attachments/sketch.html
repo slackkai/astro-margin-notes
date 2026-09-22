@@ -1,0 +1,15 @@
+<!-- 片段：直接嵌进正文的静态 HTML，可以引用站点的颜色变量 -->
+<style>
+  .sketch-wave { display: block; width: min(100%, 36rem); margin: 0 auto; }
+  .sketch-wave .wave { stroke: var(--pen, #3b4f9e); stroke-dasharray: 900; stroke-dashoffset: 900; animation: sketch-draw 4s ease-in-out infinite alternate; }
+  .sketch-wave .axis { stroke: var(--pencil-45, rgba(31, 36, 51, 0.45)); }
+  .sketch-wave .dot { fill: var(--marker, #c4562f); animation: sketch-dot 4s ease-in-out infinite alternate; }
+  @keyframes sketch-draw { to { stroke-dashoffset: 0; } }
+  @keyframes sketch-dot { from { transform: translateX(0); } to { transform: translateX(640px); } }
+  @media (prefers-reduced-motion: reduce) { .sketch-wave .wave, .sketch-wave .dot { animation: none; stroke-dashoffset: 0; } }
+</style>
+<svg class="sketch-wave" viewBox="0 0 720 200" fill="none" stroke-width="3" stroke-linecap="round" aria-label="手绘正弦波">
+  <path class="axis" d="M40 100 h640 M40 30 v140" stroke-dasharray="6 8"/>
+  <path class="wave" d="M40 100 C 80 20, 120 20, 160 100 S 240 180, 280 100 S 360 20, 400 100 S 480 180, 520 100 S 600 20, 640 100 S 700 160, 680 110"/>
+  <circle class="dot" cx="40" cy="100" r="7"/>
+</svg>

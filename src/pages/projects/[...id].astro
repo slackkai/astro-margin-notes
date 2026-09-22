@@ -2,20 +2,37 @@
 import { withBase } from '../../utils/url';
 import { render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
-import { getPosts, readingStats, gitLastModified } from '../../utils/content';
+import PostCard from '../../components/PostCard.astro';
+import { t } from '../../i18n';
+import { getPosts, readingStats, gitLastModified, isProjectDoc, projectIdOf, projectDocs } from '../../utils/content';
 
+/**
+ * 项目页与项目文档页。projects/<项目>/index.md 是项目页；项目文件夹里的
+ * <文档>/index.md 是项目文档，地址为 /projects/<项目>/<文档>/，页面上带回到项目的链接。
+ */
 export async function getStaticPaths() {
-  const items = await getPosts('projects');
-  return items.map((post, i) => ({
-    params: { id: post.id },
-    props: { post, prev: items[i + 1], next: items[i - 1] },
-  }));
+  const all = await getPosts('projects');
+  const projects = all.filter((e) => !isProjectDoc(e));
+  return all.map((post) => {
+    const doc = isProjectDoc(post);
+    const siblings = doc ? projectDocs(all, projectIdOf(post)) : projects;
+    const i = siblings.findIndex((e) => e.id === post.id);
+    return {
+      params: { id: post.id },
+      props: {
+        post,
+        prev: siblings[i + 1],
+        next: siblings[i - 1],
+        parent: doc ? projects.find((e) => e.id === projectIdOf(post)) : undefined,
+        docs: doc ? [] : projectDocs(all, post.id),
+      },
+    };
+  });
 }
 
-const { post, prev, next } = Astro.props;
+const { post, prev, next, parent, docs } = Astro.props;
 const { Content, headings } = await render(post);
 const d = post.data;
-const STATUS_LABEL: Record<string, string> = { active: '进行中', done: '已完成', archived: '已归档', idea: '想法' };
 const links = [
   ['GitHub', d.links?.github],
   ['Demo', d.links?.demo],
@@ -40,18 +57,21 @@ const modified = await gitLastModified(post.filePath);
   next={next && { href: `/projects/${next.id}/`, title: next.data.title }}
 >
   <div slot="extra" class="proj-meta">
-    <div class="row">
-      <span class="postit green">{STATUS_LABEL[d.status] ?? d.status}</span>
-      {
-        d.stack.length > 0 && (
-          <ul class="stack">
-            {d.stack.map((s) => (
-              <li>{s}</li>
-            ))}
-          </ul>
-        )
-      }
-    </div>
+    {parent && <a href={withBase(`/projects/${parent.id}/`)} class="doc-parent">📎 {t.projects.backTo(parent.data.title)}</a>}
+    {
+      !parent && (
+        <div class="row">
+          <span class="postit green">{t.projects.status[d.status] ?? d.status}</span>
+          {d.stack.length > 0 && (
+            <ul class="stack">
+              {d.stack.map((s) => (
+                <li>{s}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )
+    }
     {
       links.length > 0 && (
         <div class="links">
@@ -67,6 +87,19 @@ const modified = await gitLastModified(post.filePath);
 
   {d.video ? <video class="media" src={withBase(d.video)} autoplay muted loop playsinline controls /> : d.cover && <img class="media" src={withBase(d.cover)} alt="" />}
   <Content />
+
+  {
+    docs.length > 0 && (
+      <section class="project-docs" data-pagefind-ignore>
+        <h2>{t.projects.docs}</h2>
+        <div class="docs-grid">
+          {docs.map((doc, i) => (
+            <PostCard href={withBase(`/projects/${doc.id}/`)} title={doc.data.title} date={doc.data.date} description={doc.data.description} rotate={i % 2 ? 0.4 : -0.4} index={i} />
+          ))}
+        </div>
+      </section>
+    )
+  }
 </PostLayout>
 
 <style>
@@ -75,6 +108,16 @@ const modified = await gitLastModified(post.filePath);
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
+  }
+  .doc-parent {
+    align-self: flex-start;
+    font-weight: 700;
+    color: var(--pen);
+    text-decoration: underline wavy;
+    text-underline-offset: 4px;
+  }
+  .doc-parent:hover {
+    color: var(--marker);
   }
   .row {
     display: flex;
@@ -108,5 +151,23 @@ const modified = await gitLastModified(post.filePath);
     border: 3px solid var(--pencil);
     border-radius: 16px 24px 20px 18px / 18px 20px 24px 16px;
     box-shadow: var(--shadow-soft);
+  }
+  .project-docs {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 2px dashed var(--pencil-25);
+  }
+  .project-docs h2 {
+    font-size: 1.4rem;
+    margin: 0 0 1rem;
+  }
+  .docs-grid {
+    display: grid;
+    gap: 1rem;
+  }
+  @media (min-width: 640px) {
+    .docs-grid {
+      grid-template-columns: 1fr 1fr;
+    }
   }
 </style>

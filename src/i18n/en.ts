@@ -106,6 +106,8 @@ export const en: UI = {
     status: { active: 'Active', done: 'Done', archived: 'Archived', idea: 'Idea' },
     featured: 'Featured',
     none: 'No projects yet.',
+    docs: '📎 Project notes',
+    backTo: (name) => `← ${name}`,
   },
   tags: {
     badge: '🏷️ Tags',
@@ -182,6 +184,15 @@ export const en: UI = {
     expandNote: 'Expand note',
     readingProgress: 'Reading progress',
     bibtex: 'BibTeX',
+  },
+  md: {
+    note: 'Expand note',
+    reveal: 'Reveal hidden text',
+    fold: 'Details',
+    postit: { tip: '💡 Tip', warn: '⚠️ Warning', info: '📌 Note', question: '❓ Question' },
+    play: 'Play',
+    embed: 'Embedded page',
+    bookmark: 'Open link →',
   },
   search: {
     label: 'Search',

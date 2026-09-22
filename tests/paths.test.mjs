@@ -36,6 +36,27 @@ test('CMS targets the generated repository and defaults new content to drafts', 
   assert.equal(makeCmsConfig({ repo: 'o/n', siteUrl: 'https://example.com' }).logo.src, '/favicon.svg');
 });
 
+test('CMS stores uploads next to the entry: bundles for articles and projects, a shared folder for dailies and library', () => {
+  const cms = makeCmsConfig({ repo: 'o/n', siteUrl: 'https://example.com' });
+  const byName = Object.fromEntries(cms.collections.map(c => [c.name, c]));
+  for (const name of ['academic', 'insight', 'projects']) {
+    assert.equal(byName[name].path, '{{slug}}/index', name);
+    assert.equal(byName[name].media_folder, 'attachments', name);
+    // A relative public folder must keep its ./ prefix, otherwise Sveltia treats it as /attachments.
+    assert.equal(byName[name].public_folder, './attachments', name);
+  }
+  for (const name of ['dailies', 'library']) {
+    assert.equal(byName[name].path, undefined, name);
+    assert.equal(byName[name].media_folder, 'attachments', name);
+    assert.equal(byName[name].public_folder, './attachments', name);
+  }
+  // Projects are a folder tree: index.md is the project page, deeper index.md files are its documents.
+  assert.deepEqual(byName.projects.nested, { depth: 3 });
+  assert.deepEqual(byName.projects.meta, { path: { index_file: 'index' } });
+  assert.equal(byName.projects.preview_path, 'projects/{{slug}}/');
+  assert.equal(byName.insight.nested, undefined);
+});
+
 test('tag URLs handle reserved characters and cannot collide with encoded slugs', () => {
   const tags = ['中文', 'C++', 'C#', 'AI/ML', 'AI~2FML', 'a%b', 'a?b', '.', '..', 'tool', 'Tool', 'con'];
   const slugs = tags.map(tagSlug);

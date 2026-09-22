@@ -105,6 +105,8 @@ export const zh = {
     status: { active: '进行中', done: '已完成', archived: '已归档', idea: '想法' } as Record<string, string>,
     featured: '精选',
     none: '还没有项目。',
+    docs: '📎 项目文档',
+    backTo: (name: string) => `← ${name}`,
   },
   tags: {
     badge: '🏷️ 标签',
@@ -181,6 +183,16 @@ export const zh = {
     expandNote: '展开批注',
     readingProgress: '阅读进度',
     bibtex: 'BibTeX',
+  },
+  /** Markdown 扩展语法里出现的文字（docs/SYNTAX.md） */
+  md: {
+    note: '展开批注',
+    reveal: '显示被遮住的内容',
+    fold: '展开',
+    postit: { tip: '💡 提示', warn: '⚠️ 注意', info: '📌 说明', question: '❓ 疑问' } as Record<string, string>,
+    play: '播放',
+    embed: '嵌入页面',
+    bookmark: '打开链接 →',
   },
   search: {
     label: '搜索',

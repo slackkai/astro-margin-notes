@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>两连杆机械臂 · 逆运动学演示</title>
+<style>
+  /* 站点会把 --paper、--pencil、--marker 等变量以及 data-theme / data-palette 同步到 <html>，
+     这里只引用它们并给出回退值，独立打开时也能看。 */
+  html, body { margin: 0; background: transparent; }
+  body { font-family: var(--font-body, 'LXGW WenKai Screen', 'KaiTi', 'STKaiti', sans-serif); color: var(--pencil, #1f2433); }
+  .stage {
+    position: relative; width: 100%; aspect-ratio: 16 / 9; cursor: crosshair; touch-action: none; overflow: hidden;
+    background-color: var(--paper, #f6f7f4);
+    background-image: radial-gradient(var(--erased, #e0e3e0) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+  .hint { position: absolute; left: 0.8rem; bottom: 0.5rem; font-size: 0.85rem; color: var(--pencil-60, rgba(31, 36, 51, 0.6)); pointer-events: none; }
+  .readout { position: absolute; right: 0.8rem; top: 0.5rem; font-family: var(--font-mono, monospace); font-size: 0.8rem; color: var(--pencil-60, rgba(31, 36, 51, 0.6)); pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="c"></canvas>
+  <div class="readout" id="readout"></div>
+  <div class="hint">移动指针，机械臂会去够它；没有指针时它自己画圈。</div>
+</div>
+<script>
+(() => {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const readout = document.getElementById('readout');
+  const stage = canvas.parentElement;
+  const L1 = 0.42, L2 = 0.34; // 连杆长度，相对舞台高度
+  let target = null, t0 = performance.now(), w = 0, h = 0;
+  const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+  function resize() {
+    const r = stage.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    w = r.width; h = r.height;
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  // 铅笔线：中点稍微偏一点，看起来是手画的
+  function pencilLine(x1, y1, x2, y2, color, width) {
+    ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round';
+    const mx = (x1 + x2) / 2 + Math.sin(x1 * 0.05 + y2 * 0.03) * 3;
+    const my = (y1 + y2) / 2 + Math.cos(x2 * 0.04 - y1 * 0.06) * 3;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.quadraticCurveTo(mx, my, x2, y2); ctx.stroke();
+  }
+  // 两连杆逆运动学（肘部朝上解）；够不着的目标取可达边界
+  function ik(x, y, l1, l2) {
+    const d = Math.min(Math.hypot(x, y), l1 + l2 - 1e-3);
+    const a = Math.atan2(y, x);
+    const c2 = (d * d - l1 * l1 - l2 * l2) / (2 * l1 * l2);
+    const t2 = Math.acos(Math.max(-1, Math.min(1, c2)));
+    const t1 = a - Math.atan2(l2 * Math.sin(t2), l1 + l2 * Math.cos(t2));
+    return [t1, t2];
+  }
+  function frame(now) {
+    const pencil = css('--pencil') || '#1f2433', marker = css('--marker') || '#c4562f';
+    const pen = css('--pen') || '#3b4f9e', paper2 = css('--paper-2') || '#ffffff';
+    ctx.clearRect(0, 0, w, h);
+    const base = { x: w * 0.5, y: h * 0.84 }, l1 = h * L1, l2 = h * L2;
+    let tx, ty;
+    if (target) { tx = target.x; ty = target.y; }
+    else { const s = (now - t0) / 1000; tx = base.x + Math.cos(s * 0.9) * h * 0.4; ty = base.y - h * 0.34 - Math.sin(s * 1.8) * h * 0.22; }
+    const [t1, t2] = ik(tx - base.x, base.y - ty, l1, l2); // 画布 y 向下，这里翻成向上
+    const elbow = { x: base.x + Math.cos(t1) * l1, y: base.y - Math.sin(t1) * l1 };
+    const tip = { x: elbow.x + Math.cos(t1 + t2) * l2, y: elbow.y - Math.sin(t1 + t2) * l2 };
+    // 底座
+    ctx.fillStyle = paper2; ctx.strokeStyle = pencil; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.roundRect(base.x - 36, base.y - 6, 72, 18, 6); ctx.fill(); ctx.stroke();
+    pencilLine(base.x - 64, base.y + 14, base.x + 64, base.y + 14, pencil, 2.5);
+    // 连杆与关节
+    pencilLine(base.x, base.y, elbow.x, elbow.y, pencil, 7);
+    pencilLine(elbow.x, elbow.y, tip.x, tip.y, pencil, 5);
+    for (const p of [base, elbow]) { ctx.fillStyle = paper2; ctx.strokeStyle = pencil; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+    // 夹爪
+    ctx.strokeStyle = pen; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    for (const s of [-1, 1]) { const a = t1 + t2 + s * 0.5; ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.lineTo(tip.x + Math.cos(a) * 16, tip.y - Math.sin(a) * 16); ctx.stroke(); }
+    // 目标：红笔画的十字准星
+    ctx.strokeStyle = marker; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.arc(tx, ty, 11, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    pencilLine(tx - 15, ty, tx + 15, ty, marker, 2); pencilLine(tx, ty - 15, tx, ty + 15, marker, 2);
+    readout.textContent = `θ1 = ${(t1 * 180 / Math.PI).toFixed(0)}°   θ2 = ${(t2 * 180 / Math.PI).toFixed(0)}°`;
+    requestAnimationFrame(frame);
+  }
+  stage.addEventListener('pointermove', event => { const r = stage.getBoundingClientRect(); target = { x: event.clientX - r.left, y: event.clientY - r.top }; });
+  stage.addEventListener('pointerleave', () => { target = null; t0 = performance.now(); });
+  new ResizeObserver(resize).observe(stage);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

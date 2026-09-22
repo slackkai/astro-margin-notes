@@ -6,6 +6,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
+import '../styles/markdown.css';
 
 interface Props {
   title?: string;
@@ -38,5 +39,8 @@ const noindex = hiddenSection || section === '404' || section === 'drafts' || se
       <slot />
     </main>
     <Footer signoff={signoff} />
+    <script>
+      import '../scripts/prose';
+    </script>
   </body>
 </html>

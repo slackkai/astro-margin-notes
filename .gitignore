@@ -36,3 +36,6 @@ public/admin/vendor/
 public/admin/config.yml
 .env.*
 !.env.example
+
+# generated CMS preview stylesheet (scripts/prepare-cms.mjs)
+public/admin/preview.css
