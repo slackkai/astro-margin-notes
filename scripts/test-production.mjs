@@ -86,7 +86,7 @@ try {
   // The syntax showcase project exercises every directive family (docs/SYNTAX.md).
   const showcase = await readFile('dist/projects/syntax-showcase/index.html', 'utf8');
   for (const needle of ['class="sticky sticky-tip"', 'class="note-block"', 'class="photos photos-scatter"', 'class="fold"', 'class="steps-list"', 'class="layout layout-wide"',
-    'class="pen pen-hide"', 'class="stamp stamp-green"', 'class="mark mark-yellow"', 'class="media taped media-video"', 'class="media-facade"', 'class="embed-snippet"', 'class="bookmark hand-card is-link"',
+    'class="pen pen-hide"', 'class="stamp stamp-green"', 'class="mark mark-yellow"', 'class="media-frame taped media-video"', 'class="media-facade"', 'class="embed-snippet"', 'class="bookmark hand-card is-link"',
     'src="/test-site/projects/syntax-showcase/attachments/ik-arm/"', 'src="/test-site/projects/syntax-showcase/attachments/arm-demo.mp4"']) {
     assert.ok(showcase.includes(needle), `showcase page missing ${needle}`);
   }

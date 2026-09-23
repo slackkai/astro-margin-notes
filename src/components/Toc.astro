@@ -3,8 +3,9 @@ import { withBase } from '../utils/url';
 import { t } from '../i18n';
 /**
  * 文章目录：宽屏时贴在左侧页边，随滚动高亮当前章节；窄屏折叠为可展开块。
- * 两级结构（h2 下挂 h3）。宽屏下目录放不下时自动只展开当前章节的子目录；
- * 仍然放不下时目录自身可滚动，并随页面滚动把当前条目保持在可见范围内。
+ * 三级结构：顶层取正文里最高一级的标题（多数文章是 h2，用 h1 分节的文章则是 h1），
+ * 下面再挂两级。宽屏下目录放不下时按顺序折叠低级标题——先收起第三级，仍放不下再收起第二级，
+ * 当前章节所在的分支始终展开；折叠后仍放不下则目录自身滚动，并随页面滚动保持当前条目可见。
  * 用法：const { headings } = await render(post); <Toc headings={headings} />
  */
 interface Heading {
@@ -17,17 +18,26 @@ interface Props {
   minDepth?: number;
   maxDepth?: number;
 }
-// 默认取正文里最高一级标题作为顶层（多数文章是 h2；用 h1 分节的文章则以 h1 为顶层），再挂一级子标题。
+type Node = { heading: Heading; children: Node[] };
 const topDepth = Math.max(1, Math.min(2, ...Astro.props.headings.map((h) => h.depth)));
-const { headings, minDepth = topDepth, maxDepth = minDepth + 1 } = Astro.props;
+const { headings, minDepth = topDepth, maxDepth = minDepth + 2 } = Astro.props;
 const items = headings.filter((h) => h.depth >= minDepth && h.depth <= maxDepth);
-// 顶层是 minDepth 的标题，更深的标题挂在前一个顶层标题下；没有父级的深层标题自成一项。
-const tree: { heading: Heading; children: Heading[] }[] = [];
+// 按标题层级建树；跳级的标题挂在最近的上一级下面。
+const tree: Node[] = [];
+const stack: Node[] = [];
 for (const heading of items) {
-  const parent = tree.at(-1);
-  if (heading.depth === minDepth || !parent) tree.push({ heading, children: [] });
-  else parent.children.push(heading);
+  const node: Node = { heading, children: [] };
+  while (stack.length > 0 && stack[stack.length - 1].heading.depth >= heading.depth) stack.pop();
+  (stack.length > 0 ? stack[stack.length - 1].children : tree).push(node);
+  stack.push(node);
 }
+const escape = (value: string) => value.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+const renderList = (nodes: Node[], level: number): string =>
+  `<ul class="${level === 1 ? 'toc-list' : `toc-children l${level}`}">` +
+  nodes.map((node) =>
+    `<li class="toc-item d${level}"><a href="${escape(withBase(`#${node.heading.slug}`))}" data-slug="${escape(node.heading.slug)}">${escape(node.heading.text)}</a>` +
+    (node.children.length > 0 ? renderList(node.children, level + 1) : '') + '</li>').join('') +
+  '</ul>';
 ---
 
 {
@@ -35,32 +45,13 @@ for (const heading of items) {
     <nav class="toc" id="toc" aria-label={t.post.toc}>
       <details class="toc-details">
         <summary class="toc-title">{t.post.toc}</summary>
-        <ul class="toc-list">
-          {tree.map(({ heading, children }) => (
-            <li class:list={['toc-item', `d${heading.depth}`]}>
-              <a href={withBase(`#${heading.slug}`)} data-slug={heading.slug}>
-                {heading.text}
-              </a>
-              {children.length > 0 && (
-                <ul class="toc-children">
-                  {children.map((child) => (
-                    <li class:list={['toc-item', `d${child.depth}`]}>
-                      <a href={withBase(`#${child.slug}`)} data-slug={child.slug}>
-                        {child.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ul>
+        <Fragment set:html={renderList(tree, 1)} />
       </details>
     </nav>
   )
 }
 
-<style>
+<style is:global>
   .toc {
     max-width: var(--max-w-prose);
     margin: 0 auto 2rem;
@@ -92,19 +83,16 @@ for (const heading of items) {
     list-style: none;
     margin: 0;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
   }
   .toc-list {
     position: relative;
     margin-top: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
   }
   .toc-children {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    margin-top: 0.1rem;
+    margin-top: 0.15rem;
   }
   .toc-item a {
     display: block;
@@ -112,12 +100,17 @@ for (const heading of items) {
     border-left: 2px solid transparent;
     color: var(--pencil-60);
     font-size: 0.95rem;
-    line-height: 1.5;
-    transition: all 0.12s ease;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    transition: color 0.12s ease, border-color 0.12s ease;
+  }
+  .toc-item.d2 a {
+    padding-left: 1.2rem;
+    font-size: 0.88rem;
   }
   .toc-item.d3 a {
-    padding-left: 1.4rem;
-    font-size: 0.88rem;
+    padding-left: 1.9rem;
+    font-size: 0.82rem;
   }
   .toc-item a:hover {
     color: var(--pencil);
@@ -125,7 +118,6 @@ for (const heading of items) {
   .toc-item a.is-active {
     color: var(--marker);
     border-left-color: var(--marker);
-    transform: translateX(2px);
   }
   .toc-item.is-current > a {
     color: var(--pencil);
@@ -157,30 +149,38 @@ for (const heading of items) {
     }
     .toc-list {
       border-left: 2px dashed var(--pencil-25);
-      /* 放不下时目录自身滚动，脚本会把当前条目保持在可见范围内 */
+      /* 折叠后仍放不下时目录自身滚动；不显示滚动条，脚本随页面滚动保持当前条目可见 */
       max-height: calc(100vh - 8rem);
       overflow-y: auto;
+      overflow-x: hidden;
       overscroll-behavior: contain;
-      scrollbar-width: thin;
-      scrollbar-color: var(--pencil-25) transparent;
+      scrollbar-width: none;
+    }
+    .toc-list::-webkit-scrollbar {
+      display: none;
+    }
+    /* 可滚动时上下边缘淡出，提示还有内容 */
+    .toc-list.is-scrollable {
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 1.5rem, #000 calc(100% - 1.5rem), transparent);
+      mask-image: linear-gradient(to bottom, transparent, #000 1.5rem, #000 calc(100% - 1.5rem), transparent);
     }
     .toc-item a {
       margin-left: -2px;
     }
-    /* 目录过长：只展开当前章节的子目录 */
-    .toc.is-compact .toc-children {
+    /* 目录过长：先收起第三级，再收起第二级；当前章节所在分支保持展开 */
+    .toc.is-fold-3 .toc-children.l3,
+    .toc.is-fold-2 .toc-children.l2 {
       display: none;
     }
-    .toc.is-compact .toc-item.is-current > .toc-children {
+    .toc.is-fold-3 .toc-item.is-current > .toc-children.l3,
+    .toc.is-fold-2 .toc-item.is-current > .toc-children.l2 {
       display: flex;
     }
-    .toc.is-compact .toc-item.d2:has(.toc-children) > a::after {
+    .toc.is-fold-3 .toc-item.d2:has(> .toc-children):not(.is-current) > a::after,
+    .toc.is-fold-2 .toc-item.d1:has(> .toc-children):not(.is-current) > a::after {
       content: ' ▸';
       font-size: 0.7em;
       color: var(--pencil-45);
-    }
-    .toc.is-compact .toc-item.d2.is-current:has(.toc-children) > a::after {
-      content: ' ▾';
     }
   }
 </style>
@@ -211,31 +211,43 @@ for (const heading of items) {
     syncOpen();
     wide.addEventListener('change', syncOpen, { signal });
 
-    // 宽屏下整份目录放不下视口时进入紧凑模式：只展开当前章节的子目录。
-    const measure = () => {
-      toc.classList.remove('is-compact');
-      if (!wide.matches) return;
-      const available = window.innerHeight - list.getBoundingClientRect().top - 32;
-      if (list.scrollHeight > available) toc.classList.add('is-compact');
+    // 目录仍然放不下时，随页面滚动把当前条目滚到目录中间。
+    const follow = () => {
+      const scrollable = list.scrollHeight > list.clientHeight + 1;
+      list.classList.toggle('is-scrollable', scrollable);
+      const active = list.querySelector<HTMLElement>('a.is-active');
+      if (active && scrollable) {
+        list.scrollTop = active.offsetTop - list.clientHeight / 2 + active.offsetHeight / 2;
+      }
+    };
+    // 宽屏下整份目录放不下视口时按顺序折叠：先第三级，再第二级；当前分支保持展开。
+    const fit = () => {
+      toc.classList.remove('is-fold-2', 'is-fold-3');
+      if (wide.matches) {
+        const available = () => window.innerHeight - list.getBoundingClientRect().top - 32;
+        if (list.scrollHeight > available()) toc.classList.add('is-fold-3');
+        if (list.scrollHeight > available()) toc.classList.add('is-fold-2');
+      }
+      follow();
     };
 
     let current = '';
-    const setActive = (slug: string, force = false) => {
-      if (slug === current && !force) return;
+    const setActive = (slug: string) => {
+      if (slug === current) return;
       current = slug;
-      let active: HTMLAnchorElement | undefined;
-      links.forEach((a) => {
+      toc.querySelectorAll('.is-current').forEach((item) => item.classList.remove('is-current'));
+      for (const a of links) {
         const on = a.dataset.slug === slug;
         a.classList.toggle('is-active', on);
-        if (on) active = a;
-      });
-      const section = active?.closest('.toc-item.d2') ?? active?.closest('.toc-item');
-      toc.querySelectorAll('.toc-item.is-current').forEach((item) => item.classList.toggle('is-current', item === section));
-      section?.classList.add('is-current');
-      // 目录仍然放不下时，随页面滚动把当前条目滚到目录中间。
-      if (active && list.scrollHeight > list.clientHeight + 1) {
-        list.scrollTop = active.offsetTop - list.clientHeight / 2 + active.offsetHeight / 2;
+        if (!on) continue;
+        // 当前条目的每一级祖先都标记为当前分支，这样折叠时它们的子目录保持展开。
+        let item = a.parentElement;
+        while (item && item !== list) {
+          if (item.classList.contains('toc-item')) item.classList.add('is-current');
+          item = item.parentElement;
+        }
       }
+      fit();
     };
     // 取视口顶部（留出 sticky 导航栏高度）以上最近的一个标题作为当前章节。
     // 用 getBoundingClientRect 而非 offsetTop：后者相对定位父元素，容器一旦 relative 就会算错。
@@ -255,12 +267,10 @@ for (const heading of items) {
     let resizeTimer: ReturnType<typeof setTimeout> | undefined;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => { measure(); setActive(current, true); }, 120);
+      resizeTimer = setTimeout(fit, 120);
     }, { signal });
     window.addEventListener('scroll', update, { passive: true, signal });
-    measure();
     update();
-    setActive(current, true);
   }
   initToc();
   document.addEventListener('astro:page-load', initToc);

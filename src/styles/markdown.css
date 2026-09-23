@@ -523,7 +523,7 @@ html[data-theme='dark'] .stamp {
 }
 
 /* ---------- 视频 ::video 与嵌入 ::embed：贴在纸上的相框 ---------- */
-.media {
+.media-frame {
   position: relative;
   margin: 2.2rem 0.4rem;
   padding: 0.6rem;
@@ -532,9 +532,9 @@ html[data-theme='dark'] .stamp {
   border-radius: 6px;
   box-shadow: var(--shadow-soft);
 }
-.media video,
-.media iframe,
-.media .media-facade {
+.media-frame video,
+.media-frame iframe,
+.media-frame .media-facade {
   display: block;
   width: 100%;
   margin: 0;
@@ -542,7 +542,7 @@ html[data-theme='dark'] .stamp {
   border-radius: 2px;
   background: var(--erased);
 }
-.media video {
+.media-frame video {
   height: auto;
 }
 .media-embed .media-facade,
@@ -592,7 +592,7 @@ html[data-theme='dark'] .stamp {
   box-shadow: var(--shadow-hand-sm);
   transform: translate(2px, 2px);
 }
-.media figcaption,
+.media-frame figcaption,
 .embed-caption {
   margin: 0.5rem 0 0;
   text-align: center;

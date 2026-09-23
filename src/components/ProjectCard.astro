@@ -79,7 +79,8 @@ const links = [
     flex-direction: column;
     transform: rotate(var(--r));
     height: 100%;
-    overflow: visible;
+    /* 封面按卡片的手绘圆角裁切，不再盖住边框 */
+    overflow: hidden;
   }
   .proj:hover {
     transform: rotate(calc(var(--r) - 0.5deg)) translate(-1px, -1px);

@@ -226,7 +226,7 @@ CMS.registerEditorComponent({
   toBlock: ({ source = 'file', file, id, caption, poster, loop }) =>
     `::video${bracket(caption)}${attrs([[source === 'file' ? 'src' : source, source === 'file' ? file : oneLine(id)], ['poster', poster], ['loop', !!loop]])}`,
   toPreview: ({ source = 'file', file, id, caption, poster }) =>
-    `<figure class="media"><div class="media-facade" style="aspect-ratio:16/9">${poster ? `<img src="${escapeHtml(poster)}" alt="">` : ''}<span class="media-play">▶ ${source === 'file' ? escapeHtml(file || '视频') : `${source} · ${escapeHtml(id || '')}`}</span></div>${caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : ''}</figure>`,
+    `<figure class="media-frame"><div class="media-facade" style="aspect-ratio:16/9">${poster ? `<img src="${escapeHtml(poster)}" alt="">` : ''}<span class="media-play">▶ ${source === 'file' ? escapeHtml(file || '视频') : `${source} · ${escapeHtml(id || '')}`}</span></div>${caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : ''}</figure>`,
 });
 
 CMS.registerEditorComponent({
@@ -248,7 +248,7 @@ CMS.registerEditorComponent({
   },
   toBlock: ({ kind = 'page', path, caption, height }) => `::embed${bracket(caption)}${attrs([[kind, path], ['height', kind === 'page' ? height : undefined]])}`,
   toPreview: ({ kind = 'page', path, caption }) =>
-    `<figure class="media"><div class="media-facade" style="aspect-ratio:16/6"><span class="media-play">${kind === 'snippet' ? '片段' : '嵌入页面'} · ${escapeHtml(path || '')}</span></div>${caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : ''}</figure>`,
+    `<figure class="media-frame"><div class="media-facade" style="aspect-ratio:16/6"><span class="media-play">${kind === 'snippet' ? '片段' : '嵌入页面'} · ${escapeHtml(path || '')}</span></div>${caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : ''}</figure>`,
 });
 
 CMS.registerEditorComponent({

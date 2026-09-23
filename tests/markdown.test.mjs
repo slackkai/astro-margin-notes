@@ -110,7 +110,7 @@ test('folds, steps and layouts', async () => {
 
 test('videos: local files, click-to-load YouTube and Bilibili', async () => {
   assert.equal(await render('::video[演示]{src=./attachments/run.mp4 poster=./attachments/poster.webp loop}'),
-    '<figure class="media taped media-video"><video src="/projects/demo/attachments/run.mp4" poster="/projects/demo/attachments/poster.webp" controls playsinline preload="metadata" loop muted autoplay></video><figcaption>演示</figcaption></figure>');
+    '<figure class="media-frame taped media-video"><video src="/projects/demo/attachments/run.mp4" poster="/projects/demo/attachments/poster.webp" controls playsinline preload="metadata" loop muted autoplay></video><figcaption>演示</figcaption></figure>');
   const youtube = await render('::video{youtube=dQw4w9WgXcQ}');
   assert.ok(youtube.includes('<a class="media-facade" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" data-embed="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1" target="_blank" rel="noopener"><span class="media-play">▶ 播放 · YouTube</span></a>'), youtube);
   assert.ok((await render('::video{bilibili=BV1GJ411x7h7}')).includes('data-embed="https://player.bilibili.com/player.html?bvid=BV1GJ411x7h7&#x26;autoplay=1'));
@@ -121,7 +121,7 @@ test('videos: local files, click-to-load YouTube and Bilibili', async () => {
 
 test('embeds: same-origin pages and inlined snippets', async () => {
   assert.equal(await render('::embed[交互演示]{page=./attachments/demo height=320}'),
-    '<figure class="media taped media-page"><iframe class="embed-page" src="/projects/demo/attachments/demo/" loading="lazy" title="嵌入页面" style="height:320px" data-fixed="true"></iframe><figcaption>交互演示</figcaption></figure>');
+    '<figure class="media-frame taped media-page"><iframe class="embed-page" src="/projects/demo/attachments/demo/" loading="lazy" title="嵌入页面" style="height:320px" data-fixed="true"></iframe><figcaption>交互演示</figcaption></figure>');
   assert.ok((await render('::embed{page=./attachments/demo/index.html}')).includes('src="/projects/demo/attachments/demo/index.html" loading="lazy" title="嵌入页面"></iframe>'));
   assert.equal(await render('::embed[图]{snippet=./attachments/figure.html}'),
     '<div class="embed-snippet"><figure><img src="/projects/demo/attachments/plot.svg" alt=""><figcaption>Plot</figcaption></figure>\n<p class="embed-caption">图</p></div>');

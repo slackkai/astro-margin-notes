@@ -177,7 +177,7 @@ export const directives = {
         kind = 'media-embed';
         media = facade({ href: `https://www.bilibili.com/video/${bilibili}/`, embed: `https://player.bilibili.com/player.html?bvid=${bilibili}&autoplay=1&high_quality=1&danmaku=0`, site: 'Bilibili', poster, labels: ctx.labels });
       } else return false;
-      set(node, 'figure', { className: ['media', 'taped', kind] }, [media, ...caption]);
+      set(node, 'figure', { className: ['media-frame', 'taped', kind] }, [media, ...caption]);
     },
   },
   embed: {
@@ -196,7 +196,7 @@ export const directives = {
       let src = ctx.resolve(String(attrs.page));
       if (!/\.[a-z0-9]+$/i.test(src) && !src.endsWith('/')) src += '/';
       const height = attrs.height !== undefined ? int(attrs.height, 80, 4000, 480) : undefined;
-      set(node, 'figure', { className: ['media', 'taped', 'media-page'] }, [
+      set(node, 'figure', { className: ['media-frame', 'taped', 'media-page'] }, [
         el('iframe', { className: ['embed-page'], src, loading: 'lazy', title: attrs.title ? String(attrs.title) : ctx.labels.embed, style: height ? `height:${height}px` : undefined, dataFixed: height ? 'true' : undefined }),
         ...caption,
       ]);
