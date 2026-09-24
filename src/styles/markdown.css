@@ -789,17 +789,17 @@ html[data-theme='dark'] .stamp {
   text-align: center;
   transition: opacity 0.15s;
 }
-.prose .code-copy .code-copy-action {
+/* 默认显示语言名；悬停或聚焦显示 Copy；点击后显示 Copied / Failed，结束后直接回到语言名 */
+.prose .code-copy > span:not(.code-copy-lang) {
   opacity: 0;
 }
-.prose .code-copy:hover .code-copy-lang,
-.prose .code-copy:focus-visible .code-copy-lang,
+.prose .code-copy:is(:hover, :focus-visible):not([data-state]) .code-copy-lang,
 .prose .code-copy[data-state] .code-copy-lang {
   opacity: 0;
 }
-.prose .code-copy:hover .code-copy-action,
-.prose .code-copy:focus-visible .code-copy-action,
-.prose .code-copy[data-state] .code-copy-action {
+.prose .code-copy:is(:hover, :focus-visible):not([data-state]) .code-copy-copy,
+.prose .code-copy[data-state='done'] .code-copy-done,
+.prose .code-copy[data-state='fail'] .code-copy-fail {
   opacity: 1;
 }
 

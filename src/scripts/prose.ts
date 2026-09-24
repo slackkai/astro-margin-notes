@@ -80,13 +80,19 @@ function addCopyButton(pre: HTMLPreElement) {
   button.type = 'button';
   button.className = 'code-copy';
   button.setAttribute('aria-label', COPY.copy);
-  const lang = document.createElement('span');
-  lang.className = 'code-copy-lang';
-  lang.textContent = languageName(pre.dataset.language);
-  const action = document.createElement('span');
-  action.className = 'code-copy-action';
-  action.textContent = COPY.copy;
-  button.append(lang, action);
+  // 所有文字叠在同一格里，胶带宽度固定为最长的那个，切换时不会伸缩
+  const label = (cls: string, text: string) => {
+    const span = document.createElement('span');
+    span.className = cls;
+    span.textContent = text;
+    return span;
+  };
+  button.append(
+    label('code-copy-lang', languageName(pre.dataset.language)),
+    label('code-copy-copy', COPY.copy),
+    label('code-copy-done', COPY.done),
+    label('code-copy-fail', COPY.fail),
+  );
   let timer: number | undefined;
   button.addEventListener('click', async () => {
     const code = pre.querySelector('code') ?? pre;
@@ -95,19 +101,11 @@ function addCopyButton(pre: HTMLPreElement) {
     try {
       await copyText((clone.textContent ?? '').replace(/\s+$/, ''));
       button.dataset.state = 'done';
-      action.textContent = COPY.done;
     } catch {
       button.dataset.state = 'fail';
-      action.textContent = COPY.fail;
     }
     window.clearTimeout(timer);
-    timer = window.setTimeout(() => {
-      delete button.dataset.state;
-      // 等 Copied 淡出后再换回 Copy，避免离开时闪一下 Copy
-      timer = window.setTimeout(() => {
-        if (!button.dataset.state) action.textContent = COPY.copy;
-      }, 200);
-    }, 1600);
+    timer = window.setTimeout(() => delete button.dataset.state, 1600);
   });
   pre.prepend(button);
 }
