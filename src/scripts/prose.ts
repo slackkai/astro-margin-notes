@@ -58,7 +58,7 @@ function attach(frame: HTMLIFrameElement) {
 const COPY = { copy: 'Copy', done: 'Copied', fail: 'Failed' };
 
 function languageName(lang: string | undefined) {
-  return lang || 'plaintext';
+  return lang || 'plain';
 }
 
 async function copyText(text: string) {
@@ -103,7 +103,10 @@ function addCopyButton(pre: HTMLPreElement) {
     window.clearTimeout(timer);
     timer = window.setTimeout(() => {
       delete button.dataset.state;
-      action.textContent = COPY.copy;
+      // 等 Copied 淡出后再换回 Copy，避免离开时闪一下 Copy
+      timer = window.setTimeout(() => {
+        if (!button.dataset.state) action.textContent = COPY.copy;
+      }, 200);
     }, 1600);
   });
   pre.prepend(button);
