@@ -15,6 +15,9 @@ jobs:
     concurrency:
       group: pages-build
       cancel-in-progress: true
+    permissions:
+      contents: read
+      pages: read # configure-pages 读取站点地址与 base path
     steps:
       - name: Checkout
         uses: actions/checkout@v4

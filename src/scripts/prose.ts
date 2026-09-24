@@ -55,8 +55,7 @@ function attach(frame: HTMLIFrameElement) {
   if (doc && doc.readyState === 'complete' && doc.location.href !== 'about:blank') ready();
 }
 
-const zh = document.documentElement.lang.toLowerCase().startsWith('zh');
-const COPY = zh ? { copy: '复制', done: '已复制', fail: '复制失败' } : { copy: 'Copy', done: 'Copied', fail: 'Failed' };
+const COPY = { copy: 'Copy', done: 'Copied', fail: 'Failed' };
 
 function languageName(lang: string | undefined) {
   if (!lang || lang === 'plaintext' || lang === 'text' || lang === 'txt') return 'plain text';
