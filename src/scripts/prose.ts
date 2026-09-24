@@ -3,6 +3,7 @@
  *   - ::video{youtube=…|bilibili=…} renders a facade; the player loads only after a click
  *   - ::embed{page=…} iframes are same-origin, so they get the site's colour tokens and theme
  *     attributes and grow to the height of their content unless a height was given
+ *   - code blocks get a language tag that turns into a copy button on hover
  */
 const TOKENS = [
   '--paper', '--paper-2', '--erased', '--pencil', '--pencil-60', '--pencil-45', '--pencil-25', '--pencil-12',
@@ -54,8 +55,65 @@ function attach(frame: HTMLIFrameElement) {
   if (doc && doc.readyState === 'complete' && doc.location.href !== 'about:blank') ready();
 }
 
+const zh = document.documentElement.lang.toLowerCase().startsWith('zh');
+const COPY = zh ? { copy: '复制', done: '已复制', fail: '复制失败' } : { copy: 'Copy', done: 'Copied', fail: 'Failed' };
+
+function languageName(lang: string | undefined) {
+  if (!lang || lang === 'plaintext' || lang === 'text' || lang === 'txt') return 'plain text';
+  return lang;
+}
+
+async function copyText(text: string) {
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+  const area = document.createElement('textarea');
+  area.value = text;
+  area.setAttribute('readonly', '');
+  area.style.cssText = 'position:fixed;opacity:0';
+  document.body.append(area);
+  area.select();
+  const ok = document.execCommand('copy');
+  area.remove();
+  if (!ok) throw new Error('copy failed');
+}
+
+function addCopyButton(pre: HTMLPreElement) {
+  if (pre.querySelector(':scope > .code-copy')) return;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'code-copy';
+  button.setAttribute('aria-label', COPY.copy);
+  const lang = document.createElement('span');
+  lang.className = 'code-copy-lang';
+  lang.textContent = languageName(pre.dataset.language);
+  const action = document.createElement('span');
+  action.className = 'code-copy-action';
+  action.textContent = COPY.copy;
+  button.append(lang, action);
+  let timer: number | undefined;
+  button.addEventListener('click', async () => {
+    const code = pre.querySelector('code') ?? pre;
+    const clone = code.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('.code-copy').forEach((el) => el.remove());
+    try {
+      await copyText((clone.textContent ?? '').replace(/\s+$/, ''));
+      button.dataset.state = 'done';
+      action.textContent = COPY.done;
+    } catch {
+      button.dataset.state = 'fail';
+      action.textContent = COPY.fail;
+    }
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      delete button.dataset.state;
+      action.textContent = COPY.copy;
+    }, 1600);
+  });
+  pre.prepend(button);
+}
+
 function init() {
   document.querySelectorAll<HTMLIFrameElement>('iframe.embed-page').forEach(attach);
+  document.querySelectorAll<HTMLPreElement>('.prose pre').forEach(addCopyButton);
 }
 
 document.addEventListener('click', (event) => {

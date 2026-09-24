@@ -38,7 +38,7 @@
   --font-body: 'LXGW WenKai Screen', 'WenKai Fallback', 'KaiTi', 'STKaiti', 'Noto Sans SC', 'PingFang SC',
     'Microsoft YaHei', sans-serif;
   --font-heading: var(--font-body);
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', 'LXGW WenKai Screen', 'WenKai Fallback', monospace;
   --radius-wobble: 255px 15px 225px 15px / 15px 225px 15px 255px;
   --radius-wobble-sm: 180px 15px 180px 15px / 15px 180px 15px 180px;
   --radius-pill: 999px 18px 999px 18px / 18px 999px 18px 999px;

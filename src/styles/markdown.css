@@ -764,15 +764,15 @@ html[data-theme='dark'] .stamp {
   color: var(--pencil-60);
 }
 
-/* 代码块：右上角胶带贴出语言名 */
+/* 代码块：右上角胶带贴出语言名，悬停时变成复制按钮（src/scripts/prose.ts） */
 .prose pre {
   position: relative;
 }
-.prose pre[data-language]:not([data-language='plaintext']):not([data-language='text'])::before {
-  content: attr(data-language);
+.prose .code-copy {
   position: absolute;
   top: 0.35rem;
   right: 0.7rem;
+  display: grid;
   padding: 0 0.6rem;
   font-family: var(--font-mono);
   font-size: 0.7rem;
@@ -780,8 +780,34 @@ html[data-theme='dark'] .stamp {
   color: var(--pencil-60);
   background: var(--tape);
   border: 1px solid var(--pencil-12);
+  border-radius: 0;
   transform: rotate(2deg);
-  pointer-events: none;
+  cursor: pointer;
+  transition: color 0.15s, transform 0.15s;
+}
+.prose .code-copy > span {
+  grid-area: 1 / 1;
+  text-align: center;
+  transition: opacity 0.15s;
+}
+.prose .code-copy .code-copy-action {
+  opacity: 0;
+}
+.prose .code-copy:hover,
+.prose .code-copy:focus-visible,
+.prose .code-copy[data-state] {
+  color: var(--pencil);
+  transform: rotate(0deg);
+}
+.prose .code-copy:hover .code-copy-lang,
+.prose .code-copy:focus-visible .code-copy-lang,
+.prose .code-copy[data-state] .code-copy-lang {
+  opacity: 0;
+}
+.prose .code-copy:hover .code-copy-action,
+.prose .code-copy:focus-visible .code-copy-action,
+.prose .code-copy[data-state] .code-copy-action {
+  opacity: 1;
 }
 
 /* 表格：表头便利贴色 */
