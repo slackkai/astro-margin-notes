@@ -58,8 +58,7 @@ function attach(frame: HTMLIFrameElement) {
 const COPY = { copy: 'Copy', done: 'Copied', fail: 'Failed' };
 
 function languageName(lang: string | undefined) {
-  if (!lang || lang === 'plaintext' || lang === 'text' || lang === 'txt') return 'plain text';
-  return lang;
+  return lang || 'plaintext';
 }
 
 async function copyText(text: string) {
