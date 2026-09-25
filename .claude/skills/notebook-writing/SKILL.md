@@ -44,6 +44,10 @@ npm run new -- dailies morning-run "晨跑"            # 日常自动加日期�
 - giscus 的安装与配置见 `docs/COMMENTS.md`。配置未完整时页面不加载评论；应区分代码验证通过与 GitHub App 已安装、真实评论已成功提交，不代作者发测试评论。
 - 评论配色与网站共用 `src/styles/tokens.css`，iframe 的笔记本样式在 `src/styles/giscus.css`。修改视觉样式时检查深浅色、四套配色和手机宽度；同步主题仓库时保留其空评论仓库配置。
 
+### CMS 内容预览
+
+五个板块的右侧预览由 `public/admin/previews.js` 组织为文章布局；正文继续用 `widgetFor('body')`，图片用 `getAsset`，保留编辑器组件和未保存上传的预览能力。`scripts/prepare-cms.mjs` 生成预览 CSS，复用网站样式并应用 `src/styles/cms-preview.css` 的窄栏调整。新增可见 frontmatter 字段时检查是否应加入模板；不要把所有空字段和后台开关逐项展示。预览不加载真实评论、站点导航或可执行嵌入，完整交互仍需在站点验证。
+
 | 板块 | 额外字段 |
 | --- | --- |
 | academic | `kind: note \| paper \| talk \| course \| project`（默认 note）、`series: { name, order }`、`venue`、`authors: []`、`year`、`links: { pdf, arxiv, doi, code, slides, site }`（都是完整 http 链接）、`bibtex`（多行用 `\|`） |

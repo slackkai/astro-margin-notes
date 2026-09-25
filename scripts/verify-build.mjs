@@ -69,7 +69,7 @@ for (const palette of ['blue', 'classic', 'green', 'mono']) for (const mode of [
 }
 if (!cms.backend.repo || cms.collections.length !== 6) errors.push('CMS configuration missing collections/repository');
 if (!cms.media_libraries?.default?.config?.transformations?.raster_image) errors.push('CMS upload optimization missing');
-for (const name of ['admin/index.html', 'admin/components.js', 'admin/preview.css', 'admin/vendor/sveltia-cms.js', 'admin/vendor/katex.min.js']) {
+for (const name of ['admin/index.html', 'admin/components.js', 'admin/previews.js', 'admin/preview.css', 'admin/vendor/wenkai/lxgwwenkaiscreen.css', 'admin/vendor/sveltia-cms.js', 'admin/vendor/katex.min.js']) {
   await stat(join(root, name)).catch(() => errors.push(`CMS asset missing: ${name}`));
 }
 await stat(join(root, 'pagefind/pagefind.js'));
