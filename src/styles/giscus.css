@@ -61,8 +61,12 @@ button, input, textarea, .markdown { font: inherit; }
 code, pre, .gsc-is-fixed-width { font-family: var(--font-mono); }
 .gsc-main { gap: 1rem; }
 .gsc-header { margin-bottom: 0; }
-.gsc-comment-box, .gsc-comment { border: 2px solid var(--pencil-25); border-radius: var(--radius-wobble-sm); background: var(--paper-2); }
-.gsc-comment-box:not(.gsc-comment-box-is-reply) { border: 2px solid var(--pencil); border-radius: 8px 14px 10px 6px / 6px 8px 12px 10px; box-shadow: var(--shadow-hand-sm); }
+/* gsc-comment is only a wrapper: its direct child already owns the card border.
+   A reply editor is inside that card and must not create a second outer frame. */
+.gsc-comment > div { border: 1px solid var(--pencil-25); border-radius: 8px 12px 10px 6px; background: var(--paper-2); }
+.gsc-comment-box:not(.gsc-comment-box-is-reply) { border: 2px solid var(--pencil); border-radius: 8px 14px 10px 6px / 6px 8px 12px 10px; box-shadow: var(--shadow-hand-sm); background: var(--paper-2); }
+.gsc-comment-box.gsc-comment-box-is-reply { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.gsc-comment .gsc-comment-box-tabs { border-top: 0; border-radius: 0; }
 .gsc-comment-box-tabs { background: var(--paper); border-bottom: 2px dashed var(--pencil-25); border-radius: 6px 12px 0 0; padding: .5rem .75rem; }
 .gsc-comment-box-tabs button { font-family: var(--font-body); }
 .gsc-comment-box-write, .gsc-comment-box-write:focus-within { border: none; box-shadow: none; background: transparent; }
