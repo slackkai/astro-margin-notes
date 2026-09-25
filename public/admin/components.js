@@ -291,4 +291,4 @@ CMS.registerEditorComponent({
   },
 });
 
-CMS.registerPreviewStyle('./preview.css');
+CMS.registerPreviewStyle('./preview.css?v=preview-2');
