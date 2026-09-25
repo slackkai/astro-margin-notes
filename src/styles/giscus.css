@@ -56,12 +56,11 @@ main {
   --color-prettylights-syntax-variable: var(--pencil);
 }
 html, body, main { background: transparent; color: var(--pencil); font-family: var(--font-body); font-size: 16px; line-height: 1.7; }
-/* Avoid an opaque iframe canvas when the system and page color schemes differ. */
-html { color-scheme: normal; }
 main { padding: 4px 5px 8px 1px; }
 button, input, textarea, .markdown { font: inherit; }
 code, pre, .gsc-is-fixed-width { font-family: var(--font-mono); }
-.gsc-header { margin-bottom: 1rem; }
+.gsc-main { gap: 1rem; }
+.gsc-header { margin-bottom: 0; }
 .gsc-comment-box, .gsc-comment { border: 2px solid var(--pencil-25); border-radius: var(--radius-wobble-sm); background: var(--paper-2); }
 .gsc-comment-box:not(.gsc-comment-box-is-reply) { border: 2px solid var(--pencil); border-radius: 8px 14px 10px 6px / 6px 8px 12px 10px; box-shadow: var(--shadow-hand-sm); }
 .gsc-comment-box-tabs { background: var(--paper); border-bottom: 2px dashed var(--pencil-25); border-radius: 6px 12px 0 0; padding: .5rem .75rem; }
