@@ -1,6 +1,6 @@
 /* global CMS, createClass, h */
 // Use Sveltia's supported template API; widgetFor keeps Markdown components and
-// getAsset keeps unsaved uploads/entry-relative paths in the CMS asset lifecycle.
+// image widgets keep asynchronous uploads/entry-relative paths in the CMS lifecycle.
 (() => {
   const sections = { academic: '学术', insight: '洞见', dailies: '日常', library: '资料库', projects: '项目' };
   const labels = {
@@ -19,15 +19,9 @@
   Object.entries(sections).forEach(([section, label]) => {
     CMS.registerPreviewTemplate(section, createClass({
       render() {
-        const { entry, widgetFor, getAsset } = this.props;
+        const { entry, widgetFor } = this.props;
         const d = entry.get('data')?.toJS() ?? {};
         const title = text(d.title) || (section === 'dailies' ? date(d.date) : '') || '未命名文章';
-        const asset = path => {
-          if (!text(path)) return undefined;
-          return getAsset(text(path))?.url || externalUrl(path);
-        };
-        const cover = asset(d.cover);
-        const video = asset(d.video);
         const meta = compactLine([
           date(d.date), d.updated && `更新于 ${date(d.updated)}`,
           text(d.author) || list(d.authors).join('、'), text(d.venue),
@@ -59,13 +53,12 @@
             links.length > 0 && h('nav', { className: 'cms-entry-links', 'aria-label': '相关链接' },
               ...links.map(([name, url]) => h('a', { key: name, href: url, target: '_blank', rel: 'noopener noreferrer' }, `${name} ↗`))),
           ),
-          video ? h('video', { className: 'cms-entry-cover', src: video, poster: cover, controls: true, preload: 'metadata' })
-            : cover && h('img', { className: 'cms-entry-cover', src: cover, alt: title }),
+          text(d.video) ? h('div', { className: 'cms-entry-cover' }, widgetFor('video'))
+            : text(d.cover) && h('div', { className: 'cms-entry-cover' }, widgetFor('cover')),
           text(d.summary) && h('aside', { className: 'cms-entry-summary' }, text(d.summary)),
           text(d.body) ? h('div', { className: 'cms-entry-body' }, widgetFor('body'))
             : h('p', { className: 'cms-entry-empty' }, '正文尚未填写，在左侧开始写作即可实时预览。'),
-          section === 'dailies' && list(d.images).length > 0 && h('div', { className: 'cms-entry-gallery' },
-            ...list(d.images).map((path, i) => asset(path) && h('img', { key: `${path}-${i}`, src: asset(path), alt: `照片 ${i + 1}` }))),
+          section === 'dailies' && list(d.images).length > 0 && h('div', { className: 'cms-entry-gallery' }, widgetFor('images')),
           text(d.bibtex) && h('details', { className: 'cms-entry-bibtex' }, h('summary', {}, 'BibTeX'), h('pre', {}, text(d.bibtex))),
         );
       },

@@ -13,7 +13,8 @@ body { display: block; min-height: 0; margin: 0; }
 .cms-draft { background: var(--postit-3); }
 .cms-entry-tags { color: var(--pencil-60); }
 .cms-entry-links { font-size: .9rem; color: var(--pen); }
-.cms-entry-cover { display: block; width: 100%; max-height: 24rem; object-fit: contain; margin: 0 auto 1.75rem; border: 2px solid var(--pencil-25); border-radius: 8px 12px 6px 10px; }
+.cms-entry-cover { margin: 0 auto 1.75rem; }
+.cms-entry-cover img, .cms-entry-cover video { display: block; width: 100%; max-height: 24rem; object-fit: contain; border: 2px solid var(--pencil-25); border-radius: 8px 12px 6px 10px; }
 .cms-entry-summary { margin: 0 0 1.5rem; padding: .8rem 1rem; background: var(--postit); border-left: 3px solid var(--pen); }
 .cms-entry-empty { padding: 1.5rem 0; color: var(--pencil-60); font-size: .95rem; }
 .cms-entry-body [data-rich-text-preview] { font-size: 1.05rem; line-height: 1.85; }
@@ -22,7 +23,7 @@ body { display: block; min-height: 0; margin: 0; }
 .cms-entry-body [data-rich-text-preview] h3 { font-size: 1.2rem; }
 .cms-entry-body [data-rich-text-preview] h4 { font-size: 1.05rem; }
 .cms-entry-body [data-rich-text-preview] > :first-child { margin-top: 0; }
-.cms-entry-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: .75rem; margin: 1.5rem 0; }
+.cms-entry-gallery { margin: 1.5rem 0; }
 .cms-entry-gallery img { width: 100%; border: 2px solid var(--pencil-25); border-radius: 6px; }
 .cms-entry-bibtex { margin-top: 1.5rem; }
 .cms-entry-bibtex pre { white-space: pre-wrap; font: .85rem/1.6 var(--font-mono); }

@@ -34,8 +34,9 @@ test('empty optional fields disappear, status labels are readable, unsafe links 
   assert.equal(nodes(output).filter(n=>n.tag==='img').length,0);
   assert.ok(strings(render('dailies',{date:'2026-09-25',draft:true})).includes('2026-09-25'));
 });
-test('preview images use CMS asset URLs including unsaved uploads', () => {
-  const output = render('projects',{title:'项目',cover:'./attachments/cover.webp',body:'正文'}, path=>({url:`blob:preview/${path}`}));
-  const image = nodes(output).find(n=>n.tag==='img');
-  assert.equal(image.props.src,'blob:preview/./attachments/cover.webp');
+test('relative cover and gallery paths use native reactive image previews even before assets resolve', () => {
+  const output = render('projects',{title:'项目',cover:'./attachments/cover.webp',body:'正文'}, () => undefined);
+  assert.equal(nodes(output).filter(n=>n.tag==='cms-widget' && n.props.name==='cover').length,1);
+  const daily = render('dailies',{images:['./attachments/photo.webp'],body:'正文'}, () => undefined);
+  assert.equal(nodes(daily).filter(n=>n.tag==='cms-widget' && n.props.name==='images').length,1);
 });

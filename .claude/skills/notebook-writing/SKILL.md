@@ -46,7 +46,7 @@ npm run new -- dailies morning-run "晨跑"            # 日常自动加日期�
 
 ### CMS 内容预览
 
-五个板块的右侧预览由 `public/admin/previews.js` 组织为文章布局；正文继续用 `widgetFor('body')`，图片用 `getAsset`，保留编辑器组件和未保存上传的预览能力。`scripts/prepare-cms.mjs` 生成预览 CSS，复用网站样式并应用 `src/styles/cms-preview.css` 的窄栏调整。新增可见 frontmatter 字段时检查是否应加入模板；不要把所有空字段和后台开关逐项展示。预览不加载真实评论、站点导航或可执行嵌入，完整交互仍需在站点验证。
+五个板块的右侧预览由 `public/admin/previews.js` 组织为文章布局；正文、封面和相册用原生 `widgetFor`，保留编辑器组件、相对路径与异步图片加载能力。`scripts/prepare-cms.mjs` 生成预览 CSS，复用网站样式并应用 `src/styles/cms-preview.css` 的窄栏调整。新增可见 frontmatter 字段时检查是否应加入模板；不要把所有空字段和后台开关逐项展示。预览不加载真实评论、站点导航或可执行嵌入，完整交互仍需在站点验证。
 
 | 板块 | 额外字段 |
 | --- | --- |
