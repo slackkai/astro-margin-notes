@@ -27,13 +27,13 @@ console.log(`CMS configured for ${repo} (${config.site_url})`);
 
 /**
  * The editor preview uses the site's own Markdown stylesheet: the colour tokens from
- * src/styles/global.css plus src/styles/markdown.css with `.prose` pointed at the preview root.
+ * src/styles/tokens.css plus src/styles/markdown.css with `.prose` pointed at the preview root.
  */
 async function previewStylesheet() {
-  const global = await readFile(new URL('../src/styles/global.css', import.meta.url), 'utf8');
+  const global = await readFile(new URL('../src/styles/tokens.css', import.meta.url), 'utf8');
   const markdown = await readFile(new URL('../src/styles/markdown.css', import.meta.url), 'utf8');
   const tokens = global.match(/^:root \{[\s\S]*?^\}/m)?.[0];
-  if (!tokens) throw new Error('src/styles/global.css: :root token block not found');
+  if (!tokens) throw new Error('src/styles/tokens.css: :root token block not found');
   const overrides = [
     '/* Preview overrides: the pane is narrow and has no page margin; component previews have no toggles. */',
     '[data-rich-text-preview] { font-size: 1.05rem; line-height: 1.75; }',

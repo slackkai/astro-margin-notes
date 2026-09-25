@@ -32,6 +32,9 @@ const series = d.series ? { name: d.series.name, entries: await getSeries(d.seri
 ---
 
 <PostLayout
+  commentId={post.id}
+  comments={d.comments}
+  draft={d.draft}
   section="academic"
   transitionName={`academic-${post.id}`}
   title={d.title}

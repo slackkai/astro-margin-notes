@@ -53,11 +53,12 @@ npm run dev
 | --- | --- |
 | 站名、作者、简介、联系链接、页脚结束语 | 后台“站点设置”，或 `src/data/site.json` |
 | 板块开关、功能、默认配色、机械臂、研究方向 | `src/config.ts` |
+| 导航自动隐藏、giscus 评论开关与仓库配置 | 后台“站点设置 → 导航与评论”，或 `src/data/interactions.json`；见 [评论配置](docs/COMMENTS.md) |
 | 五个板块正文与附件 | 后台五个板块，或 `src/content/<板块>/`（每篇一个文件夹，附件在旁边的 `attachments/`） |
 | 最近在做 / 在读 / 在听 | 后台“最近在做”，或 `src/content/now/now.md` |
 | 关于页：自我介绍、“这个站点有什么”、工作台 | 后台“站点设置 → 关于页”，或 `src/content/about/about.md` |
 | 关于页版式 | `src/pages/about.astro` |
-| 字体、颜色和样式 | `src/styles/global.css` |
+| 字体、颜色和样式 | `src/styles/global.css`、共用设计变量 `src/styles/tokens.css` |
 | 后台字段、列表排序与筛选、上传压缩 | `cms.config.mjs` |
 | 后台编辑器组件（批注 / 便利贴 / 相片 / 视频 / 嵌入 …） | `public/admin/components.js`（预览样式由 `scripts/prepare-cms.mjs` 从站点样式生成） |
 | Markdown 指令的渲染与样式 | `src/markdown/directives.mjs`、`src/styles/markdown.css`，说明见 `docs/SYNTAX.md` |

@@ -7,6 +7,8 @@
  */
 
 import site from './data/site.json';
+import interactions from './data/interactions.json';
+import { interactionsSchema } from './utils/interactions.mjs';
 
 const siteSettings: {
   title: string; tagline: string; description: string; author: string;
@@ -20,6 +22,8 @@ export type SectionKey = 'academic' | 'insight' | 'dailies' | 'library' | 'proje
 export type PaletteId = 'blue' | 'classic' | 'green' | 'mono';
 
 export const config = {
+  /** CMS：站点设置 → 导航与评论。 */
+  interactions: interactionsSchema.parse(interactions),
   /** 界面语言（决定 src/i18n 里用哪套字典）与 <html lang> */
   lang: 'zh' as Lang,
   htmlLang: 'zh-CN',

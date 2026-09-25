@@ -53,6 +53,20 @@ for (const { pathname, links } of pages.values()) {
   }
 }
 const cms = JSON.parse(await readFile(join(root, 'admin/config.yml'), 'utf8'));
+// The iframe fetches these styles separately, so HTML-link checks do not cover them.
+for (const palette of ['blue', 'classic', 'green', 'mono']) for (const mode of ['light', 'dark']) {
+  const file = `giscus/${palette}-${mode}.css`;
+  const css = await readFile(join(root, file), 'utf8');
+  for (const [, asset] of css.matchAll(/url\(["']?([^"')]+)["']?\)/g)) {
+    if (asset.startsWith('data:')) continue;
+    const url = new URL(asset, new URL(`${base}/${file}`, site));
+    if (url.origin !== site.origin) continue;
+    if (base && !url.pathname.startsWith(base + '/')) { errors.push(`${file}: missing base in ${asset}`); continue; }
+    const target = resolve(root, '.' + decodeURIComponent(url.pathname.slice(base.length)));
+    if (!target.startsWith(root + sep)) { errors.push(`${file}: escaping font path`); continue; }
+    await stat(target).catch(() => errors.push(`${file}: missing font ${asset}`));
+  }
+}
 if (!cms.backend.repo || cms.collections.length !== 6) errors.push('CMS configuration missing collections/repository');
 if (!cms.media_libraries?.default?.config?.transformations?.raster_image) errors.push('CMS upload optimization missing');
 for (const name of ['admin/index.html', 'admin/components.js', 'admin/preview.css', 'admin/vendor/sveltia-cms.js', 'admin/vendor/katex.min.js']) {

@@ -11,7 +11,7 @@ if (!['academic', 'insight', 'dailies', 'library', 'projects'].includes(section)
   const file = BUNDLED.includes(section)
     ? resolve('src/content', section, slug, 'index.md')
     : resolve('src/content', section, `${section === 'dailies' ? `${today}-` : ''}${slug}.md`);
-  const body = `---\ntitle: ${JSON.stringify(titleParts.join(' ') || slug)}\ndate: ${today}\ndescription: ''\ntags: []\ndraft: true\n---\n\n在这里开始写作。\n`;
+  const body = `---\ntitle: ${JSON.stringify(titleParts.join(' ') || slug)}\ndate: ${today}\ndescription: ''\ntags: []\ndraft: true\ncomments: true\n---\n\n在这里开始写作。\n`;
   await mkdir(dirname(file), { recursive: true });
   try {
     await writeFile(file, body, { flag: 'wx' });

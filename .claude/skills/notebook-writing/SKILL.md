@@ -34,7 +34,15 @@ npm run new -- dailies morning-run "晨跑"            # 日常自动加日期�
 
 ## Frontmatter
 
-所有板块共有：`title`（日常可省略）、`date`（`YYYY-MM-DD`）、`updated`（可选）、`description`（可选摘要，列表和 RSS 用）、`tags`（字符串数组）、`draft`（布尔，默认 false，后台新建默认 true）。可选字段留空就整行删掉，不要写空字符串。校验规则在 `src/utils/content-schemas.mjs`。
+所有板块共有：`title`（日常可省略）、`date`（`YYYY-MM-DD`）、`updated`（可选）、`description`（可选摘要，列表和 RSS 用）、`tags`（字符串数组）、`draft`（布尔，默认 false，后台新建默认 true）、`comments`（布尔，默认 true；关闭写 `comments: false`，不要写字符串 `"false"`）。可选字段留空就整行删掉，不要写空字符串。校验规则在 `src/utils/content-schemas.mjs`。
+
+### 评论与导航
+
+- 五个板块及项目子文档均支持评论。已有文章未填写 `comments` 时默认开启；更新内容时保留作者已有的 `comments: false`。草稿不加载评论。
+- CMS 每篇的“允许评论”对应 `comments`；“站点设置 → 导航与评论”对应 `src/data/interactions.json`，可配置导航自动隐藏、全站评论开关和 giscus 仓库/分类 ID。不要把公开 ID 当作密钥，也不要在这里放 token。
+- 评论使用 `specific` 严格匹配 `板块/文章ID`，如 `projects/arm/log`。改标题或部署 base 不影响评论；改 slug、移动到其他板块会改变讨论关联，操作前说明这个影响。关闭页面评论不删除 GitHub 讨论，重新开启会恢复关联。
+- giscus 的安装与配置见 `docs/COMMENTS.md`。配置未完整时页面不加载评论；应区分代码验证通过与 GitHub App 已安装、真实评论已成功提交，不代作者发测试评论。
+- 评论配色与网站共用 `src/styles/tokens.css`，iframe 的笔记本样式在 `src/styles/giscus.css`。修改视觉样式时检查深浅色、四套配色和手机宽度；同步主题仓库时保留其空评论仓库配置。
 
 | 板块 | 额外字段 |
 | --- | --- |
@@ -101,6 +109,7 @@ draft: false
 | 首页 Now 卡片：`updated`、`doing`、`reading`、`listening` 列表 | `src/content/now/now.md`（只有 frontmatter） |
 | 关于页：正文（frontmatter 后的 Markdown）、`highlights`、`workbench: { tools, hardware, questions }` | `src/content/about/about.md` |
 | 板块开关、功能开关、默认配色、首页机械臂、研究方向卡片 | `src/config.ts` |
+| 导航自动隐藏、giscus 全站开关与仓库/分类配置 | `src/data/interactions.json` |
 
 ## 检查与发布
 

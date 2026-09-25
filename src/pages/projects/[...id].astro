@@ -44,6 +44,9 @@ const modified = await gitLastModified(post.filePath);
 ---
 
 <PostLayout
+  commentId={post.id}
+  comments={d.comments}
+  draft={d.draft}
   section="projects"
   title={d.title}
   description={d.description}

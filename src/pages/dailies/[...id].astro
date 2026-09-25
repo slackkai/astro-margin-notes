@@ -21,11 +21,15 @@ const related = relatedTo(post, await getAllTagged());
 ---
 
 <PostLayout
+  commentId={post.id}
+  comments={d.comments}
+  draft={d.draft}
   section="dailies"
   transitionName={d.title ? `dailies-${post.id}` : undefined}
   title={title}
   description={d.description}
   date={d.date}
+  updated={d.updated}
   tags={d.tags}
   related={related}
   prev={prev && { href: `/dailies/${prev.id}/`, title: label(prev) }}

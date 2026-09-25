@@ -13,10 +13,14 @@ const aboutFile = 'src/content/about/about.md';
 const created = [];
 const originalAbout = await readFile(aboutFile, 'utf8').catch(() => undefined);
 const original = await readFile('src/config.ts', 'utf8');
+const originalInteractions = await readFile('src/data/interactions.json', 'utf8');
+// Use synthetic public IDs: builds exercise integration without contacting GitHub.
+const interactions = { autoHideHeader: true, comments: { enabled: true, repo: 'example/comments', repoId: 'R_fixture', category: 'Announcements', categoryId: 'DIC_fixture' } };
 const env = { ...process.env, BASE_PATH: '/test-site', SITE_URL: 'https://example.org' };
 const build = () => execFileSync(process.execPath, ['node_modules/astro/bin/astro.mjs', 'build'], { env, stdio: 'pipe' });
 const missing = async path => { try { await access(path); return false; } catch { return true; } };
 try {
+  await writeFile('src/data/interactions.json', JSON.stringify(interactions));
   await writeFile(file, `---\ntitle: ${marker}\ndate: 2026-01-01\ntags: [${marker}]\ndraft: true\n---\nSecret draft fixture.\n`, { flag: 'wx' });
   created.push(file);
   await writeFile(published, `---\ntitle: Published fixture\ndate: 2026-01-01\nupdated: ''\nurl: ''\nauthor: null\nrating: null\nstatus: ''\ncover: ''\nsummary: null\ntags: [${marker}-public, "中文", "C++", "C#", "AI/ML", "..", "con"]\n---\n[Home](/)\n![Icon](/favicon.svg)\n`, { flag: 'wx' });
@@ -47,6 +51,15 @@ try {
   assert.ok(rss.includes('note-wrap'), 'RSS full text missing rendered margin notes'); // attribute quotes are XML-escaped
   assert.ok(rss.includes('https://example.org/test-site/favicon.svg'), 'RSS full text lost site origin or base');
   const page = await readFile(`dist/library/${marker}/index.html`, 'utf8');
+  assert.ok(page.includes('<site-comments') && page.includes(`data-term="library/${marker}"`), 'default comments missing or base leaked into discussion identity');
+  assert.ok(!page.includes('data-term="/test-site/'), 'deployment base must not change discussion identity');
+  assert.ok(page.includes('data-theme-path="/test-site/giscus/"'), 'comment stylesheet base lost');
+  assert.ok(page.includes(`name="giscus:backlink" content="https://example.org/test-site/library/${marker}/"`), 'comment backlink must be canonical, not a preview URL');
+  for (const palette of ['blue', 'classic', 'green', 'mono']) for (const mode of ['light', 'dark']) {
+    const css = await readFile(`dist/giscus/${palette}-${mode}.css`, 'utf8');
+    assert.ok(css.includes('--paper:') && css.includes('.gsc-comment-box'), 'notebook comment theme missing');
+    assert.ok(css.includes('/test-site/_astro/'), 'comment font paths lost deployment base');
+  }
   assert.ok(page.includes('href="/test-site/"'), 'Markdown link base lost');
   assert.ok(page.includes('src="/test-site/favicon.svg"'), 'Markdown image base lost');
   assert.ok(!(await missing(`dist/tags/${marker}-public/index.html`)), 'library tag route missing');
@@ -57,8 +70,11 @@ try {
   disabled = disabled.replace("defaultPalette: 'blue'", "defaultPalette: 'green'");
   await writeFile('src/config.ts', disabled);
   await writeFile(project, cmsProject.replace('draft: true', 'draft: false'));
+  const docFile = `${projectDir}/note/index.md`;
+  await writeFile(docFile, (await readFile(docFile, 'utf8')).replace('draft: false', 'draft: false\ncomments: false'));
   build();
   const projectPage = await readFile(`dist/projects/${marker}/index.html`, 'utf8');
+  assert.ok(projectPage.includes(`data-term="projects/${marker}"`), 'project comments missing');
   assert.ok(projectPage.includes(`src="/test-site/projects/${marker}/attachments/cover.svg"`), 'bundle cover not resolved next to the entry (or base lost)');
   assert.ok(!(await missing(`dist/projects/${marker}/attachments/demo/index.html`)), 'published attachments not copied');
   assert.ok(projectPage.includes(`<iframe class="embed-page" src="/test-site/projects/${marker}/attachments/demo/"`), 'embedded page not rendered as a same-origin iframe');
@@ -67,6 +83,7 @@ try {
   assert.ok(!projectPage.includes('1970-01-01'), 'empty updated became the Unix epoch');
   assert.ok(projectPage.includes('https://github.com/example/project'), 'valid link lost while clearing other links');
   const docPage = await readFile(`dist/projects/${marker}/note/index.html`, 'utf8');
+  assert.ok(!docPage.includes('<site-comments'), 'per-document comments=false ignored');
   assert.ok(docPage.includes(`src="/test-site/projects/${marker}/note/attachments/figure.svg"`), 'document attachment not resolved');
   assert.ok(docPage.includes(`href="/test-site/projects/${marker}/"`) && docPage.includes('doc-parent'), 'document page lacks the link back to its project');
   const projectsIndex = await readFile('dist/projects/index.html', 'utf8');
@@ -76,6 +93,7 @@ try {
   assert.ok(await missing('dist/library/rss.xml'), 'disabled feed still built');
   assert.ok(await missing(`dist/tags/${marker}-public/index.html`), 'disabled tag still built');
   const home = await readFile('dist/index.html', 'utf8');
+  assert.ok(!home.includes('<site-comments'), 'comments leaked into index');
   assert.ok(!home.includes('href="/test-site/library/"'), 'disabled section still linked');
   assert.ok(home.includes('data-default-palette="green"'), 'default palette ignored');
   const article = await readFile('dist/academic/attention-is-all-you-need/index.html', 'utf8');
@@ -96,13 +114,21 @@ try {
   assert.ok(about.includes('自我介绍来自 Markdown'), 'About intro from src/content/about not rendered');
   assert.ok(about.includes('自定义板块') && about.includes('来自 about.md'), 'About highlights from about.md not rendered');
   assert.ok(about.includes('测试工具') && about.includes('bench-title'), 'About workbench from about.md not rendered');
-  console.log('Production regression passed: bundles and attachments, project documents, Markdown directives, CMS empty fields, draft/published projects, covers, RSS, tags, Markdown assets, disabled sections and feature switches.');
+  for (const comments of [{ ...interactions.comments, enabled: false }, { ...interactions.comments, repoId: '' }]) {
+    await writeFile('src/data/interactions.json', JSON.stringify({ autoHideHeader: false, comments }));
+    build();
+    const html = await readFile(`dist/projects/${marker}/index.html`, 'utf8');
+    assert.ok(!html.includes('<site-comments'), 'disabled or unconfigured comments rendered');
+    assert.ok(html.includes('data-auto-hide="false"'), 'CMS navigation switch ignored');
+  }
+  console.log('Production regression passed: comments defaults, per-document opt-out, disabled/unconfigured comments, navigation switch, base paths, bundles, drafts, directives, CMS fields, RSS, tags and features.');
 } catch (error) {
   if (error.stdout) console.error(error.stdout.toString().slice(-5000));
   if (error.stderr) console.error(error.stderr.toString().slice(-5000));
   throw error;
 } finally {
   await writeFile('src/config.ts', original);
+  await writeFile('src/data/interactions.json', originalInteractions);
   if (originalAbout === undefined) await unlink(aboutFile).catch(() => {}); else await writeFile(aboutFile, originalAbout);
   for (const path of created) await unlink(path);
   await rm(projectDir, { recursive: true, force: true });

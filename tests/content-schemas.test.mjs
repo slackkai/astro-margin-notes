@@ -9,6 +9,18 @@ const base = { title: 'A note', date: '2026-09-18' };
 const postCollections = ['academic', 'insight', 'dailies', 'library', 'projects'];
 const blankValues = ['', ' \t ', null, undefined];
 
+test('comments default on for old/CMS entries, preserve false and reject string booleans', () => {
+  const cms = makeCmsConfig({ repo: 'example/site', siteUrl: 'https://example.com' });
+  for (const name of postCollections) {
+    for (const comments of blankValues) assert.equal(contentSchemas[name].parse({ ...base, comments }).comments, true, name);
+    assert.equal(contentSchemas[name].parse({ ...base, comments: false }).comments, false, name);
+    assert.equal(contentSchemas[name].safeParse({ ...base, comments: 'false' }).success, false, name);
+    const field = cms.collections.find(c => c.name === name).fields.find(f => f.name === 'comments');
+    assert.equal(field.widget, 'boolean');
+    assert.equal(field.default, true);
+  }
+});
+
 test('real CMS-shaped YAML with empty updated and link fields parses without editing the entry', async () => {
   const source = await readFile(new URL('./fixtures/cms-project.md', import.meta.url), 'utf8');
   const { frontmatter } = parseFrontmatter(source);

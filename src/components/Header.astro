@@ -11,7 +11,7 @@ const isActive = (href: string) => (href === '/' ? path === withBase('/') : path
 const mark = SITE.title.trim().charAt(0).toUpperCase() || '•';
 ---
 
-<header class="site-header" data-pagefind-ignore>
+<header class="site-header" data-auto-hide={String(config.interactions.autoHideHeader)} data-pagefind-ignore>
   <div class="container header-inner">
     <a href={withBase('/')} class="brand" aria-label={SITE.title}>
       <span class="brand-mark" aria-hidden="true">{mark}</span>
@@ -23,7 +23,7 @@ const mark = SITE.title.trim().charAt(0).toUpperCase() || '•';
         {
           NAV.map((item) => (
             <li>
-              <a href={withBase(item.href)} class:list={['nav-link', { active: isActive(item.href) }]}>
+              <a href={withBase(item.href)} aria-current={isActive(item.href) ? 'page' : undefined} class:list={['nav-link', { active: isActive(item.href) }]}>
                 {item.label}
               </a>
             </li>
@@ -49,7 +49,7 @@ const mark = SITE.title.trim().charAt(0).toUpperCase() || '•';
       {
         NAV.map((item) => (
           <li>
-            <a href={withBase(item.href)} class:list={['nav-link', { active: isActive(item.href) }]}>
+            <a href={withBase(item.href)} aria-current={isActive(item.href) ? 'page' : undefined} class:list={['nav-link', { active: isActive(item.href) }]}>
               {item.label}
             </a>
           </li>
@@ -67,6 +67,13 @@ const mark = SITE.title.trim().charAt(0).toUpperCase() || '•';
     background: color-mix(in srgb, var(--paper) 88%, transparent);
     backdrop-filter: blur(6px);
     border-bottom: 2px dashed var(--pencil-25);
+    transition: transform 180ms ease;
+  }
+  .site-header.is-hidden:not(:has(:focus-visible)) {
+    transform: translateY(-100%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .site-header { transition: none; }
   }
   .header-inner {
     display: flex;
@@ -184,19 +191,70 @@ const mark = SITE.title.trim().charAt(0).toUpperCase() || '•';
 </style>
 
 <script>
+  let disposeHeader: (() => void) | undefined;
   function bindMenu() {
+    disposeHeader?.();
+    const header = document.querySelector<HTMLElement>('.site-header');
     const btn = document.getElementById('menu-btn');
     const nav = document.getElementById('mobile-nav');
-    if (!btn || !nav || btn.dataset.bound) return;
-    btn.dataset.bound = '1';
+    if (!header || !btn || !nav) return;
+    const controller = new AbortController();
+    const { signal } = controller;
+    let frame = 0;
+    let lastY = Math.max(0, window.scrollY);
+    let direction = 0;
+    let travel = 0;
+    const show = () => header.classList.remove('is-hidden');
+    const closeMenu = () => {
+      nav.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    };
+    const update = () => {
+      frame = 0;
+      // Clamp elastic overscroll so bouncing at the bottom cannot reverse direction.
+      const max = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+      const y = Math.max(0, Math.min(window.scrollY, max));
+      const delta = y - lastY;
+      lastY = y;
+      const locked = header.querySelector(':focus-visible') ||
+        header.querySelector('[aria-expanded="true"], dialog[open]');
+      if (y <= header.offsetHeight || locked || header.dataset.autoHide !== 'true') {
+        show(); travel = 0; direction = 0; return;
+      }
+      if (!delta) return;
+      const next = Math.sign(delta);
+      travel = next === direction ? travel + Math.abs(delta) : Math.abs(delta);
+      direction = next;
+      if (travel >= 10) header.classList.toggle('is-hidden', direction > 0);
+    };
+    show();
     nav.querySelectorAll('li').forEach((li, i) => li.style.setProperty('--i', String(i)));
     btn.addEventListener('click', () => {
-      const open = nav.hasAttribute('hidden');
-      if (open) nav.removeAttribute('hidden');
-      else nav.setAttribute('hidden', '');
+      const open = nav.hidden;
+      nav.hidden = !open;
       btn.setAttribute('aria-expanded', String(open));
-    });
+      show();
+    }, { signal });
+    nav.addEventListener('click', (event) => {
+      if ((event.target as Element).closest('a')) closeMenu();
+    }, { signal });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !nav.hidden) { closeMenu(); btn.focus(); }
+    }, { signal });
+    document.addEventListener('click', (event) => {
+      if (!header.contains(event.target as Node)) closeMenu();
+    }, { signal });
+    const wide = matchMedia('(min-width: 1200px)');
+    wide.addEventListener('change', () => { if (wide.matches) closeMenu(); }, { signal });
+    header.addEventListener('focusin', (event) => {
+      if ((event.target as Element).matches(':focus-visible')) show();
+    }, { signal });
+    window.addEventListener('scroll', () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    }, { passive: true, signal });
+    disposeHeader = () => { controller.abort(); cancelAnimationFrame(frame); };
   }
   bindMenu();
+  document.addEventListener('astro:before-swap', () => disposeHeader?.());
   document.addEventListener('astro:page-load', bindMenu);
 </script>

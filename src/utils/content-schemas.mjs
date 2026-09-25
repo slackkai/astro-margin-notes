@@ -37,6 +37,7 @@ const common = {
   description: optionalText,
   tags: stringList.transform(tags => [...new Set(tags)]),
   draft: z.boolean().default(false),
+  comments: z.preprocess(emptyToUndefined, z.boolean().default(true)),
 };
 const series = optionalObject(z.object({ name: z.string().trim().min(1), order: z.number().int().min(1) }));
 

@@ -28,6 +28,7 @@ const FONTS = [latinChunk];
 <meta name="description" content={description} />
 <meta name="author" content={SITE.author} />
 <link rel="canonical" href={canonical} />
+{type === 'article' && <meta name="giscus:backlink" content={canonical} />}
 <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
 <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
 <link rel="alternate" type="application/rss+xml" title={SITE.title} href={new URL(withBase('/rss.xml'), Astro.site)} />

@@ -23,6 +23,8 @@ export default defineConfig({
   base,
   trailingSlash: 'always',
   compressHTML: true,
+  // giscus requests the preview's public CSS/fonts from its own iframe origin.
+  vite: { preview: { cors: { origin: 'https://giscus.app' } } },
   integrations: [attachments(), mdx(), sitemap({ filter: (url) => {
     const section = new URL(url).pathname.slice(base.replace(/\/$/, '').length).split('/')[1];
     return section !== 'admin' && section !== '404' &&

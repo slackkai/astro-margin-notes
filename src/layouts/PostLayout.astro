@@ -10,6 +10,7 @@ import Toc from '../components/Toc.astro';
 import PostMeta from '../components/PostMeta.astro';
 import SeriesNav from '../components/SeriesNav.astro';
 import Related from '../components/Related.astro';
+import Comments from '../components/Comments.astro';
 import { formatDate, type SeriesEntry, type TaggedEntry } from '../utils/content';
 import { SECTIONS, config, type SectionKey } from '../config';
 
@@ -21,6 +22,9 @@ interface Heading {
 
 interface Props {
   section: SectionKey;
+  commentId: string;
+  comments?: boolean;
+  draft?: boolean;
   title: string;
   description?: string;
   date: Date;
@@ -38,6 +42,9 @@ interface Props {
 
 const {
   section,
+  commentId,
+  comments = true,
+  draft = false,
   title,
   description,
   date,
@@ -103,6 +110,7 @@ const sec = SECTIONS[section];
           )
         }
       </nav>
+      {comments && !draft && <Comments term={`${section}/${commentId}`} />}
     </footer>
   </article>
 </BaseLayout>

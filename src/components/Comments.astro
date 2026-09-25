@@ -1,0 +1,117 @@
+---
+import { config } from '../config';
+import { commentsReady } from '../utils/interactions.mjs';
+import { withBase } from '../utils/url';
+
+interface Props { term: string }
+const { term } = Astro.props;
+const settings = config.interactions.comments;
+const enabled = commentsReady(settings);
+const en = config.lang === 'en';
+const discussionUrl = `https://github.com/${settings.repo}/discussions`;
+---
+
+{enabled && (
+  <section class="comments" aria-labelledby="comments-title" data-pagefind-ignore>
+    <h2 id="comments-title">{en ? 'Comments' : '评论'}</h2>
+    <site-comments
+      data-repo={settings.repo} data-repo-id={settings.repoId}
+      data-category={settings.category} data-category-id={settings.categoryId}
+      data-term={term} data-lang={en ? 'en' : 'zh-CN'}
+      data-theme-path={withBase('/giscus/')} data-theme-version="notebook-2"
+    >
+      <p class="meta" data-comment-status role="status">{en ? 'Comments load when you scroll here.' : '滚动到这里时加载评论。'}</p>
+    </site-comments>
+    <p class="meta comments-link"><a href={discussionUrl} target="_blank" rel="noopener noreferrer">{en ? 'View on GitHub ↗' : '在 GitHub 查看讨论 ↗'}</a></p>
+    <noscript>{en ? 'Enable JavaScript to view comments, or visit GitHub.' : '开启 JavaScript 后可查看评论，也可通过链接访问 GitHub。'}</noscript>
+  </section>
+)}
+
+<style>
+  .comments { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 2px dashed var(--pencil-25); }
+  .comments h2 { margin-top: 0; }
+  .comments-link { margin: .75rem 0 0; font-size: .85rem; }
+  site-comments { display: block; min-height: 10rem; }
+  site-comments :global(giscus-widget::part(iframe)) { color-scheme: normal; }
+</style>
+
+<script>
+  // Import only when a reader approaches the comments. The official component
+  // owns its iframe, avoiding client.js injecting into a different article mid-navigation.
+  class SiteComments extends HTMLElement {
+    private cleanup?: () => void;
+    connectedCallback() {
+      this.cleanup?.();
+      const controller = new AbortController();
+      const { signal } = controller;
+      const status = this.querySelector<HTMLElement>('[data-comment-status]');
+      const en = this.dataset.lang === 'en';
+      let widget: HTMLElement | undefined;
+      let themeObserver: MutationObserver | undefined;
+      let timeout: ReturnType<typeof setTimeout> | undefined;
+      let loading = false;
+      let serviceError = false;
+      const showFailure = () => {
+        if (status) { status.hidden = false; status.textContent = en ? 'Unable to load comments. You can use the GitHub link below.' : '评论暂时无法加载，可通过下方链接访问 GitHub 讨论。'; }
+      };
+      const load = async () => {
+        if (loading) return;
+        loading = true;
+        observer.disconnect();
+        if (status) status.textContent = en ? 'Loading comments…' : '正在加载评论…';
+        timeout = setTimeout(showFailure, 20000);
+        try {
+          await import('giscus');
+          if (signal.aborted) return;
+          widget = document.createElement('giscus-widget');
+          widget.id = 'giscus-comments';
+          const attributes = {
+            repo: this.dataset.repo!, repoid: this.dataset.repoId!,
+            category: this.dataset.category!, categoryid: this.dataset.categoryId!,
+            mapping: 'specific', term: this.dataset.term!, strict: '1',
+            reactionsenabled: '0', emitmetadata: '0', inputposition: 'top',
+            lang: this.dataset.lang!, loading: 'eager',
+          };
+          for (const [key, value] of Object.entries(attributes)) widget.setAttribute(key, value);
+          const setTheme = () => {
+            const root = document.documentElement;
+            const mode = root.dataset.theme === 'dark' ? 'dark' : 'light';
+            const palette = ['blue', 'classic', 'green', 'mono'].includes(root.dataset.palette ?? '') ? root.dataset.palette : 'blue';
+            const url = new URL(`${this.dataset.themePath}${palette}-${mode}.css`, location.origin);
+            url.searchParams.set('v', this.dataset.themeVersion!);
+            widget?.setAttribute('theme', url.href);
+          };
+          setTheme();
+          themeObserver = new MutationObserver(setTheme);
+          themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-palette'] });
+          window.addEventListener('message', (event) => {
+            const frame = widget?.shadowRoot?.querySelector('iframe');
+            if (event.origin !== 'https://giscus.app' || event.source !== frame?.contentWindow || !event.data?.giscus) return;
+            const data = event.data.giscus;
+            if (data.error && !String(data.error).includes('Discussion not found')) {
+              serviceError = true;
+              clearTimeout(timeout); showFailure();
+            } else if (data.resizeHeight && !serviceError) {
+              clearTimeout(timeout);
+              if (status) status.hidden = true;
+            }
+          }, { signal });
+          this.append(widget);
+        } catch { if (!signal.aborted) { clearTimeout(timeout); showFailure(); } }
+      };
+      const observer = new IntersectionObserver((entries) => {
+        if (entries.some(entry => entry.isIntersecting)) void load();
+      }, { rootMargin: '300px' });
+      // Finish the giscus login callback even if the browser restores the top
+      // of a long article, before a subsequent client navigation can lose it.
+      if (new URL(location.href).searchParams.has('giscus')) void load();
+      else observer.observe(this);
+      this.cleanup = () => {
+        controller.abort(); observer.disconnect(); themeObserver?.disconnect();
+        clearTimeout(timeout); widget?.remove();
+      };
+    }
+    disconnectedCallback() { this.cleanup?.(); }
+  }
+  if (!customElements.get('site-comments')) customElements.define('site-comments', SiteComments);
+</script>

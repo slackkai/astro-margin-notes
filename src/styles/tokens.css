@@ -1,0 +1,152 @@
+:root {
+  /* 默认配色：靛蓝 × 赭石。其余配色见下方 html[data-palette=...]，由右上角切换 */
+  --paper: #f6f7f4;
+  --paper-2: #ffffff;
+  --erased: #e0e3e0;
+  --pencil: #1f2433;
+  --pencil-60: rgba(31, 36, 51, 0.6);
+  --pencil-45: rgba(31, 36, 51, 0.45);
+  --pencil-25: rgba(31, 36, 51, 0.25);
+  --pencil-12: rgba(31, 36, 51, 0.12);
+  --marker: #c4562f;
+  --pen: #3b4f9e;
+  --postit: #e6ebfa;
+  --postit-2: #dcefe4;
+  --postit-3: #f8e5dc;
+  --tape: rgba(255, 236, 150, 0.7);
+  --shadow-hand: 4px 4px 0 0 var(--pencil);
+  --shadow-hand-sm: 2px 2px 0 0 var(--pencil);
+  --shadow-soft: 3px 3px 0 0 rgba(31, 36, 51, 0.1);
+  --font-body: 'LXGW WenKai Screen', 'WenKai Fallback', 'KaiTi', 'STKaiti', 'Noto Sans SC', 'PingFang SC',
+    'Microsoft YaHei', sans-serif;
+  --font-heading: var(--font-body);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', 'LXGW WenKai Screen', 'WenKai Fallback', monospace;
+  --radius-wobble: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --radius-wobble-sm: 180px 15px 180px 15px / 15px 180px 15px 180px;
+  --radius-pill: 999px 18px 999px 18px / 18px 999px 18px 999px;
+  --max-w: 64rem;
+  --max-w-prose: 44rem;
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  --paper: #171a22;
+  --paper-2: #1f232e;
+  --erased: #2b3040;
+  --pencil: #e6e8ef;
+  --pencil-60: rgba(230, 232, 239, 0.65);
+  --pencil-45: rgba(230, 232, 239, 0.45);
+  --pencil-25: rgba(230, 232, 239, 0.25);
+  --pencil-12: rgba(230, 232, 239, 0.12);
+  --marker: #e07a55;
+  --pen: #8ea2e8;
+  --postit: #2e3650;
+  --postit-2: #2b4a3a;
+  --postit-3: #4a3330;
+  --tape: rgba(255, 236, 150, 0.35);
+  --shadow-soft: 3px 3px 0 0 rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+/* ---- 配色：纸黄 × 红笔 ---- */
+html[data-palette='classic'] {
+  --paper: #fdfbf7;
+  --paper-2: #ffffff;
+  --erased: #e5e0d8;
+  --pencil: #2d2d2d;
+  --pencil-60: rgba(45, 45, 45, 0.6);
+  --pencil-45: rgba(45, 45, 45, 0.45);
+  --pencil-25: rgba(45, 45, 45, 0.25);
+  --pencil-12: rgba(45, 45, 45, 0.12);
+  --marker: #ff4d4d;
+  --pen: #2d5da1;
+  --postit: #fff9c4;
+  --postit-2: #d7f2e3;
+  --postit-3: #e3ecfb;
+  --shadow-soft: 3px 3px 0 0 rgba(45, 45, 45, 0.1);
+}
+html[data-theme='dark'][data-palette='classic'] {
+  --paper: #1b1a17;
+  --paper-2: #24231f;
+  --erased: #2f2d28;
+  --pencil: #ece7dc;
+  --pencil-60: rgba(236, 231, 220, 0.65);
+  --pencil-45: rgba(236, 231, 220, 0.45);
+  --pencil-25: rgba(236, 231, 220, 0.25);
+  --pencil-12: rgba(236, 231, 220, 0.12);
+  --marker: #ff6b6b;
+  --pen: #7ea6e6;
+  --postit: #5a5230;
+  --postit-2: #2f4a3c;
+  --postit-3: #2f3d55;
+  --shadow-soft: 3px 3px 0 0 rgba(0, 0, 0, 0.35);
+}
+
+/* ---- 配色：墨绿 × 橙 ---- */
+html[data-palette='green'] {
+  --paper: #f7f4ec;
+  --paper-2: #fffdf8;
+  --erased: #e3ded2;
+  --pencil: #23302a;
+  --pencil-60: rgba(35, 48, 42, 0.6);
+  --pencil-45: rgba(35, 48, 42, 0.45);
+  --pencil-25: rgba(35, 48, 42, 0.25);
+  --pencil-12: rgba(35, 48, 42, 0.12);
+  --marker: #e8962e;
+  --pen: #2f6b4f;
+  --postit: #fbe9c7;
+  --postit-2: #d9eadf;
+  --postit-3: #e5ecf4;
+  --shadow-soft: 3px 3px 0 0 rgba(35, 48, 42, 0.1);
+}
+html[data-theme='dark'][data-palette='green'] {
+  --paper: #181c19;
+  --paper-2: #20261f;
+  --erased: #2c332c;
+  --pencil: #e6e9e0;
+  --pencil-60: rgba(230, 233, 224, 0.65);
+  --pencil-45: rgba(230, 233, 224, 0.45);
+  --pencil-25: rgba(230, 233, 224, 0.25);
+  --pencil-12: rgba(230, 233, 224, 0.12);
+  --marker: #f0a64a;
+  --pen: #7fbf9a;
+  --postit: #4a3d22;
+  --postit-2: #2b4a3a;
+  --postit-3: #2f3d4a;
+  --shadow-soft: 3px 3px 0 0 rgba(0, 0, 0, 0.35);
+}
+
+/* ---- 配色：炭黑 × 紫红 ---- */
+html[data-palette='mono'] {
+  --paper: #f3f1ed;
+  --paper-2: #fbfaf8;
+  --erased: #e1ded8;
+  --pencil: #1c1b19;
+  --pencil-60: rgba(28, 27, 25, 0.6);
+  --pencil-45: rgba(28, 27, 25, 0.45);
+  --pencil-25: rgba(28, 27, 25, 0.25);
+  --pencil-12: rgba(28, 27, 25, 0.12);
+  --marker: #b8336a;
+  --pen: #1c1b19;
+  --postit: #f6dde7;
+  --postit-2: #e9e6df;
+  --postit-3: #e9e6df;
+  --shadow-soft: 3px 3px 0 0 rgba(28, 27, 25, 0.1);
+}
+html[data-theme='dark'][data-palette='mono'] {
+  --paper: #1a1918;
+  --paper-2: #232120;
+  --erased: #2f2d2a;
+  --pencil: #ebe8e2;
+  --pencil-60: rgba(235, 232, 226, 0.65);
+  --pencil-45: rgba(235, 232, 226, 0.45);
+  --pencil-25: rgba(235, 232, 226, 0.25);
+  --pencil-12: rgba(235, 232, 226, 0.12);
+  --marker: #e0669a;
+  --pen: #ebe8e2;
+  --postit: #4a2a3a;
+  --postit-2: #33302c;
+  --postit-3: #33302c;
+  --shadow-soft: 3px 3px 0 0 rgba(0, 0, 0, 0.35);
+}
+

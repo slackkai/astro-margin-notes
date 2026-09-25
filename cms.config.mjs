@@ -11,6 +11,7 @@ const common = [
   field('title', '标题'), date('date', '日期'), date('updated', '更新日期', false),
   optional('description', '摘要', 'text'), list('tags', '标签'),
   field('draft', '草稿（开启时不出现在网站上）', 'boolean', { default: true }),
+  field('comments', '允许评论', 'boolean', { default: true, hint: '默认开启；关闭后不显示此篇评论区，已有讨论保留在 GitHub。需先在站点设置中配置 giscus。' }),
 ];
 const series = optional('series', '合集', 'object', { fields: [field('name', '合集名称'), field('order', '篇目顺序', 'number', { value_type: 'int', min: 1 })] });
 const body = field('body', '正文', 'markdown', { required: false, hint: '工具栏可插入批注、便利贴、相片、折页、视频和嵌入页面；Markdown 写法见 docs/SYNTAX.md。上传的文件放进这篇文章旁边的 attachments 文件夹。' });
@@ -67,6 +68,16 @@ export function makeCmsConfig({ repo, siteUrl, base = '/' }) {
         links(['github', 'demo', 'paper', 'docs']), field('featured', '精选', 'boolean', { default: false }),
       ], { ...bundle, nested: { depth: 3 }, meta: { path: { index_file: 'index' } } }),
       { name: 'settings', label: '站点设置', icon: 'settings', files: [
+        { name: 'interactions', label: '导航与评论', file: 'src/data/interactions.json', format: 'json', fields: [
+          field('autoHideHeader', '下滚隐藏导航、上滚显示', 'boolean', { default: true }),
+          field('comments', 'giscus 评论', 'object', { fields: [
+            field('enabled', '全站启用评论', 'boolean', { default: true }),
+            optional('repo', '公开评论仓库', 'string', { hint: '用户名/仓库名。可与网站源码仓库不同。', pattern: ['^[\\w.-]+/[\\w.-]+$', '填写 用户名/仓库名'] }),
+            optional('repoId', '仓库 ID', 'string', { hint: 'giscus.app 生成的 data-repo-id，不是仓库名称。' }),
+            optional('category', '讨论分类', 'string', { hint: '建议使用 Announcements 公告分类。' }),
+            optional('categoryId', '分类 ID', 'string', { hint: 'giscus.app 生成的 data-category-id。四项都填好后才加载评论。' }),
+          ] }),
+        ] },
         { name: 'site', label: '基本信息', file: 'src/data/site.json', format: 'json', fields: [
           field('title', '站点名称'), field('tagline', '副标题'), field('description', '站点简介', 'text'),
           field('author', '作者'), field('url', '域名', 'string', { hint: '自定义域名在此设置；GitHub Pages 地址由部署自动识别。', pattern: ['^https?://.+', '请输入完整 URL'] }),
