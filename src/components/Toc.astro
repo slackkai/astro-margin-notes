@@ -6,7 +6,7 @@ import { t } from '../i18n';
  * 三级结构：顶层取正文里最高一级的标题（多数文章是 h2，用 h1 分节的文章则是 h1），
  * 下面再挂两级。宽屏下目录放不下时按顺序折叠低级标题——先收起第三级，仍放不下再收起第二级，
  * 当前章节所在的分支始终展开；折叠后仍放不下则目录自身滚动，并随页面滚动保持当前条目可见。
- * 左侧轨道兼作阅读进度：视口内章节画实线，读过的部分钢笔色填满，当前章节用记号笔色；正文结束后目录随页面向上收起。
+ * 左侧轨道兼作阅读进度：读过的部分淡淡染色，当前章节是一段滑动的游标；正文结束后目录随页面向上收起。
  * 用法：const { headings } = await render(post); <Toc headings={headings} />
  */
 interface Heading {
@@ -62,11 +62,6 @@ const renderList = (nodes: Node[], level: number): string =>
     syntax: '<length>';
     inherits: false;
     initial-value: 0rem;
-  }
-  @property --read {
-    syntax: '<number>';
-    inherits: false;
-    initial-value: 0;
   }
   .toc {
     max-width: var(--max-w-prose);
@@ -142,6 +137,11 @@ const renderList = (nodes: Node[], level: number): string =>
     color: var(--marker);
   }
 
+  .toc-fill,
+  .toc-thumb {
+    display: none;
+  }
+
   /* 宽屏：贴到正文左侧页边，sticky 跟随；正文结束后随页面向上收起 */
   @media (min-width: 1200px) {
     .toc {
@@ -174,6 +174,8 @@ const renderList = (nodes: Node[], level: number): string =>
     .toc-list {
       /* 底部留出余量，淡出落在视口内而不是贴着窗口底边 */
       max-height: calc(100vh - 12rem);
+      /* 给游标留出左侧空间，不被 overflow 裁掉 */
+      padding-left: 2px;
       overflow-y: auto;
       overflow-x: hidden;
       overscroll-behavior: contain;
@@ -194,7 +196,8 @@ const renderList = (nodes: Node[], level: number): string =>
     .toc-list.is-clipped-bottom {
       --fade-bottom: 2.5rem;
     }
-    /* 左侧虚线是阅读轨道：视口内的章节画成实线，读过的部分用钢笔色从上往下填满，当前章节用记号笔色 */
+    /* 左侧是一根很淡的轨道；读过的部分淡淡染上记号笔色，当前章节是一段顺着轨道滑动的短游标。
+       层级只靠缩进、字号和深浅区分，轨道本身不分级。 */
     .toc-list,
     .toc-children {
       gap: 0;
@@ -203,22 +206,53 @@ const renderList = (nodes: Node[], level: number): string =>
       padding-top: 0;
     }
     .toc-item a {
-      --ink: var(--pen);
       padding-block: 0.15rem;
-      border-left-style: dashed;
-      border-left-color: var(--pencil-25);
-      background: linear-gradient(var(--ink), var(--ink)) no-repeat left top / 2px calc(var(--read) * 100%);
-      background-origin: border-box;
-      transition: color 0.12s ease, border-color 0.2s ease, --read 0.3s ease;
+      border-left: 1px solid color-mix(in srgb, var(--pencil) 15%, transparent);
+      color: color-mix(in srgb, var(--pencil) 72%, transparent);
     }
-    .toc-item a.is-visible {
+    .toc-item.d2 a {
+      color: color-mix(in srgb, var(--pencil) 60%, transparent);
+    }
+    .toc-item.d3 a {
+      color: color-mix(in srgb, var(--pencil) 50%, transparent);
+    }
+    .toc-item.is-current > a,
+    .toc-item a:hover {
       color: var(--pencil);
-      border-left-style: solid;
     }
-    .toc-item a.is-active {
-      --ink: var(--marker);
-      border-left-style: solid;
-      border-left-color: var(--pencil-25);
+    .toc .toc-item > a.is-active {
+      color: var(--marker);
+      border-left-color: color-mix(in srgb, var(--pencil) 15%, transparent);
+    }
+    .toc-fill,
+    .toc-thumb {
+      display: block;
+      position: absolute;
+      top: 0;
+      pointer-events: none;
+    }
+    .toc-fill {
+      left: 2px;
+      width: 1px;
+      height: 0;
+      background: color-mix(in srgb, var(--marker) 30%, transparent);
+      transition: height 0.3s ease;
+    }
+    .toc-thumb {
+      left: 1px;
+      width: 3px;
+      height: 1.5rem;
+      border-radius: 3px 2px 3px 2px / 60% 40% 60% 40%;
+      background: var(--marker);
+      opacity: 0;
+      transition: transform 0.32s cubic-bezier(0.3, 0.7, 0.2, 1), height 0.32s ease, width 0.12s ease, left 0.12s ease, opacity 0.2s ease;
+    }
+    .toc-thumb.is-placed {
+      opacity: 1;
+    }
+    .toc-list:has(a.is-active:hover) .toc-thumb {
+      left: 0;
+      width: 5px;
     }
     /* 目录过长：先收起第三级，再收起第二级；当前章节所在分支保持展开，展开收起带高度过渡 */
     .toc-item {
@@ -267,7 +301,7 @@ const renderList = (nodes: Node[], level: number): string =>
     const list = toc.querySelector<HTMLElement>('.toc-list');
     const prose = toc.parentElement?.querySelector<HTMLElement>(':scope > .prose') ?? null;
     const links = [...toc.querySelectorAll<HTMLAnchorElement>('a[data-slug]')]
-      .map((a) => ({ a, head: document.getElementById(a.dataset.slug!), read: -1, visible: false }))
+      .map((a) => ({ a, head: document.getElementById(a.dataset.slug!) }))
       .filter((l): l is typeof l & { head: HTMLElement } => !!l.head);
     if (!list || links.length === 0) return;
 
@@ -326,13 +360,17 @@ const renderList = (nodes: Node[], level: number): string =>
       toc.classList.add('is-measuring');
       markCurrent(current);
       let fold = 0;
+      setFold(0);
       if (wide.matches) {
         const available = parseFloat(getComputedStyle(list).maxHeight) || Infinity;
         while (fold < 2 && list.scrollHeight > available) setFold(++fold);
       }
       setFold(fold);
       const top = target();
+      const geometry = measure();
       if (!animate) {
+        place(geometry);
+        void list.offsetHeight;
         toc.classList.remove('is-measuring');
         list.scrollTop = top;
         edges();
@@ -344,6 +382,7 @@ const renderList = (nodes: Node[], level: number): string =>
       toc.classList.remove('is-measuring');
       markCurrent(current);
       setFold(fold);
+      place(geometry);
       follow(top);
     };
     // 折叠动画结束后布局才稳定，再校正一次位置和淡出。
@@ -351,8 +390,26 @@ const renderList = (nodes: Node[], level: number): string =>
     list.addEventListener('transitionend', (event) => {
       if (event.propertyName !== 'grid-template-rows') return;
       cancelAnimationFrame(settle);
-      settle = requestAnimationFrame(() => follow());
+      settle = requestAnimationFrame(() => { place(); follow(); });
     }, { signal });
+
+    // 轨道上的染色和游标。放在目录列表里，随目录自身滚动。
+    const fill = document.createElement('span');
+    const thumb = document.createElement('span');
+    fill.className = 'toc-fill';
+    thumb.className = 'toc-thumb';
+    fill.ariaHidden = thumb.ariaHidden = 'true';
+    list.append(fill, thumb);
+    let progress = 0;
+    const measure = () => (activeLink ? { top: activeLink.offsetTop, height: activeLink.offsetHeight } : null);
+    const place = (geometry = measure()) => {
+      if (!geometry) return;
+      const height = Math.max(20, Math.min(32, geometry.height - 4));
+      thumb.style.transform = `translateY(${(geometry.top + (geometry.height - height) / 2).toFixed(1)}px)`;
+      thumb.style.height = `${height}px`;
+      fill.style.height = `${(geometry.top + progress * geometry.height).toFixed(1)}px`;
+      thumb.classList.add('is-placed');
+    };
 
     const setActive = (a: HTMLAnchorElement) => {
       if (a === activeLink) return;
@@ -376,16 +433,11 @@ const renderList = (nodes: Node[], level: number): string =>
       });
       // 滚到底时高亮最后一个
       if (bottom) active = links.length - 1;
-      // 每个章节从自己的标题到下一个标题；视口内的标成可见，按阅读线算出已读比例
-      links.forEach((l, i) => {
-        const top = tops[i];
-        const next = i + 1 < links.length ? tops[i + 1] : end;
-        const visible = top < window.innerHeight && next > 0;
-        const read = bottom || i < active ? 1 : Math.max(0, Math.min(1, (LINE - top) / Math.max(1, next - top)));
-        if (visible !== l.visible) l.a.classList.toggle('is-visible', (l.visible = visible));
-        if (Math.abs(read - l.read) > 0.004) l.a.style.setProperty('--read', (l.read = read).toFixed(3));
-      });
-      setActive(links[active].a);
+      // 当前章节从自己的标题读到下一个标题的比例，决定轨道染色停在游标的哪里
+      const next = active + 1 < links.length ? tops[active + 1] : end;
+      progress = bottom ? 1 : Math.max(0, Math.min(1, (LINE - tops[active]) / Math.max(1, next - tops[active])));
+      if (links[active].a === activeLink) place();
+      else setActive(links[active].a);
       // 正文结束后目录跟着正文底边一起向上收起、淡出
       let shift = 0;
       if (wide.matches && prose) {
