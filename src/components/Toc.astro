@@ -52,6 +52,16 @@ const renderList = (nodes: Node[], level: number): string =>
 }
 
 <style is:global>
+  @property --fade-top {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: 0rem;
+  }
+  @property --fade-bottom {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: 0rem;
+  }
   .toc {
     max-width: var(--max-w-prose);
     margin: 0 auto 2rem;
@@ -159,10 +169,20 @@ const renderList = (nodes: Node[], level: number): string =>
     .toc-list::-webkit-scrollbar {
       display: none;
     }
-    /* 可滚动时上下边缘淡出，提示还有内容 */
-    .toc-list.is-scrollable {
-      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 1.5rem, #000 calc(100% - 1.5rem), transparent);
-      mask-image: linear-gradient(to bottom, transparent, #000 1.5rem, #000 calc(100% - 1.5rem), transparent);
+    /* 只在还有被遮住内容的一侧淡出：滚到顶或底时，第一条、最后一条完整显示 */
+    .toc-list {
+      --fade-top: 0rem;
+      --fade-bottom: 0rem;
+      scroll-behavior: smooth;
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent);
+      mask-image: linear-gradient(to bottom, transparent, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent);
+      transition: --fade-top 0.2s ease, --fade-bottom 0.2s ease;
+    }
+    .toc-list.is-clipped-top {
+      --fade-top: 1.5rem;
+    }
+    .toc-list.is-clipped-bottom {
+      --fade-bottom: 1.5rem;
     }
     .toc-item a {
       margin-left: -2px;
@@ -205,20 +225,29 @@ const renderList = (nodes: Node[], level: number): string =>
     // 宽屏默认展开
     const details = toc.querySelector<HTMLDetailsElement>('details');
     const wide = window.matchMedia('(min-width: 1200px)');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     const syncOpen = () => {
       if (details) details.open = wide.matches;
     };
     syncOpen();
     wide.addEventListener('change', syncOpen, { signal });
 
+    // 按目录自身的滚动位置决定哪一侧淡出。
+    const edges = () => {
+      const max = list.scrollHeight - list.clientHeight;
+      list.classList.toggle('is-clipped-top', max > 1 && list.scrollTop > 1);
+      list.classList.toggle('is-clipped-bottom', max > 1 && list.scrollTop < max - 1);
+    };
+    list.addEventListener('scroll', edges, { passive: true, signal });
     // 目录仍然放不下时，随页面滚动把当前条目滚到目录中间。
     const follow = () => {
-      const scrollable = list.scrollHeight > list.clientHeight + 1;
-      list.classList.toggle('is-scrollable', scrollable);
       const active = list.querySelector<HTMLElement>('a.is-active');
-      if (active && scrollable) {
-        list.scrollTop = active.offsetTop - list.clientHeight / 2 + active.offsetHeight / 2;
+      if (active && list.scrollHeight > list.clientHeight + 1) {
+        const max = list.scrollHeight - list.clientHeight;
+        const top = Math.max(0, Math.min(max, active.offsetTop - list.clientHeight / 2 + active.offsetHeight / 2));
+        if (Math.abs(top - list.scrollTop) > 1) list.scrollTo({ top, behavior: reduced.matches ? 'auto' : 'smooth' });
       }
+      edges();
     };
     // 宽屏下整份目录放不下视口时按顺序折叠：先第三级，再第二级；当前分支保持展开。
     const fit = () => {
@@ -269,7 +298,12 @@ const renderList = (nodes: Node[], level: number): string =>
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(fit, 120);
     }, { signal });
-    window.addEventListener('scroll', update, { passive: true, signal });
+    // 每帧最多计算一次当前章节
+    let frame = 0;
+    window.addEventListener('scroll', () => {
+      if (!frame) frame = requestAnimationFrame(() => { frame = 0; update(); });
+    }, { passive: true, signal });
+    signal.addEventListener('abort', () => cancelAnimationFrame(frame));
     update();
   }
   initToc();
