@@ -21,9 +21,10 @@
   const MEDIA = [['img', 'src'], ['video', 'src'], ['video', 'poster'], ['source', 'src']];
 
   const NotebookBody = createClass({
-    componentDidMount() { this.resolveMedia(0); },
-    componentDidUpdate() { this.resolveMedia(0); },
+    componentDidMount() { this.resolveMedia(0); this.highlightCode(); },
+    componentDidUpdate() { this.resolveMedia(0); this.highlightCode(); },
     componentWillUnmount() { clearTimeout(this.timer); },
+    highlightCode() { globalThis.NotebookMarkdown?.highlight?.(this.root).catch(() => {}); },
     // Blob URLs of repository files arrive asynchronously, so unresolved media are retried briefly.
     resolveMedia(attempt) {
       clearTimeout(this.timer);

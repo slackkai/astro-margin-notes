@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { build } from 'esbuild';
+import { dirname } from 'node:path';
 
 /**
  * The site's own remark/rehype pipeline for the preview iframe (src/markdown/cms-preview.mjs).
@@ -23,11 +24,17 @@ export async function bundlePreviewRenderer(outfile = 'public/admin/vendor/noteb
     plugins: [{
       name: 'cms-preview-stubs',
       setup(b) {
+        b.onResolve({ filter: /^\.\/cms-code\.mjs$/ }, () => ({ path: './notebook-code.js', external: true }));
         b.onResolve({ filter: /^(katex|node:fs|node:path)$/ }, args => ({ path: args.path, namespace: 'stub' }));
         b.onResolve({ filter: /^\.\.\/config$/ }, args => (/[\\/]i18n[\\/]/.test(args.importer) ? { path: 'config', namespace: 'stub' } : undefined));
         b.onLoad({ filter: /.*/, namespace: 'stub' }, args => ({ contents: stubs[args.path], loader: 'js' }));
       },
     }],
+  });
+  await build({
+    entryPoints: { 'notebook-code': 'src/markdown/cms-code.mjs' }, outdir: dirname(outfile),
+    bundle: true, format: 'esm', splitting: true, chunkNames: 'code/[name]-[hash]',
+    minify: true, target: 'es2022', legalComments: 'none', logLevel: 'warning',
   });
 }
 

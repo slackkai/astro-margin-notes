@@ -5,6 +5,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { JSDOM } from 'jsdom';
 import { bundlePreviewRenderer } from '../scripts/lib/bundle-cms-preview.mjs';
+import { highlight } from '../src/markdown/cms-code.mjs';
+import { createMarkdownProcessor } from '@astrojs/markdown-remark';
 
 // Exercise the actual browser bundle, including browser-specific HTML/MathML parsing
 // and sanitisation. A Node-only remark test cannot catch these preview regressions.
@@ -64,4 +66,39 @@ Inside.
     dom.window.close();
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test('preview code uses the same tokens, wrapping and language label as the published page', async () => {
+  const dom = new JSDOM('<!doctype html><main></main>');
+  try {
+    const root = dom.window.document.querySelector('main');
+    const source = 'def positional_encoding(pos, i, d_model):\n    return math.sin(pos) if i % 2 == 0 else math.cos(pos)';
+    root.innerHTML = '<pre><code class="language-python"></code></pre>';
+    root.querySelector('code').textContent = source + '\n';
+    await highlight(root);
+    const pre = root.querySelector('pre');
+    assert.equal(pre.querySelector('.cms-code-label').textContent, 'python');
+    assert.ok(pre.querySelector('code span[style*="--shiki-dark"]'));
+    assert.equal(pre.querySelector('code').textContent, source);
+    pre.querySelector('.cms-code-label').remove();
+    const processor = await createMarkdownProcessor({ shikiConfig: { themes: { light: 'github-light', dark: 'github-dark' }, wrap: true } });
+    const published = await processor.render('```python\n' + source + '\n```');
+    const expected = dom.window.document.createElement('div');
+    expected.innerHTML = published.code;
+    assert.equal(pre.outerHTML, expected.querySelector('pre').outerHTML);
+
+    root.innerHTML = '<pre><code class="language-made-up">&lt;script&gt;unsafe&lt;/script&gt;\n</code></pre><pre><code>plain\n</code></pre>';
+    await highlight(root);
+    assert.equal(root.querySelector('script'), null);
+    assert.equal(root.querySelector('code').textContent, '<script>unsafe</script>');
+    assert.equal(root.querySelectorAll('.cms-code-label').length, 2);
+    await highlight(root);
+    assert.equal(root.querySelectorAll('.cms-code-label').length, 2);
+
+    root.innerHTML = '<pre><code class="language-rust">fn main() {}</code></pre>';
+    const stale = highlight(root);
+    root.innerHTML = '<p>New text typed while the grammar loads</p>';
+    await stale;
+    assert.equal(root.querySelector('pre'), null);
+  } finally { dom.window.close(); }
 });

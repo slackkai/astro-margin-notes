@@ -22,6 +22,12 @@ import remarkDirectives from './remark-directives.mjs';
 import { el, text, walk } from './directives.mjs';
 import { t } from '../i18n';
 
+export async function highlight(root) {
+  if (!root?.querySelector('pre > code')) return;
+  const code = await import('./cms-code.mjs');
+  await code.highlight(root);
+}
+
 /** ::embed{snippet=…} reads a file at build time; the preview shows where it will appear. */
 function remarkSnippetPlaceholder() {
   return tree => walk(tree, node => {
