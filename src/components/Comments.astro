@@ -14,7 +14,6 @@ const discussionUrl = `https://github.com/${settings.repo}/discussions`;
 {enabled && (
   <section class="comments panel" aria-labelledby="comments-title" data-pagefind-ignore>
     <h2 id="comments-title" class="panel-label"><span aria-hidden="true">✎</span> {en ? 'Comments' : '评论'}</h2>
-    <p class="comments-lead">{en ? 'Leave a thought in the margin.' : '把想法写在页边。'}</p>
     <site-comments
       data-repo={settings.repo} data-repo-id={settings.repoId}
       data-category={settings.category} data-category-id={settings.categoryId}
@@ -32,11 +31,10 @@ const discussionUrl = `https://github.com/${settings.repo}/discussions`;
   .comments { --r: -0.3deg; margin-top: 3.5rem; border-width: 3px; }
   .comments .panel-label { font-size: 1.1rem; transform: translate(-50%, -50%) rotate(-1.5deg); }
   .comments .panel-label span { color: var(--marker); }
-  .comments-lead { margin: 0 0 1rem; text-align: center; font-size: .95rem; color: var(--pencil-60); }
   .comments-link { margin: .75rem 0 0; font-size: .85rem; text-align: right; }
   .comments-link a { color: var(--pencil-60); text-decoration: underline wavy var(--pencil-25); text-underline-offset: .3em; }
   .comments-link a:hover { color: var(--marker); text-decoration-color: var(--marker); }
-  site-comments { display: block; min-height: 10rem; }
+  site-comments { display: block; min-height: 10rem; margin-top: .5rem; }
   site-comments [data-comment-status] { text-align: center; }
   site-comments :global(giscus-widget::part(iframe)) { color-scheme: inherit; }
 </style>
