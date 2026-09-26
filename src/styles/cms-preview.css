@@ -1,39 +1,34 @@
-/* Overrides for the isolated Sveltia preview frame, not the editing controls. */
+/* Overrides for the isolated Sveltia preview frame, not the editing controls.
+   The body uses the site's own markup and styles (global.css + markdown.css); this file only
+   lays out the header like PostLayout.astro and fits the page into the preview pane. */
 html { font-size: 16px; }
 body { display: block; min-height: 0; margin: 0; }
-.cms-entry { max-width: 48rem; margin: 0 auto; padding: clamp(20px, 4vw, 48px); overflow-wrap: anywhere; }
-.cms-entry-header { padding-bottom: 1.5rem; margin-bottom: 1.75rem; border-bottom: 2px dashed var(--pencil-25); }
-.cms-entry-kicker, .cms-entry-chips, .cms-entry-tags, .cms-entry-links { display: flex; flex-wrap: wrap; gap: .45rem .65rem; align-items: center; }
-.cms-entry-title { margin: 1rem 0 .65rem; font-size: clamp(1.8rem, 5vw, 2.4rem); line-height: 1.35; }
-.cms-entry-description { margin: .5rem 0; color: var(--pencil-60); font-size: 1.05rem; line-height: 1.7; }
-.cms-entry-meta { margin: .65rem 0; color: var(--pencil-60); font-size: .85rem; line-height: 1.7; }
-.cms-entry-chips, .cms-entry-tags, .cms-entry-links { margin-top: .8rem; }
-.cms-chip { display: inline-block; font: inherit; font-size: .8rem; line-height: 1.5; padding: .1rem .5rem; border: 1px solid var(--pencil-25); border-radius: 3px 6px 4px 5px; }
-.cms-section { background: var(--postit); border-color: var(--pencil); font-weight: 700; }
-.cms-draft { background: var(--postit-3); }
-.cms-entry-tags { color: var(--pencil-60); }
-.cms-entry-links { font-size: .9rem; color: var(--pen); }
-.cms-entry-cover { margin: 0 auto 1.75rem; }
-.cms-entry-cover img, .cms-entry-cover video { display: block; width: 100%; max-height: 24rem; object-fit: contain; border: 2px solid var(--pencil-25); border-radius: 8px 12px 6px 10px; }
-.cms-entry-summary { margin: 0 0 1.5rem; padding: .8rem 1rem; background: var(--postit); border-left: 3px solid var(--pen); }
+.cms-entry { box-sizing: content-box; max-width: var(--max-w-prose); margin: 0 auto; padding: clamp(20px, 4vw, 48px); overflow-wrap: anywhere; }
+/* Wide panes get the page margin that the site uses for margin notes and wide layouts. */
+@media (min-width: 1200px) { .cms-entry { padding-right: calc(15rem + 48px); } }
+.cms-entry-header { margin-bottom: 2.5rem; }
+.cms-entry-kicker, .cms-entry-chips, .cms-entry-tags, .cms-entry-links { display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: center; }
+.cms-entry-title { margin: 1rem 0 .5rem; font-size: clamp(2rem, 5vw, 3rem); }
+.cms-entry-description { margin: 0 0 .5rem; color: var(--pencil-60); font-size: 1.2rem; }
+.cms-entry-meta { margin: .5rem 0; color: var(--pencil-45); font-size: .9rem; }
+.cms-entry-chips, .cms-entry-tags, .cms-entry-links { margin-top: .75rem; }
+.cms-chip { display: inline-block; font-size: .85rem; line-height: 1.5; padding: .05rem .6rem; border: 2px solid var(--pencil-25); border-radius: var(--radius-wobble-sm); color: var(--pencil-60); }
+.cms-draft { background: var(--postit-3); border-color: var(--pencil); color: var(--pencil); }
+.cms-entry-links { font-size: .95rem; }
+.cms-entry-links a { color: var(--pen); text-decoration: underline wavy; text-underline-offset: 3px; }
+.cms-entry-cover { margin: 0 0 2.5rem; }
+.cms-entry-cover img, .cms-entry-cover video { display: block; width: 100%; max-height: 24rem; object-fit: cover; border: 3px solid var(--pencil); border-radius: 16px 24px 20px 18px / 18px 20px 24px 16px; box-shadow: var(--shadow-soft); }
+.cms-entry-summary { margin: 0 0 2rem; padding: .8rem 1rem; background: var(--postit); border: 2px solid var(--pencil); border-radius: var(--radius-wobble-sm); box-shadow: var(--shadow-soft); }
 .cms-entry-empty { padding: 1.5rem 0; color: var(--pencil-60); font-size: .95rem; }
-.cms-entry-body [data-rich-text-preview] { font-size: 1.05rem; line-height: 1.85; }
-.cms-entry-body [data-rich-text-preview] h1 { font-size: 1.6rem; }
-.cms-entry-body [data-rich-text-preview] h2 { font-size: 1.4rem; }
-.cms-entry-body [data-rich-text-preview] h3 { font-size: 1.2rem; }
-.cms-entry-body [data-rich-text-preview] h4 { font-size: 1.05rem; }
+.cms-entry-body [data-rich-text-preview] { max-width: none; }
 .cms-entry-body [data-rich-text-preview] > :first-child { margin-top: 0; }
-.cms-entry-gallery { margin: 1.5rem 0; }
-.cms-entry-gallery img { width: 100%; border: 2px solid var(--pencil-25); border-radius: 6px; }
-.cms-entry-bibtex { margin-top: 1.5rem; }
+.cms-entry-body .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: .25rem 0; }
+.cms-entry-gallery { margin: 2rem 0; }
+.cms-entry-gallery img { width: 100%; border: 3px solid var(--pencil); border-radius: 12px 18px 14px 16px; }
+.cms-entry-bibtex { margin-top: 2rem; }
 .cms-entry-bibtex pre { white-space: pre-wrap; font: .85rem/1.6 var(--font-mono); }
-/* The preview pane has no spare page margin for annotations. */
-.note, .note-block { position: static; display: block; float: none; width: auto; margin: .5rem 0; transform: none; }
-.note::before { display: none; }
-.note { display: inline; padding: .1em .35em; margin: 0 .25em; border-width: 1px; font-size: .9em; }
-.layout-wide { width: auto; left: auto; transform: none; }
+/* Stand-ins for build-time content (::embed{snippet}) and renderer failures. */
+.cms-snippet, .cms-render-error { margin: 1.5rem 0; padding: .8rem 1rem; border: 2px dashed var(--pencil-25); border-radius: var(--radius-wobble-sm); color: var(--pencil-60); font-size: .9rem; }
+.cms-render-error { white-space: pre-wrap; color: var(--marker); }
+/* Display-math component preview inside the rich text editor. */
 .math-display { margin: 1em 0; text-align: center; font-size: 1.15em; overflow-x: auto; }
-[data-rich-text-preview] pre, [data-rich-text-preview] table { max-width: 100%; overflow-x: auto; }
-[data-rich-text-preview] .photos { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
-.cms-entry-body img { max-width: 100%; height: auto; }
-@media (max-width: 480px) { .layout-cols { grid-template-columns: 1fr; } }
