@@ -55,33 +55,50 @@ main {
   --color-prettylights-syntax-string: var(--pen);
   --color-prettylights-syntax-variable: var(--pencil);
 }
+:root { --font-family-sans: var(--font-body); --font-family-monospace: var(--font-mono); }
 html, body, main { background: transparent; color: var(--pencil); font-family: var(--font-body); font-size: 16px; line-height: 1.7; }
 main { padding: 4px 5px 8px 1px; }
 button, input, textarea, .markdown { font: inherit; }
 code, pre, .gsc-is-fixed-width { font-family: var(--font-mono); }
 .gsc-main { gap: 1rem; }
-.gsc-header { margin-bottom: 0; }
+.gsc-header { margin-bottom: .25rem; color: var(--pencil-60); font-size: .9rem; }
 /* gsc-comment is only a wrapper: its direct child already owns the card border.
    A reply editor is inside that card and must not create a second outer frame. */
-.gsc-comment > div { border: 1px solid var(--pencil-25); border-radius: 8px 12px 10px 6px; background: var(--paper-2); }
-.gsc-comment-box:not(.gsc-comment-box-is-reply) { border: 2px solid var(--pencil); border-radius: 8px 14px 10px 6px / 6px 8px 12px 10px; box-shadow: var(--shadow-hand-sm); background: var(--paper-2); }
+.gsc-comment > div { border: 1px solid var(--pencil-25); border-radius: 8px 12px 10px 6px; background: var(--paper-2); box-shadow: var(--shadow-soft); }
+.gsc-comment-box:not(.gsc-comment-box-is-reply) { border: 2px solid var(--pencil); border-radius: 10px 16px 12px 8px / 8px 10px 16px 12px; box-shadow: var(--shadow-soft); background: var(--paper-2); }
 .gsc-comment-box.gsc-comment-box-is-reply { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
 .gsc-comment .gsc-comment-box-tabs { border-top: 0; border-radius: 0; }
-.gsc-comment-box-tabs { background: var(--paper); border-bottom: 2px dashed var(--pencil-25); border-radius: 6px 12px 0 0; padding: .5rem .75rem; }
-.gsc-comment-box-tabs button { font-family: var(--font-body); }
+.gsc-comment-box-tabs { background: transparent; border-bottom: 1px dashed var(--pencil-25); border-radius: 8px 14px 0 0; padding: .65rem .9rem; align-items: center; }
+.gsc-comment-box-tabs > div:first-child { margin: 0; display: flex; gap: .5rem; }
+.gsc-comment-box-tabs button { font-family: var(--font-body); border: 1px solid transparent; border-radius: var(--radius-wobble-sm); background: transparent; padding: .2rem .8rem; margin: 0; }
+.gsc-comment-box-tabs button.color-text-primary { color: var(--pen); background: var(--postit); border-color: var(--pencil-25); }
+.gsc-comment-box-tabs button:hover { background: var(--postit); }
+.gsc-comment-box-main { padding: .5rem .9rem 0; }
 .gsc-comment-box-write, .gsc-comment-box-write:focus-within { border: none; box-shadow: none; background: transparent; }
-.gsc-comment-box-textarea { min-height: 7rem; font-family: var(--font-body); font-size: 1rem; line-height: 1.8; background: transparent; padding: .75rem 1rem; }
+.gsc-comment-box .gsc-comment-box-textarea { min-height: 8rem; font-family: var(--font-body); font-size: 1rem; line-height: 1.9; background: transparent; padding: .5rem .25rem; border: 0; border-radius: 0; box-shadow: none; resize: vertical; }
+.gsc-comment-box .gsc-comment-box-textarea.gsc-is-fixed-width { font-family: var(--font-mono); }
+.gsc-comment-box .gsc-comment-box-textarea:focus { border: 0; box-shadow: none; outline: none; }
+.gsc-comment-box:focus-within { border-color: var(--pen); }
+.gsc-comment-box .gsc-comment-box-textarea-extras { background: transparent; border: 0; border-top: 1px dashed var(--pencil-12); border-radius: 0; padding: .35rem .25rem; box-shadow: none; }
+.gsc-comment-box .gsc-comment-box-preview { min-height: 8rem; background: transparent; border: 0; padding: .5rem .25rem; }
 .gsc-comment-box-textarea:disabled { opacity: .8; }
 .gsc-comment-box-textarea::placeholder { color: var(--pencil-60); }
-.gsc-comment-box-bottom { padding: .75rem; }
-.gsc-comment-box-buttons .btn { border: 2px solid var(--pencil); border-radius: var(--radius-wobble-sm); box-shadow: var(--shadow-hand-sm); font-weight: 700; }
+.gsc-comment-box-bottom { padding: .65rem 1rem 1rem; gap: .75rem; flex-wrap: wrap; }
+.gsc-comment-box-buttons .btn { border: 1.5px solid var(--pencil); border-radius: var(--radius-wobble-sm); box-shadow: var(--shadow-hand-sm); font-family: var(--font-body); font-size: .9rem; font-weight: 600; padding: .4rem .85rem; }
 .gsc-comment-box-buttons .btn:hover:not(:disabled) { transform: translate(-1px, -1px); }
 .gsc-comment-header, .gsc-comment-footer { background: transparent; }
 .gsc-comment-author-avatar { border-radius: var(--radius-wobble-sm); }
 .gsc-comment-content { padding: 1rem; }
+.gsc-reply-box { background: transparent; border-top: 1px dashed var(--pencil-25); }
+.gsc-reply-box > button { font-family: var(--font-body); background: var(--paper); border: 1px solid var(--pencil-25); border-radius: var(--radius-wobble-sm); padding: .5rem .75rem; }
 .gsc-comment-box-markdown-hint, .gsc-comment-box-textarea-extras { font-size: .8rem; color: var(--pencil-60); }
 .gsc-reactions { margin-bottom: 1rem; }
 .gsc-reactions-count { font-family: var(--font-body); }
 .gsc-social-reaction-summary-item, .gsc-reactions-button { border-radius: var(--radius-wobble-sm); }
 :focus-visible { outline: 2px solid var(--pen); outline-offset: 3px; }
+@media (max-width: 480px) {
+  .gsc-comment-box-tabs { padding: .5rem; }
+  .gsc-comment-box-main { padding: .4rem .6rem 0; }
+  .gsc-comment-box-bottom { padding: .5rem .6rem .8rem; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
