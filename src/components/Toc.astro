@@ -6,6 +6,7 @@ import { t } from '../i18n';
  * 三级结构：顶层取正文里最高一级的标题（多数文章是 h2，用 h1 分节的文章则是 h1），
  * 下面再挂两级。宽屏下目录放不下时按顺序折叠低级标题——先收起第三级，仍放不下再收起第二级，
  * 当前章节所在的分支始终展开；折叠后仍放不下则目录自身滚动，并随页面滚动保持当前条目可见。
+ * 左侧轨道兼作阅读进度：视口内章节画实线，读过的部分钢笔色填满，当前章节用记号笔色；正文结束后目录随页面向上收起。
  * 用法：const { headings } = await render(post); <Toc headings={headings} />
  */
 interface Heading {
@@ -62,6 +63,11 @@ const renderList = (nodes: Node[], level: number): string =>
     inherits: false;
     initial-value: 0rem;
   }
+  @property --read {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 0;
+  }
   .toc {
     max-width: var(--max-w-prose);
     margin: 0 auto 2rem;
@@ -102,7 +108,7 @@ const renderList = (nodes: Node[], level: number): string =>
     margin-top: 0.5rem;
   }
   .toc-children {
-    margin-top: 0.15rem;
+    padding-top: 0.15rem;
   }
   .toc-item a {
     display: block;
@@ -112,7 +118,7 @@ const renderList = (nodes: Node[], level: number): string =>
     font-size: 0.95rem;
     line-height: 1.45;
     overflow-wrap: anywhere;
-    transition: color 0.12s ease, border-color 0.12s ease;
+    transition: color 0.12s ease, border-color 0.2s ease;
   }
   .toc-item.d2 a {
     padding-left: 1.2rem;
@@ -132,8 +138,11 @@ const renderList = (nodes: Node[], level: number): string =>
   .toc-item.is-current > a {
     color: var(--pencil);
   }
+  .toc .toc-item > a.is-active {
+    color: var(--marker);
+  }
 
-  /* 宽屏：贴到正文左侧页边，sticky 跟随 */
+  /* 宽屏：贴到正文左侧页边，sticky 跟随；正文结束后随页面向上收起 */
   @media (min-width: 1200px) {
     .toc {
       position: sticky;
@@ -142,6 +151,11 @@ const renderList = (nodes: Node[], level: number): string =>
       width: 12rem;
       margin: 0 0 0 calc((100% - var(--max-w-prose)) / 2 - 12rem - 2rem);
       z-index: 1;
+      transform: translateY(var(--toc-shift, 0px));
+      opacity: var(--toc-opacity, 1);
+    }
+    .toc.is-past {
+      visibility: hidden;
     }
     .toc-details {
       border: 0;
@@ -158,49 +172,84 @@ const renderList = (nodes: Node[], level: number): string =>
       display: none;
     }
     .toc-list {
-      border-left: 2px dashed var(--pencil-25);
-      /* 折叠后仍放不下时目录自身滚动；不显示滚动条，脚本随页面滚动保持当前条目可见 */
-      max-height: calc(100vh - 8rem);
+      /* 底部留出余量，淡出落在视口内而不是贴着窗口底边 */
+      max-height: calc(100vh - 12rem);
       overflow-y: auto;
       overflow-x: hidden;
       overscroll-behavior: contain;
       scrollbar-width: none;
-    }
-    .toc-list::-webkit-scrollbar {
-      display: none;
-    }
-    /* 只在还有被遮住内容的一侧淡出：滚到顶或底时，第一条、最后一条完整显示 */
-    .toc-list {
+      /* 只在还有被遮住内容的一侧淡出：滚到顶或底时，第一条、最后一条完整显示 */
       --fade-top: 0rem;
       --fade-bottom: 0rem;
-      scroll-behavior: smooth;
       -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent);
       mask-image: linear-gradient(to bottom, transparent, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent);
       transition: --fade-top 0.2s ease, --fade-bottom 0.2s ease;
     }
-    .toc-list.is-clipped-top {
-      --fade-top: 1.5rem;
-    }
-    .toc-list.is-clipped-bottom {
-      --fade-bottom: 1.5rem;
-    }
-    .toc-item a {
-      margin-left: -2px;
-    }
-    /* 目录过长：先收起第三级，再收起第二级；当前章节所在分支保持展开 */
-    .toc.is-fold-3 .toc-children.l3,
-    .toc.is-fold-2 .toc-children.l2 {
+    .toc-list::-webkit-scrollbar {
       display: none;
     }
-    .toc.is-fold-3 .toc-item.is-current > .toc-children.l3,
-    .toc.is-fold-2 .toc-item.is-current > .toc-children.l2 {
-      display: flex;
+    .toc-list.is-clipped-top {
+      --fade-top: 2.5rem;
+    }
+    .toc-list.is-clipped-bottom {
+      --fade-bottom: 2.5rem;
+    }
+    /* 左侧虚线是阅读轨道：视口内的章节画成实线，读过的部分用钢笔色从上往下填满，当前章节用记号笔色 */
+    .toc-list,
+    .toc-children {
+      gap: 0;
+    }
+    .toc-children {
+      padding-top: 0;
+    }
+    .toc-item a {
+      --ink: var(--pen);
+      padding-block: 0.15rem;
+      border-left-style: dashed;
+      border-left-color: var(--pencil-25);
+      background: linear-gradient(var(--ink), var(--ink)) no-repeat left top / 2px calc(var(--read) * 100%);
+      background-origin: border-box;
+      transition: color 0.12s ease, border-color 0.2s ease, --read 0.3s ease;
+    }
+    .toc-item a.is-visible {
+      color: var(--pencil);
+      border-left-style: solid;
+    }
+    .toc-item a.is-active {
+      --ink: var(--marker);
+      border-left-style: solid;
+      border-left-color: var(--pencil-25);
+    }
+    /* 目录过长：先收起第三级，再收起第二级；当前章节所在分支保持展开，展开收起带高度过渡 */
+    .toc-item {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      transition: grid-template-rows 0.28s ease;
+    }
+    .toc-children {
+      min-height: 0;
+      overflow: hidden;
+      transition: opacity 0.2s ease, visibility 0.28s;
+    }
+    .toc.is-fold-3 .toc-item.d2:not(.is-current),
+    .toc.is-fold-2 .toc-item.d1:not(.is-current) {
+      grid-template-rows: auto 0fr;
+    }
+    .toc.is-fold-3 .toc-item.d2:not(.is-current) > .toc-children,
+    .toc.is-fold-2 .toc-item.d1:not(.is-current) > .toc-children {
+      opacity: 0;
+      visibility: hidden;
     }
     .toc.is-fold-3 .toc-item.d2:has(> .toc-children):not(.is-current) > a::after,
     .toc.is-fold-2 .toc-item.d1:has(> .toc-children):not(.is-current) > a::after {
       content: ' ▸';
       font-size: 0.7em;
       color: var(--pencil-45);
+    }
+    /* 测量折叠后的最终布局时关闭过渡 */
+    .toc.is-measuring,
+    .toc.is-measuring * {
+      transition: none !important;
     }
   }
 </style>
@@ -216,11 +265,11 @@ const renderList = (nodes: Node[], level: number): string =>
     const { signal } = lifecycle;
     document.addEventListener('astro:before-swap', () => lifecycle?.abort(), { once: true, signal });
     const list = toc.querySelector<HTMLElement>('.toc-list');
-    const links = [...toc.querySelectorAll<HTMLAnchorElement>('a[data-slug]')];
-    const heads = links
-      .map((a) => document.getElementById(a.dataset.slug!))
-      .filter((h): h is HTMLElement => !!h);
-    if (!list || heads.length === 0) return;
+    const prose = toc.parentElement?.querySelector<HTMLElement>(':scope > .prose') ?? null;
+    const links = [...toc.querySelectorAll<HTMLAnchorElement>('a[data-slug]')]
+      .map((a) => ({ a, head: document.getElementById(a.dataset.slug!), read: -1, visible: false }))
+      .filter((l): l is typeof l & { head: HTMLElement } => !!l.head);
+    if (!list || links.length === 0) return;
 
     // 宽屏默认展开
     const details = toc.querySelector<HTMLDetailsElement>('details');
@@ -230,7 +279,6 @@ const renderList = (nodes: Node[], level: number): string =>
       if (details) details.open = wide.matches;
     };
     syncOpen();
-    wide.addEventListener('change', syncOpen, { signal });
 
     // 按目录自身的滚动位置决定哪一侧淡出。
     const edges = () => {
@@ -239,71 +287,135 @@ const renderList = (nodes: Node[], level: number): string =>
       list.classList.toggle('is-clipped-bottom', max > 1 && list.scrollTop < max - 1);
     };
     list.addEventListener('scroll', edges, { passive: true, signal });
-    // 目录仍然放不下时，随页面滚动把当前条目滚到目录中间。
-    const follow = () => {
+    // 当前条目在目录中间时的滚动位置；需在最终布局下计算。
+    const target = () => {
       const active = list.querySelector<HTMLElement>('a.is-active');
-      if (active && list.scrollHeight > list.clientHeight + 1) {
-        const max = list.scrollHeight - list.clientHeight;
-        const top = Math.max(0, Math.min(max, active.offsetTop - list.clientHeight / 2 + active.offsetHeight / 2));
-        if (Math.abs(top - list.scrollTop) > 1) list.scrollTo({ top, behavior: reduced.matches ? 'auto' : 'smooth' });
-      }
+      const max = list.scrollHeight - list.clientHeight;
+      if (!active || max <= 1) return 0;
+      return Math.max(0, Math.min(max, active.offsetTop - list.clientHeight / 2 + active.offsetHeight / 2));
+    };
+    const follow = (top = target()) => {
+      if (Math.abs(top - list.scrollTop) > 1) list.scrollTo({ top, behavior: reduced.matches ? 'auto' : 'smooth' });
       edges();
     };
-    // 宽屏下整份目录放不下视口时按顺序折叠：先第三级，再第二级；当前分支保持展开。
-    const fit = () => {
-      toc.classList.remove('is-fold-2', 'is-fold-3');
-      if (wide.matches) {
-        const available = () => window.innerHeight - list.getBoundingClientRect().top - 32;
-        if (list.scrollHeight > available()) toc.classList.add('is-fold-3');
-        if (list.scrollHeight > available()) toc.classList.add('is-fold-2');
+
+    const setFold = (fold: number) => {
+      toc.classList.toggle('is-fold-3', fold >= 1);
+      toc.classList.toggle('is-fold-2', fold >= 2);
+    };
+    const foldLevel = () => (toc.classList.contains('is-fold-2') ? 2 : toc.classList.contains('is-fold-3') ? 1 : 0);
+    const markCurrent = (items: Element[]) => {
+      toc.querySelectorAll('.is-current').forEach((item) => item.classList.remove('is-current'));
+      items.forEach((item) => item.classList.add('is-current'));
+    };
+    // 当前条目的每一级祖先都标记为当前分支，这样折叠时它们的子目录保持展开。
+    const branch = (a: HTMLAnchorElement | undefined) => {
+      const items: Element[] = [];
+      for (let item = a?.parentElement; item && item !== list; item = item.parentElement) {
+        if (item.classList.contains('toc-item')) items.push(item);
       }
-      follow();
+      return items;
     };
 
-    let current = '';
-    const setActive = (slug: string) => {
-      if (slug === current) return;
-      current = slug;
-      toc.querySelectorAll('.is-current').forEach((item) => item.classList.remove('is-current'));
-      for (const a of links) {
-        const on = a.dataset.slug === slug;
-        a.classList.toggle('is-active', on);
-        if (!on) continue;
-        // 当前条目的每一级祖先都标记为当前分支，这样折叠时它们的子目录保持展开。
-        let item = a.parentElement;
-        while (item && item !== list) {
-          if (item.classList.contains('toc-item')) item.classList.add('is-current');
-          item = item.parentElement;
-        }
+    // 宽屏下整份目录放不下时按顺序折叠：先第三级，再第二级。
+    // 先关掉过渡量出最终布局，再退回原状态、打开过渡切过去，展开收起就有高度动画。
+    let activeLink: HTMLAnchorElement | undefined;
+    const layout = (animate = true) => {
+      const before = { fold: foldLevel(), current: [...toc.querySelectorAll('.is-current')] };
+      const current = branch(activeLink);
+      toc.classList.add('is-measuring');
+      markCurrent(current);
+      let fold = 0;
+      if (wide.matches) {
+        const available = parseFloat(getComputedStyle(list).maxHeight) || Infinity;
+        while (fold < 2 && list.scrollHeight > available) setFold(++fold);
       }
-      fit();
+      setFold(fold);
+      const top = target();
+      if (!animate) {
+        toc.classList.remove('is-measuring');
+        list.scrollTop = top;
+        edges();
+        return;
+      }
+      markCurrent(before.current);
+      setFold(before.fold);
+      void list.offsetHeight;
+      toc.classList.remove('is-measuring');
+      markCurrent(current);
+      setFold(fold);
+      follow(top);
     };
+    // 折叠动画结束后布局才稳定，再校正一次位置和淡出。
+    let settle = 0;
+    list.addEventListener('transitionend', (event) => {
+      if (event.propertyName !== 'grid-template-rows') return;
+      cancelAnimationFrame(settle);
+      settle = requestAnimationFrame(() => follow());
+    }, { signal });
+
+    const setActive = (a: HTMLAnchorElement) => {
+      if (a === activeLink) return;
+      const first = !activeLink;
+      activeLink?.classList.remove('is-active');
+      activeLink = a;
+      a.classList.add('is-active');
+      layout(!first);
+    };
+
     // 取视口顶部（留出 sticky 导航栏高度）以上最近的一个标题作为当前章节。
     // 用 getBoundingClientRect 而非 offsetTop：后者相对定位父元素，容器一旦 relative 就会算错。
     const LINE = 120;
     const update = () => {
-      let active = heads[0];
-      for (const h of heads) {
-        if (h.getBoundingClientRect().top <= LINE) active = h;
-        else break;
-      }
+      const tops = links.map((l) => l.head.getBoundingClientRect().top);
+      const end = prose ? prose.getBoundingClientRect().bottom : document.documentElement.scrollHeight - window.scrollY;
+      const bottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      let active = 0;
+      tops.forEach((top, i) => {
+        if (top <= LINE) active = i;
+      });
       // 滚到底时高亮最后一个
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
-        active = heads[heads.length - 1];
+      if (bottom) active = links.length - 1;
+      // 每个章节从自己的标题到下一个标题；视口内的标成可见，按阅读线算出已读比例
+      links.forEach((l, i) => {
+        const top = tops[i];
+        const next = i + 1 < links.length ? tops[i + 1] : end;
+        const visible = top < window.innerHeight && next > 0;
+        const read = bottom || i < active ? 1 : Math.max(0, Math.min(1, (LINE - top) / Math.max(1, next - top)));
+        if (visible !== l.visible) l.a.classList.toggle('is-visible', (l.visible = visible));
+        if (Math.abs(read - l.read) > 0.004) l.a.style.setProperty('--read', (l.read = read).toFixed(3));
+      });
+      setActive(links[active].a);
+      // 正文结束后目录跟着正文底边一起向上收起、淡出
+      let shift = 0;
+      if (wide.matches && prose) {
+        const rect = toc.getBoundingClientRect();
+        const previous = parseFloat(toc.style.getPropertyValue('--toc-shift')) || 0;
+        const naturalBottom = rect.bottom - previous;
+        shift = Math.min(0, end - naturalBottom);
+        const height = Math.max(1, rect.height);
+        toc.style.setProperty('--toc-opacity', String(Math.max(0, 1 + shift / height).toFixed(3)));
+        toc.classList.toggle('is-past', naturalBottom + shift <= 0);
+      } else {
+        toc.style.removeProperty('--toc-opacity');
+        toc.classList.remove('is-past');
       }
-      setActive(active.id);
+      toc.style.setProperty('--toc-shift', `${shift.toFixed(1)}px`);
+    };
+
+    // 每帧最多计算一次
+    let frame = 0;
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(() => { frame = 0; update(); });
     };
     let resizeTimer: ReturnType<typeof setTimeout> | undefined;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(fit, 120);
+      resizeTimer = setTimeout(() => { layout(); update(); }, 120);
     }, { signal });
-    // 每帧最多计算一次当前章节
-    let frame = 0;
-    window.addEventListener('scroll', () => {
-      if (!frame) frame = requestAnimationFrame(() => { frame = 0; update(); });
-    }, { passive: true, signal });
-    signal.addEventListener('abort', () => cancelAnimationFrame(frame));
+    wide.addEventListener('change', () => { syncOpen(); layout(); update(); }, { signal });
+    window.addEventListener('scroll', schedule, { passive: true, signal });
+    signal.addEventListener('abort', () => { cancelAnimationFrame(frame); cancelAnimationFrame(settle); clearTimeout(resizeTimer); });
     update();
   }
   initToc();
