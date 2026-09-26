@@ -12,16 +12,14 @@ const discussionUrl = `https://github.com/${settings.repo}/discussions`;
 ---
 
 {enabled && (
-  <section class="comments" aria-labelledby="comments-title" data-pagefind-ignore>
-    <header class="comments-heading">
-      <h2 id="comments-title"><span aria-hidden="true">✎</span> {en ? 'Comments' : '评论'}</h2>
-      <p>{en ? 'Leave a thought in the margin.' : '把想法写在页边。'}</p>
-    </header>
+  <section class="comments panel" aria-labelledby="comments-title" data-pagefind-ignore>
+    <h2 id="comments-title" class="panel-label"><span aria-hidden="true">✎</span> {en ? 'Comments' : '评论'}</h2>
+    <p class="comments-lead">{en ? 'Leave a thought in the margin.' : '把想法写在页边。'}</p>
     <site-comments
       data-repo={settings.repo} data-repo-id={settings.repoId}
       data-category={settings.category} data-category-id={settings.categoryId}
       data-term={term} data-lang={en ? 'en' : 'zh-CN'}
-      data-theme-path={withBase('/giscus/')} data-theme-version="notebook-5"
+      data-theme-path={withBase('/giscus/')} data-theme-version="notebook-6"
     >
       <p class="meta" data-comment-status role="status">{en ? 'Comments load when you scroll here.' : '滚动到这里时加载评论。'}</p>
     </site-comments>
@@ -31,15 +29,15 @@ const discussionUrl = `https://github.com/${settings.repo}/discussions`;
 )}
 
 <style>
-  .comments { margin-top: 3rem; padding-top: 1.75rem; border-top: 2px dashed var(--pencil-25); }
-  .comments-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1rem; margin-bottom: 1.25rem; }
-  .comments-heading h2 { margin: 0; font-size: 1.4rem; }
-  .comments-heading h2 span { color: var(--marker); }
-  .comments-heading p { margin: 0; font-size: .9rem; color: var(--pencil-60); }
-  .comments-link { margin: 1rem 0 0; font-size: .85rem; text-align: right; }
-  .comments-link a { color: var(--pencil-60); text-underline-offset: .25em; }
-  .comments-link a:hover { color: var(--pen); }
+  .comments { --r: -0.3deg; margin-top: 3.5rem; border-width: 3px; }
+  .comments .panel-label { font-size: 1.1rem; transform: translate(-50%, -50%) rotate(-1.5deg); }
+  .comments .panel-label span { color: var(--marker); }
+  .comments-lead { margin: 0 0 1rem; text-align: center; font-size: .95rem; color: var(--pencil-60); }
+  .comments-link { margin: .75rem 0 0; font-size: .85rem; text-align: right; }
+  .comments-link a { color: var(--pencil-60); text-decoration: underline wavy var(--pencil-25); text-underline-offset: .3em; }
+  .comments-link a:hover { color: var(--marker); text-decoration-color: var(--marker); }
   site-comments { display: block; min-height: 10rem; }
+  site-comments [data-comment-status] { text-align: center; }
   site-comments :global(giscus-widget::part(iframe)) { color-scheme: inherit; }
 </style>
 
