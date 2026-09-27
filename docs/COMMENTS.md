@@ -31,7 +31,9 @@ comments: false
 - 文章标题、站点域名和 GitHub Pages base 改变不影响关联；修改 slug、移动文章板块或更换评论仓库/分类前，需要规划评论迁移。不要直接重命名 giscus 创建的 Discussion。
 - 滚动接近评论区后才下载官方 Web Component 和加载 iframe，随网站四套配色和深浅色同步，切页时清理旧组件、监听和定时器。
 - 评论沿用文楷字体、纸张底色、铅笔描边和硬阴影；隐藏主帖表情栏，保留评论及回复。`src/styles/tokens.css` 是网站、CMS 预览和评论共用的设计变量；`src/styles/giscus.css` 控制 iframe 内布局。构建时生成八套 `/giscus/<配色>-<light|dark>.css`，字体仍使用网站自己的分片资源。
-- 自定义 CSS 使用 giscus 官方的主题 URL 接口。GitHub Pages 允许跨域读取静态资源；本地请用生产构建后的 `npm run preview` 检查（已仅对 giscus origin 开放预览资源）。浏览器若阻止 HTTPS iframe 读取本地 HTTP 资源，以部署后的实际加载为准。其他托管平台需给主题 CSS 和字体设置允许 `https://giscus.app` 跨域读取的响应头。
+- 自定义 CSS 使用 giscus 官方的主题 URL 接口。本地开发、构建预览和 HTTP 页面使用已部署站点的主题，地址来自 `SITE_URL` 或 `src/data/site.json` 的 `url`，保留当前构建的 base 路径，不写死个人域名。公开 HTTPS 页面（包括预览部署）仍从自身域名加载主题。GitHub Pages 允许跨域读取静态资源；其他托管平台需给主题 CSS 和字体设置允许 `https://giscus.app` 跨域读取的响应头。
+- 本地使用的是已部署版本的评论 CSS，修改本地 `giscus.css` 不会立即反映到评论 iframe；验证新主题需部署到可访问的 HTTPS 预览站点。正式地址及对应 base 下需已部署主题文件。
+- 本地和线上读取相同的 `src/data/interactions.json`，因此连接同一评论仓库；“在 GitHub 查看讨论”打开配置仓库的 Discussions 列表，不是按当前域名猜测仓库，也不是当前文章的单条讨论。本地预览不是评论沙盒，登录后发表评论会写入真实配置仓库。需要隔离时使用单独的测试仓库及配套 ID，或关闭本地评论。
 - 访客可以阅读评论；发表评论需 GitHub 登录授权。首次评论或回应时 giscus 自动创建 Discussion。
 - 加载失败有提示和 GitHub 讨论入口；浏览器禁用 JavaScript 时仍保留 GitHub 链接。讨论回链使用文章 canonical URL，避免从本地预览评论时留下 localhost 地址。
 

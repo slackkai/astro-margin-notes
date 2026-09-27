@@ -19,6 +19,7 @@ const discussionUrl = `https://github.com/${settings.repo}/discussions`;
       data-category={settings.category} data-category-id={settings.categoryId}
       data-term={term} data-lang={en ? 'en' : 'zh-CN'}
       data-theme-path={withBase('/giscus/')} data-theme-version="notebook-6"
+      data-theme-site={(Astro.site ?? new URL(config.site.url)).href}
     >
       <p class="meta" data-comment-status role="status">{en ? 'Comments load when you scroll here.' : '滚动到这里时加载评论。'}</p>
     </site-comments>
@@ -40,6 +41,7 @@ const discussionUrl = `https://github.com/${settings.repo}/discussions`;
 </style>
 
 <script>
+  import { commentThemeUrl } from '../utils/comment-theme-url.mjs';
   // Import only when a reader approaches the comments. The official component
   // owns its iframe, avoiding client.js injecting into a different article mid-navigation.
   class SiteComments extends HTMLElement {
@@ -84,9 +86,11 @@ const discussionUrl = `https://github.com/${settings.repo}/discussions`;
             // supplies an opaque canvas even when the theme background is transparent.
             if (widget) widget.style.colorScheme = mode;
             const palette = ['blue', 'classic', 'green', 'mono'].includes(root.dataset.palette ?? '') ? root.dataset.palette : 'blue';
-            const url = new URL(`${this.dataset.themePath}${palette}-${mode}.css`, location.origin);
-            url.searchParams.set('v', this.dataset.themeVersion!);
-            widget?.setAttribute('theme', url.href);
+            widget?.setAttribute('theme', commentThemeUrl({
+              pageUrl: location.href, siteUrl: this.dataset.themeSite!,
+              themePath: this.dataset.themePath!, palette, mode,
+              version: this.dataset.themeVersion!,
+            }));
           };
           setTheme();
           themeObserver = new MutationObserver(setTheme);
