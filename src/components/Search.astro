@@ -1,13 +1,13 @@
 ---
 /**
  * 全站搜索：Pagefind 静态索引 + 自绘弹窗。快捷键 / 或 Ctrl+K。
- * 索引在 `npm run build` 后由 postbuild 生成到 dist/pagefind；
- * 本地 dev 预览需先 build 一次并把 dist/pagefind 复制到 public/pagefind（见 README）。
+ * 索引由 `npm run build` 生成到 dist/pagefind；
+ * 完整开发预览使用 `npm run dev:full`；生产预览使用 `npm run preview:site`。
  */
 import { t } from '../i18n';
 ---
 
-<button class="search-btn" id="search-btn" aria-label="搜索" title="搜索 ( / )">
+<button class="search-btn" id="search-btn" aria-label={t.search.label} title={t.search.title}>
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
     <circle cx="11" cy="11" r="7" />
     <path d="m20 20-3.5-3.5" />
@@ -22,11 +22,11 @@ import { t } from '../i18n';
         <circle cx="11" cy="11" r="7" />
         <path d="m20 20-3.5-3.5" />
       </svg>
-      <input id="search-input" type="search" placeholder="搜全站…" autocomplete="off" spellcheck="false" />
-      <button id="search-close" type="button" aria-label="Close search">Esc</button>
+      <input id="search-input" type="search" aria-label={t.search.dialog} aria-describedby="search-hint" placeholder={t.search.placeholder} autocomplete="off" spellcheck="false" />
+      <button id="search-close" type="button" aria-label={t.search.close}>Esc</button>
     </div>
     <ul class="search-results" id="search-results" aria-live="polite"></ul>
-    <p class="search-hint meta" id="search-hint">输入关键词，↑↓ 选择，Enter 打开</p>
+    <p class="search-hint meta" id="search-hint" role="status">{t.search.hint}</p>
   </div>
 </dialog>
 
@@ -115,29 +115,29 @@ import { t } from '../i18n';
     flex-direction: column;
     gap: 0.25rem;
   }
-  .search-results li a {
+  .search-results :global(li a) {
     display: block;
     padding: 0.5rem 0.7rem;
     border: 2px solid transparent;
     border-radius: var(--radius-wobble-sm);
   }
-  .search-results li a:hover,
-  .search-results li.is-active a {
+  .search-results :global(li a:hover),
+  .search-results :global(li.is-active a) {
     border-color: var(--pencil);
     background: var(--postit);
   }
-  .search-results .r-title {
+  .search-results :global(.r-title) {
     font-weight: 700;
     display: flex;
     gap: 0.5rem;
     align-items: baseline;
   }
-  .search-results .r-sec {
+  .search-results :global(.r-sec) {
     font-size: 0.75rem;
     font-weight: 400;
     color: var(--pencil-45);
   }
-  .search-results .r-excerpt {
+  .search-results :global(.r-excerpt) {
     font-size: 0.9rem;
     color: var(--pencil-60);
     margin: 0.1rem 0 0;
@@ -146,7 +146,7 @@ import { t } from '../i18n';
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .search-results .r-excerpt :global(mark) {
+  .search-results :global(.r-excerpt mark) {
     background: var(--postit-3);
     color: inherit;
     padding: 0 0.1em;
@@ -183,6 +183,7 @@ import { t } from '../i18n';
     document.addEventListener("astro:before-swap", () => lifecycle?.abort(), { once: true, signal });
     const modalEl = modal, inputEl = input, listEl = list, hintEl = hint;
 
+    const failureHint = import.meta.env.DEV ? t.search.notBuilt : t.search.unavailable;
     let pf: PF | null = null;
     let loadFailed = false;
     let active = -1;
@@ -192,15 +193,16 @@ import { t } from '../i18n';
       if (pf || loadFailed) return;
       if (loading) return loading;
       loading = (async () => { try {
-        // 路径拼接成变量，避免 Vite 在构建期尝试解析这个运行时才存在的文件
-        const url = withBase('/pagefind/' + 'pagefind.js');
+        // 使用同源绝对 URL，让开发服务器按静态资源提供索引；
+        // 相对路径会被 Vite 加上 ?import，继而拒绝导入 public 中的 JS。
+        const url = new URL(withBase('/pagefind/' + 'pagefind.js'), location.origin).href;
         const loaded = (await import(/* @vite-ignore */ url)) as PF;
         await loaded.init();
         pf = loaded;
       } catch {
         loadFailed = true;
         pf = null;
-        hintEl.textContent = t.search.notBuilt;
+        hintEl.textContent = failureHint;
       }
       })();
       return loading;
@@ -212,7 +214,8 @@ import { t } from '../i18n';
       inputEl.value = '';
       listEl.innerHTML = '';
       active = -1;
-      hintEl.textContent = loadFailed ? t.search.notBuilt : t.search.hint;
+      if (loadFailed) { loadFailed = false; loading = null; }
+      hintEl.textContent = t.search.hint;
       inputEl.focus();
       loadPagefind();
     };
@@ -264,7 +267,7 @@ import { t } from '../i18n';
         const data = await Promise.all(res.results.slice(0, 10).map((r) => r.data()));
         if (mySeq === seq) render(data);
       } catch {
-        if (mySeq === seq) hintEl.textContent = t.search.notBuilt;
+        if (mySeq === seq) hintEl.textContent = failureHint;
       }
     });
 

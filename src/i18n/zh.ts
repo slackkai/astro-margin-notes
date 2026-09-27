@@ -99,7 +99,7 @@ export const zh = {
     sortDate: '最新',
     sortRating: '评分',
     sortStatus: '在读优先',
-    random: '🎲 随机来一本',
+    random: '🎲 随机看看',
   },
   projects: {
     status: { active: '进行中', done: '已完成', archived: '已归档', idea: '想法' } as Record<string, string>,
@@ -198,11 +198,13 @@ export const zh = {
     label: '搜索',
     title: '搜索 ( / )',
     dialog: '全站搜索',
+    close: '关闭搜索',
+    unavailable: '搜索暂时不可用，请稍后重新打开搜索。',
     placeholder: '搜全站…',
     hint: '输入关键词，↑↓ 选择，Enter 打开',
     noResults: '没有结果。',
     results: (n: number) => `${n} 条结果`,
-    notBuilt: '搜索索引尚未生成：先 npm run build，再把 dist/pagefind 复制到 public/pagefind。',
+    notBuilt: '本地搜索索引未就绪，请运行 npm run dev:full，或用 npm run preview:site 检查完整站点。',
   },
   palettes: {
     blue: '靛蓝 × 赭石',

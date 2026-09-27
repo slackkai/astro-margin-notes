@@ -2,15 +2,15 @@ import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { bundlePreviewRenderer } from './lib/bundle-cms-preview.mjs';
 import { makeCmsConfig } from '../cms.config.mjs';
+import { resolveCmsRepository } from './lib/cms-repository.mjs';
 
-let repo = process.env.GITHUB_REPOSITORY;
-if (!repo) {
+let remote = '';
+if (!process.env.CMS_REPOSITORY && !process.env.GITHUB_REPOSITORY) {
   try {
-    const remote = execFileSync('git', ['remote', 'get-url', 'origin'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-    repo = remote.match(/github\.com[:/]([^/]+\/[^/]+?)(?:\.git)?$/)?.[1];
-  } catch { /* An unconnected template can still be edited locally. */ }
+    remote = execFileSync('git', ['remote', 'get-url', 'origin'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  } catch { /* The resolver reports how to configure an unconnected checkout. */ }
 }
-repo ||= 'slackkai/astro-margin-notes';
+const repo = resolveCmsRepository({ configured: process.env.CMS_REPOSITORY, workflow: process.env.GITHUB_REPOSITORY, remote });
 const site = JSON.parse(await readFile(new URL('../src/data/site.json', import.meta.url), 'utf8'));
 const config = makeCmsConfig({ repo, siteUrl: process.env.SITE_URL || site.url, base: process.env.BASE_PATH || '/' });
 // Regenerated from node_modules every time, so nothing stale is deployed.

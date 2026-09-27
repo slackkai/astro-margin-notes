@@ -146,15 +146,17 @@ series:
 | 命令 | 用途 |
 | --- | --- |
 | `npm run dev` | 启动写作预览，显示草稿并生成后台资源 |
+| `npm run dev:full` | 先生成一次搜索索引，再启动写作预览 |
 | `npm run build` | 构建静态网站、后台与 Pagefind 索引 |
 | `npm run preview` | 预览生产构建，验证真实搜索 |
+| `npm run preview:site` | 构建 + 链接检查 + 生产预览，发布前完整预览 |
 | `npm run preview -- stop` | 停止 Astro 的后台预览服务 |
 | `npm run check` | 类型和 Astro 检查 |
 | `npm test` | 轻量回归测试 |
 | `npm run test:production` | 真实构建回归，验证草稿、附件、项目文档、Markdown 指令和配置开关；结束后重新构建 |
 | `npm run verify` | 检查构建后的站内链接、资源、锚点和部署产物 |
 
-开发时搜索索引不会实时更新。需要验证搜索时运行 `npm run build` 后使用 `npm run preview`；`npm run search:dev` 可以把一次构建的搜索索引复制到开发服务器，但它会随内容编辑过期。
+开发时搜索索引不会实时更新。需要验证搜索时运行 `npm run build` 后使用 `npm run preview`；`npm run search:dev` 可以把一次构建的搜索索引复制到开发服务器，但它会随内容编辑过期。搜索索引刷新、后台仓库选择（`CMS_REPOSITORY`）及评论/留言的本地边界见 [本地预览与外部服务](docs/LOCAL-DEVELOPMENT.md)。
 
 ## 留言与许可
 

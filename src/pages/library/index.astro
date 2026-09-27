@@ -3,21 +3,13 @@ import { withBase } from '../../utils/url';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import LibraryCard from '../../components/LibraryCard.astro';
 import { SECTIONS } from '../../config';
+import { t } from '../../i18n';
 import { getPosts } from '../../utils/content';
 
 const items = await getPosts('library');
 const sec = SECTIONS.library;
 
-const TYPE_LABEL: Record<string, string> = {
-  book: '书',
-  paper: '论文',
-  tool: '工具',
-  course: '课程',
-  article: '文章',
-  video: '视频',
-  dataset: '数据集',
-  other: '其他',
-};
+const TYPE_LABEL = t.library.types;
 const STATUS_ORDER: Record<string, number> = { reading: 0, todo: 1, done: 2 };
 const types = [...new Set(items.map((i) => i.data.type))];
 ---
@@ -32,27 +24,27 @@ const types = [...new Set(items.map((i) => i.data.type))];
       {
         types.length > 1 && (
           <div class="filters" role="group" aria-label="按类型筛选">
-            <button class="hand-btn small is-on" data-type="all">
+            <button class="hand-btn small is-on" data-type="all" aria-pressed="true" aria-controls="lib-grid">
               全部
             </button>
             {types.map((t) => (
-              <button class="hand-btn small" data-type={t}>
+              <button class="hand-btn small" data-type={t} aria-pressed="false" aria-controls="lib-grid">
                 {TYPE_LABEL[t] ?? t}
               </button>
             ))}
           </div>
         )
       }
-      <input id="lib-search" class="search" type="search" placeholder="搜标题 / 作者 / 标签…" aria-label="搜索资料库" />
+      <input id="lib-search" class="search" type="search" placeholder={t.library.searchPlaceholder} aria-label={t.library.searchLabel} />
     </div>
     <div class="toolbar reveal" style="--i:4">
       <div class="sorts" role="group" aria-label="排序">
         <span class="meta">排序</span>
-        <button class="hand-btn small is-on" data-sort="date">最新</button>
-        <button class="hand-btn small" data-sort="rating">评分</button>
-        <button class="hand-btn small" data-sort="status">在读优先</button>
+        <button class="hand-btn small is-on" data-sort="date" aria-pressed="true" aria-controls="lib-grid">{t.library.sortDate}</button>
+        <button class="hand-btn small" data-sort="rating" aria-pressed="false" aria-controls="lib-grid">{t.library.sortRating}</button>
+        <button class="hand-btn small" data-sort="status" aria-pressed="false" aria-controls="lib-grid">{t.library.sortStatus}</button>
       </div>
-      <button class="hand-btn small" id="lib-random">🎲 随机来一本</button>
+      <button class="hand-btn small" id="lib-random">{t.library.random}</button>
     </div>
 
     <div class="grid" id="lib-grid">
@@ -201,14 +193,20 @@ const types = [...new Set(items.map((i) => i.data.type))];
     }
     typeBtns.forEach((b) =>
       b.addEventListener('click', () => {
-        typeBtns.forEach((x) => x.classList.toggle('is-on', x === b));
+        typeBtns.forEach((x) => {
+          x.classList.toggle('is-on', x === b);
+          x.setAttribute('aria-pressed', String(x === b));
+        });
         type = b.dataset.type ?? 'all';
         apply();
       }),
     );
     sortBtns.forEach((b) =>
       b.addEventListener('click', () => {
-        sortBtns.forEach((x) => x.classList.toggle('is-on', x === b));
+        sortBtns.forEach((x) => {
+          x.classList.toggle('is-on', x === b);
+          x.setAttribute('aria-pressed', String(x === b));
+        });
         sortBy(b.dataset.sort ?? 'date');
       }),
     );
