@@ -6,7 +6,8 @@ import { t } from '../i18n';
  * 三级结构：顶层取正文里最高一级的标题（多数文章是 h2，用 h1 分节的文章则是 h1），
  * 下面再挂两级。宽屏下目录放不下时按顺序折叠低级标题——先收起第三级，仍放不下再收起第二级，
  * 当前章节所在的分支始终展开；折叠后仍放不下则目录自身滚动，并随页面滚动保持当前条目可见。
- * 左侧轨道兼作阅读进度：读过的部分淡淡染色，当前章节是一段滑动的游标；正文结束后目录随页面向上收起。
+ * 左侧铅笔虚线轨道表示目录位置：实线和小圆钮停在当前条目，不表示全文阅读百分比，
+ * 当前条目的文字像被荧光笔划过；正文结束后目录随页面向上收起。
  * 用法：const { headings } = await render(post); <Toc headings={headings} />
  */
 interface Heading {
@@ -36,7 +37,7 @@ const escape = (value: string) => value.replace(/[&<>"]/g, (c) => ({ '&': '&amp;
 const renderList = (nodes: Node[], level: number): string =>
   `<ul class="${level === 1 ? 'toc-list' : `toc-children l${level}`}">` +
   nodes.map((node) =>
-    `<li class="toc-item d${level}"><a href="${escape(withBase(`#${node.heading.slug}`))}" data-slug="${escape(node.heading.slug)}">${escape(node.heading.text)}</a>` +
+    `<li class="toc-item d${level}"><a href="${escape(withBase(`#${node.heading.slug}`))}" data-slug="${escape(node.heading.slug)}"><span class="toc-text">${escape(node.heading.text)}</span></a>` +
     (node.children.length > 0 ? renderList(node.children, level + 1) : '') + '</li>').join('') +
   '</ul>';
 ---
@@ -109,7 +110,7 @@ const renderList = (nodes: Node[], level: number): string =>
     display: block;
     padding: 0.1rem 0.5rem;
     border-left: 2px solid transparent;
-    color: var(--pencil-60);
+    color: color-mix(in srgb, var(--pencil) 82%, transparent);
     font-size: 0.95rem;
     line-height: 1.45;
     overflow-wrap: anywhere;
@@ -163,23 +164,40 @@ const renderList = (nodes: Node[], level: number): string =>
       padding: 0;
     }
     .toc-title {
+      display: block;
       pointer-events: none;
-      font-size: 0.85rem;
-      color: var(--pencil-45);
-      letter-spacing: 0.1em;
+      font-size: 0.8rem;
+      color: var(--pencil-60);
+      letter-spacing: 0.24em;
     }
     .toc-title::before {
       display: none;
     }
+    /* 标题下一笔记号笔短划 */
+    .toc-title::after {
+      content: '';
+      display: block;
+      width: 1.9rem;
+      height: 3px;
+      margin: 0.3rem 0 0 1px;
+      border-radius: 3px 1px 3px 1px / 60% 40% 60% 40%;
+      background: var(--marker);
+      opacity: 0.75;
+      transform: rotate(-2.5deg);
+    }
     .toc-list {
+      margin-top: 0.8rem;
       /* 底部留出余量，淡出落在视口内而不是贴着窗口底边 */
       max-height: calc(100vh - 12rem);
-      /* 给游标留出左侧空间，不被 overflow 裁掉 */
-      padding-left: 2px;
+      padding-left: 0;
       overflow-y: auto;
       overflow-x: hidden;
       overscroll-behavior: contain;
+      overflow-anchor: none;
+      scroll-behavior: auto;
       scrollbar-width: none;
+      /* 铅笔虚线轨道：画成随内容滚动的背景，整份目录一条线，虚线不会在条目之间断开 */
+      background: repeating-linear-gradient(to bottom, var(--pencil-25) 0 5px, transparent 5px 10px) 4px 0 / 2px 100% no-repeat local;
       /* 只在还有被遮住内容的一侧淡出：滚到顶或底时，第一条、最后一条完整显示 */
       --fade-top: 0rem;
       --fade-bottom: 0rem;
@@ -196,8 +214,7 @@ const renderList = (nodes: Node[], level: number): string =>
     .toc-list.is-clipped-bottom {
       --fade-bottom: 2.5rem;
     }
-    /* 左侧是一根很淡的轨道；读过的部分淡淡染上记号笔色，当前章节是一段顺着轨道滑动的短游标。
-       层级只靠缩进、字号和深浅区分，轨道本身不分级。 */
+    /* 层级靠缩进、字号和深浅区分；当前条目用荧光笔划过，而不是改字色 */
     .toc-list,
     .toc-children {
       gap: 0;
@@ -206,23 +223,40 @@ const renderList = (nodes: Node[], level: number): string =>
       padding-top: 0;
     }
     .toc-item a {
-      padding-block: 0.15rem;
-      border-left: 1px solid color-mix(in srgb, var(--pencil) 15%, transparent);
-      color: color-mix(in srgb, var(--pencil) 72%, transparent);
+      padding: 0.2rem 0 0.2rem 1.1rem;
+      border-left: 0;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: color-mix(in srgb, var(--pencil) 86%, transparent);
     }
     .toc-item.d2 a {
-      color: color-mix(in srgb, var(--pencil) 60%, transparent);
+      padding-left: 1.95rem;
+      font-size: 0.86rem;
+      color: color-mix(in srgb, var(--pencil) 80%, transparent);
     }
     .toc-item.d3 a {
-      color: color-mix(in srgb, var(--pencil) 50%, transparent);
+      padding-left: 2.8rem;
+      font-size: 0.8rem;
+      color: color-mix(in srgb, var(--pencil) 76%, transparent);
     }
     .toc-item.is-current > a,
     .toc-item a:hover {
       color: var(--pencil);
     }
     .toc .toc-item > a.is-active {
-      color: var(--marker);
-      border-left-color: color-mix(in srgb, var(--pencil) 15%, transparent);
+      color: var(--pencil);
+    }
+    .toc-text {
+      padding: 0.05em 0.3em;
+      margin: 0 -0.3em;
+      border-radius: 0.25em 0.1em 0.3em 0.15em;
+      background: linear-gradient(100deg, transparent 0.5%, color-mix(in srgb, var(--marker) 16%, transparent) 1.5%, color-mix(in srgb, var(--marker) 26%, transparent) 97%, transparent 99%) no-repeat 0 0 / 0% 100%;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      transition: background-size 0.4s cubic-bezier(0.3, 0.7, 0.2, 1);
+    }
+    a.is-active > .toc-text {
+      background-size: 100% 100%;
     }
     .toc-fill,
     .toc-thumb {
@@ -232,53 +266,43 @@ const renderList = (nodes: Node[], level: number): string =>
       pointer-events: none;
     }
     .toc-fill {
-      left: 2px;
-      width: 1px;
+      left: 4px;
+      width: 2px;
       height: 0;
-      background: color-mix(in srgb, var(--marker) 30%, transparent);
-      transition: height 0.3s ease;
+      border-radius: 1px;
+      background: color-mix(in srgb, var(--marker) 70%, transparent);
+
     }
+    /* 与右侧阅读进度同款的小圆钮 */
     .toc-thumb {
-      left: 1px;
-      width: 3px;
-      height: 1.5rem;
-      border-radius: 3px 2px 3px 2px / 60% 40% 60% 40%;
+      left: 0;
+      width: 10px;
+      height: 10px;
+      box-sizing: border-box;
+      border: 1.5px solid var(--pencil);
+      border-radius: 50% 45% 55% 50% / 55% 50% 50% 45%;
       background: var(--marker);
       opacity: 0;
-      transition: transform 0.32s cubic-bezier(0.3, 0.7, 0.2, 1), height 0.32s ease, width 0.12s ease, left 0.12s ease, opacity 0.2s ease;
+      transition: scale 0.12s ease, opacity 0.2s ease;
     }
     .toc-thumb.is-placed {
       opacity: 1;
     }
     .toc-list:has(a.is-active:hover) .toc-thumb {
-      left: 0;
-      width: 5px;
+      scale: 1.25;
     }
-    /* 目录过长：先收起第三级，再收起第二级；当前章节所在分支保持展开，展开收起带高度过渡 */
-    .toc-item {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      transition: grid-template-rows 0.28s ease;
-    }
-    .toc-children {
-      min-height: 0;
-      overflow: hidden;
-      transition: opacity 0.2s ease, visibility 0.28s;
-    }
-    .toc.is-fold-3 .toc-item.d2:not(.is-current),
-    .toc.is-fold-2 .toc-item.d1:not(.is-current) {
-      grid-template-rows: auto 0fr;
-    }
+    /* 分支一次切换到最终布局，避免高度动画与目录滚动互相追赶。 */
     .toc.is-fold-3 .toc-item.d2:not(.is-current) > .toc-children,
     .toc.is-fold-2 .toc-item.d1:not(.is-current) > .toc-children {
-      opacity: 0;
-      visibility: hidden;
+      display: none;
     }
+    /* 箭头提示该分支还有子标题；点击标题会跳转并展开当前分支。 */
     .toc.is-fold-3 .toc-item.d2:has(> .toc-children):not(.is-current) > a::after,
     .toc.is-fold-2 .toc-item.d1:has(> .toc-children):not(.is-current) > a::after {
-      content: ' ▸';
-      font-size: 0.7em;
-      color: var(--pencil-45);
+      content: '▸';
+      margin-left: 0.4em;
+      font-size: 0.8em;
+      color: color-mix(in srgb, var(--pencil) 76%, transparent);
     }
     /* 测量折叠后的最终布局时关闭过渡 */
     .toc.is-measuring,
@@ -308,7 +332,6 @@ const renderList = (nodes: Node[], level: number): string =>
     // 宽屏默认展开
     const details = toc.querySelector<HTMLDetailsElement>('details');
     const wide = window.matchMedia('(min-width: 1200px)');
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     const syncOpen = () => {
       if (details) details.open = wide.matches;
     };
@@ -321,15 +344,16 @@ const renderList = (nodes: Node[], level: number): string =>
       list.classList.toggle('is-clipped-bottom', max > 1 && list.scrollTop < max - 1);
     };
     list.addEventListener('scroll', edges, { passive: true, signal });
-    // 当前条目在目录中间时的滚动位置；需在最终布局下计算。
-    const target = () => {
-      const active = list.querySelector<HTMLElement>('a.is-active');
-      const max = list.scrollHeight - list.clientHeight;
-      if (!active || max <= 1) return 0;
-      return Math.max(0, Math.min(max, active.offsetTop - list.clientHeight / 2 + active.offsetHeight / 2));
-    };
-    const follow = (top = target()) => {
-      if (Math.abs(top - list.scrollTop) > 1) list.scrollTo({ top, behavior: reduced.matches ? 'auto' : 'smooth' });
+    // 只补足被遮住的距离，已在视口内的条目不重新居中。
+    const follow = () => {
+      if (!wide.matches || !activeLink) return;
+      const inset = Math.min(40, list.clientHeight / 4);
+      const top = activeLink.offsetTop;
+      const bottom = top + activeLink.offsetHeight;
+      if (top < list.scrollTop + inset) list.scrollTop = Math.max(0, top - inset);
+      else if (bottom > list.scrollTop + list.clientHeight - inset) {
+        list.scrollTop = Math.min(top, bottom - list.clientHeight + inset);
+      }
       edges();
     };
 
@@ -337,7 +361,6 @@ const renderList = (nodes: Node[], level: number): string =>
       toc.classList.toggle('is-fold-3', fold >= 1);
       toc.classList.toggle('is-fold-2', fold >= 2);
     };
-    const foldLevel = () => (toc.classList.contains('is-fold-2') ? 2 : toc.classList.contains('is-fold-3') ? 1 : 0);
     const markCurrent = (items: Element[]) => {
       toc.querySelectorAll('.is-current').forEach((item) => item.classList.remove('is-current'));
       items.forEach((item) => item.classList.add('is-current'));
@@ -351,63 +374,57 @@ const renderList = (nodes: Node[], level: number): string =>
       return items;
     };
 
-    // 宽屏下整份目录放不下时按顺序折叠：先第三级，再第二级。
-    // 先关掉过渡量出最终布局，再退回原状态、打开过渡切过去，展开收起就有高度动画。
+    // 折叠级别只在初始化、窗口或字体尺寸变化时计算，不随当前章节反复变化。
     let activeLink: HTMLAnchorElement | undefined;
-    const layout = (animate = true) => {
-      const before = { fold: foldLevel(), current: [...toc.querySelectorAll('.is-current')] };
-      const current = branch(activeLink);
+    let fold = 0;
+    const layout = (recalculate = false) => {
+      // 保住新条目（尚未展开时取其可见祖先）的屏幕位置。
+      const anchor = branch(activeLink)
+        .map((item) => item.querySelector<HTMLAnchorElement>(':scope > a'))
+        .find((a) => a && a.getClientRects().length > 0);
+      const before = anchor ? anchor.offsetTop - list.scrollTop : 0;
       toc.classList.add('is-measuring');
-      markCurrent(current);
-      let fold = 0;
-      setFold(0);
-      if (wide.matches) {
-        const available = parseFloat(getComputedStyle(list).maxHeight) || Infinity;
-        while (fold < 2 && list.scrollHeight > available) setFold(++fold);
+      if (recalculate) {
+        // 绝对定位的轨道也会撑大 scrollHeight，测量前先归零。
+        fill.style.height = '0px';
+        thumb.style.transform = 'translateY(0px)';
+        markCurrent([]);
+        fold = 0;
+        setFold(0);
+        if (wide.matches) {
+          const available = parseFloat(getComputedStyle(list).maxHeight) || Infinity;
+          while (fold < 2 && list.scrollHeight > available) setFold(++fold);
+        }
       }
+      markCurrent(branch(activeLink));
       setFold(fold);
-      const top = target();
-      const geometry = measure();
-      if (!animate) {
-        place(geometry);
-        void list.offsetHeight;
-        toc.classList.remove('is-measuring');
-        list.scrollTop = top;
-        edges();
-        return;
-      }
-      markCurrent(before.current);
-      setFold(before.fold);
+      if (wide.matches && anchor) list.scrollTop = anchor.offsetTop - before;
+      follow();
+      place();
+      edges();
       void list.offsetHeight;
       toc.classList.remove('is-measuring');
-      markCurrent(current);
-      setFold(fold);
-      place(geometry);
-      follow(top);
     };
-    // 折叠动画结束后布局才稳定，再校正一次位置和淡出。
-    let settle = 0;
-    list.addEventListener('transitionend', (event) => {
-      if (event.propertyName !== 'grid-template-rows') return;
-      cancelAnimationFrame(settle);
-      settle = requestAnimationFrame(() => { place(); follow(); });
-    }, { signal });
 
-    // 轨道上的染色和游标。放在目录列表里，随目录自身滚动。
+    // 轨道上的实线和圆钮。放在目录列表里，随目录自身滚动。
     const fill = document.createElement('span');
     const thumb = document.createElement('span');
     fill.className = 'toc-fill';
     thumb.className = 'toc-thumb';
     fill.ariaHidden = thumb.ariaHidden = 'true';
     list.append(fill, thumb);
-    let progress = 0;
-    const measure = () => (activeLink ? { top: activeLink.offsetTop, height: activeLink.offsetHeight } : null);
+    // 圆钮对齐条目第一行文字的中线，条目折成多行时也不会落到两行之间
+    const measure = () => {
+      if (!activeLink) return null;
+      const style = getComputedStyle(activeLink);
+      const height = activeLink.offsetHeight;
+      const center = parseFloat(style.paddingTop) + (parseFloat(style.lineHeight) || 20) / 2;
+      return { top: activeLink.offsetTop, height, center: Math.min(center, height / 2) };
+    };
     const place = (geometry = measure()) => {
       if (!geometry) return;
-      const height = Math.max(20, Math.min(32, geometry.height - 4));
-      thumb.style.transform = `translateY(${(geometry.top + (geometry.height - height) / 2).toFixed(1)}px)`;
-      thumb.style.height = `${height}px`;
-      fill.style.height = `${(geometry.top + progress * geometry.height).toFixed(1)}px`;
+      thumb.style.transform = `translateY(${(geometry.top + geometry.center - thumb.offsetHeight / 2).toFixed(1)}px)`;
+      fill.style.height = `${(geometry.top + geometry.center).toFixed(1)}px`;
       thumb.classList.add('is-placed');
     };
 
@@ -415,9 +432,11 @@ const renderList = (nodes: Node[], level: number): string =>
       if (a === activeLink) return;
       const first = !activeLink;
       activeLink?.classList.remove('is-active');
+      activeLink?.removeAttribute('aria-current');
       activeLink = a;
       a.classList.add('is-active');
-      layout(!first);
+      a.setAttribute('aria-current', 'location');
+      layout(first);
     };
 
     // 取视口顶部（留出 sticky 导航栏高度）以上最近的一个标题作为当前章节。
@@ -433,9 +452,6 @@ const renderList = (nodes: Node[], level: number): string =>
       });
       // 滚到底时高亮最后一个
       if (bottom) active = links.length - 1;
-      // 当前章节从自己的标题读到下一个标题的比例，决定轨道染色停在游标的哪里
-      const next = active + 1 < links.length ? tops[active + 1] : end;
-      progress = bottom ? 1 : Math.max(0, Math.min(1, (LINE - tops[active]) / Math.max(1, next - tops[active])));
       if (links[active].a === activeLink) place();
       else setActive(links[active].a);
       // 正文结束后目录跟着正文底边一起向上收起、淡出
@@ -463,11 +479,14 @@ const renderList = (nodes: Node[], level: number): string =>
     let resizeTimer: ReturnType<typeof setTimeout> | undefined;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => { layout(); update(); }, 120);
+      resizeTimer = setTimeout(() => { layout(true); update(); }, 120);
     }, { signal });
-    wide.addEventListener('change', () => { syncOpen(); layout(); update(); }, { signal });
+    wide.addEventListener('change', () => { syncOpen(); layout(true); update(); }, { signal });
     window.addEventListener('scroll', schedule, { passive: true, signal });
-    signal.addEventListener('abort', () => { cancelAnimationFrame(frame); cancelAnimationFrame(settle); clearTimeout(resizeTimer); });
+    signal.addEventListener('abort', () => { cancelAnimationFrame(frame); clearTimeout(resizeTimer); });
+    document.fonts.ready.then(() => {
+      if (!signal.aborted) { layout(true); update(); }
+    });
     update();
   }
   initToc();
