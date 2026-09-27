@@ -269,6 +269,10 @@ const renderList = (nodes: Node[], level: number): string =>
       height: 18px;
       border-radius: 2px 1px 2px 1px;
       background: var(--marker);
+      /* 限定移动色块的绘制范围，避免分数缩放下合成层边缘拉出细线。 */
+      contain: paint;
+      clip-path: inset(0 round 2px 1px 2px 1px);
+      will-change: transform;
       opacity: 0;
       transition: opacity 0.15s ease;
     }
@@ -377,7 +381,11 @@ const renderList = (nodes: Node[], level: number): string =>
     };
     const place = (y = cursorTarget()) => {
       cursorY = y;
-      thumb.style.transform = `translateY(${y.toFixed(2)}px)`;
+      // 按屏幕物理像素对齐；保留 cursorY 的精度用于下一次动画插值。
+      const ratio = window.devicePixelRatio || 1;
+      const origin = details?.getBoundingClientRect().top ?? 0;
+      const aligned = Math.round((origin + y) * ratio) / ratio - origin;
+      thumb.style.transform = `translate3d(0, ${aligned.toFixed(3)}px, 0)`;
       const top = list.offsetTop;
       thumb.classList.toggle('is-placed', wide.matches && y >= top && y + thumb.offsetHeight <= top + list.clientHeight);
     };
