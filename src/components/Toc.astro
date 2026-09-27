@@ -138,7 +138,7 @@ const renderList = (nodes: Node[], level: number): string =>
     color: var(--marker);
   }
 
-  .toc-thumb {
+  .toc-cursor {
     display: none;
   }
 
@@ -219,6 +219,7 @@ const renderList = (nodes: Node[], level: number): string =>
     }
     .toc-children {
       padding-top: 0;
+      overflow: hidden;
     }
     .toc-item a {
       padding: 0.2rem 0 0.2rem 1.1rem;
@@ -256,34 +257,28 @@ const renderList = (nodes: Node[], level: number): string =>
     a.is-active > .toc-text {
       background-size: 100% 100%;
     }
-    .toc-thumb {
+    /* 短笔划只标记当前章节；全文进度由右侧控件负责。 */
+    .toc-cursor {
       display: block;
       position: absolute;
       top: 0;
       pointer-events: none;
-    }
-    /* 短笔划标记当前章节，与右侧表示全文进度的圆钮区分。 */
-    .toc-thumb {
       left: 3px;
       width: 3px;
       height: 18px;
       border-radius: 2px 1px 2px 1px;
       background: var(--marker);
-      /* 限定移动色块的绘制范围，避免分数缩放下合成层边缘拉出细线。 */
+      /* 将动画色块的绘制限制在自身圆角范围内。 */
       contain: paint;
-      clip-path: inset(0 round 2px 1px 2px 1px);
       will-change: transform;
       opacity: 0;
       transition: opacity 0.15s ease;
     }
-    .toc-thumb.is-placed {
+    .toc-cursor.is-placed {
       opacity: 1;
     }
     /* JS 在同一时间轴内插值分支高度、目录滚动和游标位置。
        这里定义静止状态；动画完成后恢复自然高度。 */
-    .toc-children {
-      overflow: hidden;
-    }
     .toc.is-fold-3 .toc-item.d2:not(.is-current) > .toc-children,
     .toc.is-fold-2 .toc-item.d1:not(.is-current) > .toc-children {
       display: none;
@@ -366,18 +361,18 @@ const renderList = (nodes: Node[], level: number): string =>
     };
 
     const groups = [...list.querySelectorAll<HTMLElement>('.toc-children')];
-    const thumb = document.createElement('span');
-    thumb.className = 'toc-thumb';
-    thumb.ariaHidden = 'true';
+    const cursor = document.createElement('span');
+    cursor.className = 'toc-cursor';
+    cursor.ariaHidden = 'true';
     // 放在滚动列表之外，游标不会撑大列表的 scrollHeight。
-    details?.append(thumb);
+    details?.append(cursor);
     let cursorY = 0;
     const cursorTarget = () => {
       if (!activeLink || !details) return 0;
       const style = getComputedStyle(activeLink);
       const center = parseFloat(style.paddingTop) + (parseFloat(style.lineHeight) || 20) / 2;
       return activeLink.getBoundingClientRect().top - details.getBoundingClientRect().top
-        + Math.min(center, activeLink.offsetHeight / 2) - thumb.offsetHeight / 2;
+        + Math.min(center, activeLink.offsetHeight / 2) - cursor.offsetHeight / 2;
     };
     const place = (y = cursorTarget()) => {
       cursorY = y;
@@ -385,9 +380,9 @@ const renderList = (nodes: Node[], level: number): string =>
       const ratio = window.devicePixelRatio || 1;
       const origin = details?.getBoundingClientRect().top ?? 0;
       const aligned = Math.round((origin + y) * ratio) / ratio - origin;
-      thumb.style.transform = `translate3d(0, ${aligned.toFixed(3)}px, 0)`;
+      cursor.style.transform = `translate3d(0, ${aligned.toFixed(3)}px, 0)`;
       const top = list.offsetTop;
-      thumb.classList.toggle('is-placed', wide.matches && y >= top && y + thumb.offsetHeight <= top + list.clientHeight);
+      cursor.classList.toggle('is-placed', wide.matches && y >= top && y + cursor.offsetHeight <= top + list.clientHeight);
     };
     const clearGroupStyles = () => groups.forEach((group) => {
       group.style.removeProperty('height');
