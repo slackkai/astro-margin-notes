@@ -37,9 +37,12 @@ function syncTheme(frame: HTMLIFrameElement) {
 function fit(frame: HTMLIFrameElement) {
   const doc = frame.contentDocument;
   if (!doc?.documentElement || frame.dataset.fixed) return;
-  // 量 body 的内容高度。documentElement.scrollHeight 永远不会小于 iframe 当前视口，
-  // 用它会让高度只能涨不能跌：内容变短（重来、收起布局）后，底部会留下一段空白。
-  const height = Math.ceil(doc.body?.scrollHeight ?? doc.documentElement.scrollHeight);
+  // 量 body 的内容高度：documentElement.scrollHeight 被 iframe 视口钳住，高度只能涨不能跌。
+  // 再加 2px 缓冲：高度恰好卡在分界上时纵向滚动条会一闪一灭，它占掉的 ~15px 宽度又反过来
+  // 改变折行高度，高度和滚动条互相追逐，嵌入页会持续闪烁。
+  const body = doc.body;
+  const content = body ? Math.max(body.scrollHeight, body.getBoundingClientRect().height) : doc.documentElement.scrollHeight;
+  const height = Math.ceil(content) + 2;
   if (height > 0 && frame.style.height !== `${height}px`) frame.style.height = `${height}px`;
 }
 
@@ -47,6 +50,9 @@ function attach(frame: HTMLIFrameElement) {
   if (frame.dataset.bound) return;
   frame.dataset.bound = '1';
   const ready = () => {
+    // 自动高度模式不需要滚动条：让它根本不出现，切断「滚动条宽度 ⇄ 内容高度」的反馈回路。
+    const root = frame.contentDocument?.documentElement;
+    if (root && !frame.dataset.fixed) root.style.overflow = 'hidden';
     syncTheme(frame);
     fit(frame);
     const body = frame.contentDocument?.body;
