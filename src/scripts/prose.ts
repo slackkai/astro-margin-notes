@@ -37,8 +37,10 @@ function syncTheme(frame: HTMLIFrameElement) {
 function fit(frame: HTMLIFrameElement) {
   const doc = frame.contentDocument;
   if (!doc?.documentElement || frame.dataset.fixed) return;
-  const height = Math.ceil(doc.documentElement.scrollHeight);
-  if (height > 0) frame.style.height = `${height}px`;
+  // 量 body 的内容高度。documentElement.scrollHeight 永远不会小于 iframe 当前视口，
+  // 用它会让高度只能涨不能跌：内容变短（重来、收起布局）后，底部会留下一段空白。
+  const height = Math.ceil(doc.body?.scrollHeight ?? doc.documentElement.scrollHeight);
+  if (height > 0 && frame.style.height !== `${height}px`) frame.style.height = `${height}px`;
 }
 
 function attach(frame: HTMLIFrameElement) {
